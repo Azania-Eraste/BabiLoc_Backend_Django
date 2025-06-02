@@ -14,9 +14,18 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from rest_framework.permissions import IsAuthenticated
 
 User = get_user_model()
 
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = RegisterSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ForgotPasswordView(APIView):
     def post(self, request):
