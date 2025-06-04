@@ -10,6 +10,7 @@ from .serializers import RegisterSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils import generate_activation_link
 from django.core.mail import EmailMultiAlternatives
+from rest_framework import permissions
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
@@ -83,6 +84,7 @@ class ResetPasswordConfirmView(APIView):
         return Response({'message': 'Mot de passe réinitialisé avec succès'})
 
 class RegisterView(APIView):
+    permission_classes = [permissions.AllowAny] 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():

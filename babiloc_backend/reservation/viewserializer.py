@@ -90,6 +90,13 @@ class MesReservationsView(generics.ListAPIView):
         return super().get(request, *args, **kwargs)
     
     def get_queryset(self):
+        # Protection contre les appels Swagger sans utilisateur authentifié
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
+        
+        if not self.request.user.is_authenticated:
+            return Reservation.objects.none()
+            
         queryset = Reservation.objects.filter(user=self.request.user)
         
         # Filtres optionnels
@@ -145,6 +152,10 @@ class AllReservationsView(generics.ListAPIView):
         return super().get(request, *args, **kwargs)
     
     def get_queryset(self):
+        # Protection contre les appels Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
+        
         queryset = Reservation.objects.all().select_related('user')
         
         # Filtres
@@ -203,6 +214,13 @@ class ReservationDetailView(generics.RetrieveUpdateAPIView):
         return super().patch(request, *args, **kwargs)
     
     def get_queryset(self):
+        # Protection contre les appels Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
+        
+        if not self.request.user.is_authenticated:
+            return Reservation.objects.none()
+            
         if self.request.user.is_staff:
             return Reservation.objects.all()
         return Reservation.objects.filter(user=self.request.user)
