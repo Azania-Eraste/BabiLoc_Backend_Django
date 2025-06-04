@@ -1,0 +1,41 @@
+Watching for file changes with StatReloader
+Unauthorized: /api/auth/register/
+"GET /api/auth/register/ HTTP/1.1" 401 3862
+"GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 304 0
+"GET /static/rest_framework/css/prettify.css HTTP/1.1" 304 0
+"GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 304 0
+"GET /static/rest_framework/css/default.css HTTP/1.1" 304 0
+"GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/csrf.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/default.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/load-ajax-form.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 304 0
+"GET /static/rest_framework/img/grid.png HTTP/1.1" 304 0
+"GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/csrf.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/default.js HTTP/1.1" 304 0
+"GET /static/rest_framework/js/load-ajax-form.js HTTP/1.1" 304 0
+"GET /api/ HTTP/1.1" 200 2207
+"GET /static/drf-yasg/style.css HTTP/1.1" 304 0
+"GET /static/drf-yasg/swagger-ui-init.js HTTP/1.1" 304 0
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-bundle.js HTTP/1.1" 304 0
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui.css HTTP/1.1" 304 0
+"GET /static/drf-yasg/insQ.min.js HTTP/1.1" 304 0
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-standalone-preset.js HTTP/1.1" 304 0
+"GET /static/drf-yasg/immutable.min.js HTTP/1.1" 304 0
+"GET /static/drf-yasg/insQ.min.js HTTP/1.1" 304 0
+"GET /static/drf-yasg/immutable.min.js HTTP/1.1" 304 0
+"GET /static/drf-yasg/swagger-ui-init.js HTTP/1.1" 200 15480
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-bundle.js HTTP/1.1" 200 1046583
+"GET /static/drf-yasg/swagger-ui-dist/favicon-32x32.png HTTP/1.1" 304 0
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-standalone-preset.js HTTP/1.1" 200 322863
+"GET /api/?format=openapi HTTP/1.1" 200 11248
+Unauthorized: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 401 58
+Unauthorized: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 401 58
