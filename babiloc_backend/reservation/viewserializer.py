@@ -14,7 +14,7 @@ from .serializers import (
     ReservationListSerializer,
     BienSerializer
 )
-
+from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import BienFilter
 
@@ -282,8 +282,9 @@ class BienListCreateView(generics.ListCreateAPIView):
     queryset = Bien.objects.all().select_related('Type')
     serializer_class = BienSerializer
     pagination_class = BienPagination
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = BienFilter
+    search_fields = ['titre', 'ville', 'description', 'Type__nom']  
 
     def get_permissions(self):
         if self.request.method == 'POST':
