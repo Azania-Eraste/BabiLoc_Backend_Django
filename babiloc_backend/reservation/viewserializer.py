@@ -6,18 +6,20 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import Reservation
+from .models import Reservation, Bien
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
     ReservationUpdateSerializer,
-    ReservationListSerializer
+    ReservationListSerializer,
+    BienSerializer
 )
 
 class ReservationPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
+
 
 class CreateReservationView(generics.CreateAPIView):
     """
@@ -54,6 +56,7 @@ class CreateReservationView(generics.CreateAPIView):
             response_serializer.data,
             status=status.HTTP_201_CREATED
         )
+
 
 class MesReservationsView(generics.ListAPIView):
     """
@@ -255,15 +258,77 @@ class ReservationDetailView(generics.RetrieveUpdateAPIView):
 @api_view(['GET'])
 @permission_classes([permissions.IsAdminUser])
 def reservation_stats(request):
-    """
-    Statistiques des réservations pour l'administration
-    """
-    stats = {
+    data = {
         'total_reservations': Reservation.objects.count(),
         'pending': Reservation.objects.filter(status='pending').count(),
         'confirmed': Reservation.objects.filter(status='confirmed').count(),
         'cancelled': Reservation.objects.filter(status='cancelled').count(),
         'completed': Reservation.objects.filter(status='completed').count(),
     }
-    
-    return Response(stats)
+    return Response(data)
+
+
+class BienPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class BienListCreateView(generics.ListCreateAPIView):
+    queryset = Bien.objects.all().select_related('Type')
+    serializer_class = BienSerializer
+    pagination_class = BienPagination
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
+
+    @swagger_auto_schema(
+        operation_description="Lister tous les biens ou en créer un nouveau",
+        responses={200: BienSerializer(many=True)},
+        tags=["Biens"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Créer un bien (admin uniquement)",
+        responses={201: BienSerializer, 400: "Données invalides"},
+        tags=["Biens"]
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Bien.objects.all()
+    serializer_class = BienSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    @swagger_auto_schema(
+        operation_description="Récupérer les détails d’un bien",
+        responses={200: BienSerializer, 404: "Bien non trouvé"},
+        tags=["Biens"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Mettre à jour un bien",
+        responses={200: BienSerializer, 400: "Données invalides"},
+        tags=["Biens"]
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Supprimer un bien",
+        responses={204: "Supprimé"},
+        tags=["Biens"]
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+
+

@@ -1,9 +1,50 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator,MaxValueValidator
 from decimal import Decimal
 
 User = get_user_model()
+
+class Type_Bien(models.Model):
+    
+    nom = models.CharField(max_length=250)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    def __str__(self):
+        return self.nom
+
+
+class Bien(models.Model):
+    
+    nom = models.CharField(max_length=250)
+    description = models.TextField()
+    noteGlobale = models.FloatField(
+        validators=[
+            MinValueValidator(0.0),      # valeur minimale
+            MaxValueValidator(5.0)   # valeur maximale
+        ]
+    ) 
+    disponibility = models.BooleanField()
+    type_bien = models.ForeignKey(Type_Bien, related_name="biens", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    def __str__(self):
+        return self.nom
+
+
+class Tarif(models.Model):
+
+    nom = models.CharField(max_length=250)
+    prix = models.FloatField(validators=[MinValueValidator(0.0)])
+    bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Tarifs_Biens_id')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé  le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    def __str__(self):
+        return self.nom
 
 class Reservation(models.Model):
     STATUS_CHOICES = [
@@ -12,6 +53,8 @@ class Reservation(models.Model):
         ('cancelled', 'Annulée'),
         ('completed', 'Terminée'),
     ]
+    
+    annonce_id = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Reservation_Bien_ids')
     
     user = models.ForeignKey(
         User, 
@@ -57,3 +100,4 @@ class Reservation(models.Model):
     def duree_jours(self):
         """Calcule la durée en jours"""
         return (self.date_fin - self.date_debut).days
+    

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation
+from .models import Reservation, Bien
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -29,6 +29,13 @@ class ReservationSerializer(serializers.ModelSerializer):
             'duree_jours', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+class BienSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bien
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer une réservation"""
