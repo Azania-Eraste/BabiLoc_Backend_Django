@@ -15,6 +15,10 @@ from .serializers import (
     BienSerializer
 )
 
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import BienFilter
+
+
 class ReservationPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -278,6 +282,8 @@ class BienListCreateView(generics.ListCreateAPIView):
     queryset = Bien.objects.all().select_related('Type')
     serializer_class = BienSerializer
     pagination_class = BienPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BienFilter
 
     def get_permissions(self):
         if self.request.method == 'POST':
