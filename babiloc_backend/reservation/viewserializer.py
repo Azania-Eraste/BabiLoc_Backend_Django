@@ -12,7 +12,8 @@ from .serializers import (
     ReservationCreateSerializer,
     ReservationUpdateSerializer,
     ReservationListSerializer,
-    BienSerializer
+    BienSerializer,
+    MediaSerializer
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -337,5 +338,7 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
 
-
+class MediaCreateView(generics.CreateAPIView):
+    serializer_class = MediaSerializer
+    permission_classes = [permissions.IsAdminUser]
 

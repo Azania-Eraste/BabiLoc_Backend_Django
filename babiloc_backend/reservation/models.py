@@ -26,10 +26,20 @@ class Bien(models.Model):
             MaxValueValidator(5.0)   # valeur maximale
         ]
     ) 
+    owner = models.ForeignKey( 
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='Propriétaire_bien',
+        verbose_name="Propriétaire"
+        )
     disponibility = models.BooleanField()
     type_bien = models.ForeignKey(Type_Bien, related_name="biens", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    def get_first_image(self):
+        return self.medias.first().image.url if self.medias.exists() else None
+
 
     def __str__(self):
         return self.nom
@@ -45,6 +55,13 @@ class Tarif(models.Model):
 
     def __str__(self):
         return self.nom
+
+class Media(models.Model):
+    bien = models.ForeignKey('Bien', on_delete=models.CASCADE, related_name='medias')
+    image = models.ImageField(upload_to='biens/')
+
+    def __str__(self):
+        return f"Image pour {self.bien.titre}"
 
 class Reservation(models.Model):
     STATUS_CHOICES = [

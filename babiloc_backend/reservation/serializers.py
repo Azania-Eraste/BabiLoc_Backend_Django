@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation, Bien
+from .models import Reservation, Bien, Media
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -100,3 +100,8 @@ class ReservationListSerializer(serializers.ModelSerializer):
             'full_name': f"{obj.user.first_name} {obj.user.last_name}".strip(),
             'number': getattr(obj.user, 'number', '')
         }
+    
+class MediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Media
+        fields = ['id', 'image']
