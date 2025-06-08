@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation
+from .models import Reservation, Bien, Media, Favori
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -30,12 +30,20 @@ class ReservationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
 
+class BienSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bien
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
 class ReservationCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer une réservation"""
     
     class Meta:
         model = Reservation
-        fields = ['annonce_id', 'date_debut', 'date_fin', 'prix_total', 'message']
+        # Correction : utiliser 'annonce' au lieu de 'annonce_id'
+        fields = ['annonce', 'date_debut', 'date_fin', 'prix_total', 'message']
     
     def validate(self, data):
         """Validation personnalisée"""
@@ -93,3 +101,45 @@ class ReservationListSerializer(serializers.ModelSerializer):
             'full_name': f"{obj.user.first_name} {obj.user.last_name}".strip(),
             'number': getattr(obj.user, 'number', '')
         }
+    
+class MediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Media
+        fields = ['id', 'image']
+
+class FavoriSerializer(serializers.ModelSerializer):
+    """Serializer pour les favoris"""
+    bien = BienSerializer(read_only=True)
+    bien_id = serializers.IntegerField(write_only=True)
+    
+    class Meta:
+        model = Favori
+        fields = ['id', 'bien', 'bien_id', 'created_at']
+        read_only_fields = ['id', 'created_at']
+    
+    def validate_bien_id(self, value):
+        """Vérifier que le bien existe"""
+        try:
+            Bien.objects.get(id=value)
+        except Bien.DoesNotExist:
+            raise serializers.ValidationError("Ce bien n'existe pas.")
+        return value
+    
+    def create(self, validated_data):
+        bien_id = validated_data.pop('bien_id')
+        bien = Bien.objects.get(id=bien_id)
+        user = self.context['request'].user
+        
+        # Vérifier si le favori existe déjà
+        if Favori.objects.filter(user=user, bien=bien).exists():
+            raise serializers.ValidationError("Ce bien est déjà dans vos favoris.")
+        
+        return Favori.objects.create(user=user, bien=bien)
+
+class FavoriListSerializer(serializers.ModelSerializer):
+    """Serializer simplifié pour lister les favoris"""
+    bien = BienSerializer(read_only=True)
+    
+    class Meta:
+        model = Favori
+        fields = ['id', 'bien', 'created_at']
