@@ -1,0 +1,67 @@
+{% extends 'messagerie/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="card-title mb-0">{{ message.objet|default:"(Sans objet)" }}</h5>
+                    </div>
+                    <div class="col-auto">
+                        {% if not message.lu and message.destinataire == user %}
+                            <span class="badge bg-primary">Nouveau</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- En-tête du message -->
+                <div class="row mb-3 pb-3 border-bottom">
+                    <div class="col-md-6">
+                        <strong>De :</strong> 
+                        {{ message.expediteur.get_full_name|default:message.expediteur.username }}
+                        <br>
+                        <strong>À :</strong> 
+                        {{ message.destinataire.get_full_name|default:message.destinataire.username }}
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <small class="text-muted">
+                            {{ message.timestamp|date:"d/m/Y à H:i" }}
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Contenu du message -->
+                <div class="mb-4">
+                    <div style="white-space: pre-wrap;">{{ message.contenu }}</div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-between flex-wrap gap-2">
+                    <div>
+                        {% if message.destinataire == user %}
+                            <a href="{% url 'messagerie:nouveau_message_destinataire' message.expediteur.id %}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-reply me-2"></i>Répondre
+                            </a>
+                        {% endif %}
+                        {% if message.expediteur == user or message.destinataire == user %}
+                            <a href="{% url 'messagerie:voir_conversation' message.expediteur.id %}{% if message.destinataire != user %}{{ message.destinataire.id }}{% endif %}" 
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-comments me-2"></i>Voir conversation
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{% url 'messagerie:boite_reception' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

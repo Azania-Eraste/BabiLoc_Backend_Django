@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Connexion - BabiLoc</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { max-width: 400px; }
+        label { display: inline-block; width: 120px; }
+        input[type="text"], input[type="password"] { width: 200px; padding: 5px; }
+        input[type="submit"] { margin-top: 10px; padding: 5px 10px; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Connexion</h1>
+    {% if form.errors %}
+        <p class="error">Votre nom d'utilisateur ou mot de passe est incorrect.</p>
+    {% endif %}
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %} <!-- Doit être ici -->
+        {% for field in form %}
+            <p>
+                <label for="{{ field.id_for_label }}">{{ field.label }} :</label>
+                {{ field }}
+            </p>
+        {% endfor %}
+        <input type="submit" value="Se connecter">
+        <input type="hidden" name="next" value="{{ next }}">
+    </form>
+    <p><a href="{% url 'home' %}">Retour à l'accueil</a></p>
+    <p>Debug: {{ form.as_p }}</p>
+</body>
+</html>

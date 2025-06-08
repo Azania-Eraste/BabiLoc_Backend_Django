@@ -1,0 +1,86 @@
+{% extends 'messagerie/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        {% if messages %}
+            <div class="card">
+                <div class="card-body p-0">
+                    {% for message in messages %}
+                        <div class="message-preview p-3 border-bottom">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <strong>À: {{ message.destinataire.get_full_name|default:message.destinataire.username }}</strong>
+                                    {% if message.lu %}
+                                        <span class="badge bg-success ms-2">Lu</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary ms-2">Non lu</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{% url 'messagerie:lire_message' message.id %}" class="text-decoration-none text-dark">
+                                        <div class="fw-bold">{{ message.objet|default:"(Sans objet)" }}</div>
+                                        <div class="text-muted small">{{ message.contenu|truncatewords:15 }}</div>
+                                    </a>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <small class="text-muted">
+                                        {% if message.timestamp.date == today %}
+                                            {{ message.timestamp|time:"H:i" }}
+                                        {% else %}
+                                            {{ message.timestamp|date:"d/m/Y" }}
+                                        {% endif %}
+                                    </small>
+                                    <div class="mt-1">
+                                        <a href="{% url 'messagerie:lire_message' message.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% if messages.has_other_pages %}
+                <nav aria-label="Navigation des messages" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if messages.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">&laquo; Premier</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ messages.previous_page_number }}">Précédent</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">Page {{ messages.number }} sur {{ messages.paginator.num_pages }}</span>
+                        </li>
+
+                        {% if messages.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ messages.next_page_number }}">Suivant</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ messages.paginator.num_pages }}">Dernier &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-paper-plane fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Aucun message envoyé</h4>
+                <p class="text-muted">Vous n'avez encore envoyé aucun message.</p>
+                <a href="{% url 'messagerie:nouveau_message' %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Écrire un message
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

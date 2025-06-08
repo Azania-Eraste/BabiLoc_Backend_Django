@@ -1,0 +1,66 @@
+{% extends 'messagerie/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        {% if conversations %}
+            <div class="card">
+                <div class="card-body p-0">
+                    {% for conversation in conversations %}
+                        <div class="conversation-item p-3 border-bottom" 
+                             onclick="window.location.href='{% url 'messagerie:voir_conversation' conversation.id %}'">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-users me-3 text-muted"></i>
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% for participant in conversation.participants.all %}
+                                                    {% if participant != user %}
+                                                        {{ participant.get_full_name|default:participant.username }}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </h6>
+                                            {% if conversation.dernier_message %}
+                                                <p class="mb-0 text-muted small">
+                                                    <strong>{{ conversation.dernier_message.expediteur.username }}:</strong> 
+                                                    {{ conversation.dernier_message.contenu|truncatewords:10 }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    {% if conversation.dernier_message %}
+                                        <small class="text-muted">
+                                            {% if conversation.mise_a_jour.date == today %}
+                                                {{ conversation.mise_a_jour|time:"H:i" }}
+                                            {% else %}
+                                                {{ conversation.mise_a_jour|date:"d/m/Y" }}
+                                            {% endif %}
+                                        </small>
+                                    {% endif %}
+                                    <div class="mt-1">
+                                        <span class="badge bg-primary">
+                                            {{ conversation.get_messages.count }} message{{ conversation.get_messages.count|pluralize }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Aucune conversation</h4>
+                <p class="text-muted">Vous n'avez pas encore de conversations.</p>
+                <a href="{% url 'messagerie:nouveau_message' %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Commencer une conversation
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
