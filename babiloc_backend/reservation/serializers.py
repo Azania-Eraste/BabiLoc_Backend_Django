@@ -30,6 +30,12 @@ class ReservationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
 
+    def get_frais_service(self, obj):
+        return obj.frais_service
+
+    def get_revenu_net_hote(self, obj):
+        return obj.revenu_net_hote
+
 class BienSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bien

@@ -2,8 +2,19 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator,MaxValueValidator
 from decimal import Decimal
+from enum import Enum
 
 User = get_user_model()
+
+class Typetarif(Enum):
+    JOURNALIER = "Journalier"
+    HEBDOMADAIRE = "Hebdomadaire"
+    MENSUEL = "Mensuel"
+    BIMENSUEL = "Bimensuel"
+    TRIMESTRIEL = "Trimensuel"
+    SEMESTRIEL = "Semestriel"
+    ANNUEL = "Annuel"
+
 
 class Type_Bien(models.Model):
     
@@ -49,6 +60,7 @@ class Tarif(models.Model):
 
     nom = models.CharField(max_length=250)
     prix = models.FloatField(validators=[MinValueValidator(0.0)])
+    type_tarif = models.CharField(max_length=50, choices=[(tag.name, tag.value) for tag in Typetarif], null=True)
     bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Tarifs_Biens_id')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé  le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
@@ -73,13 +85,14 @@ class Reservation(models.Model):
     
     annonce_id = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Reservation_Bien_ids')
     
+    frais_service_percent = Decimal("0.15")
+
     user = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
         related_name='reservations',
         verbose_name="Utilisateur"
     )
-    annonce_id = models.PositiveIntegerField(verbose_name="ID de l'annonce")
     
     date_debut = models.DateTimeField(verbose_name="Date de début")
     date_fin = models.DateTimeField(verbose_name="Date de fin")
@@ -117,4 +130,12 @@ class Reservation(models.Model):
     def duree_jours(self):
         """Calcule la durée en jours"""
         return (self.date_fin - self.date_debut).days
+    
+    @property
+    def frais_service(self):
+        return round(self.prix_total * self.frais_service_percent, 2)
+
+    @property
+    def revenu_net_hote(self):
+        return round(self.prix_total - self.frais_service, 2)
     
