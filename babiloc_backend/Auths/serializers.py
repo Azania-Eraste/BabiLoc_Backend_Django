@@ -2,6 +2,30 @@ import re
 from rest_framework import serializers
 from .models import CustomUser
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import serializers
+
+
+# Normal login (optionnel, tu peux garder celui par défaut)
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        data['user'] = {
+            "username": self.user.username,
+            "email": self.user.email,
+            "is_vendor": self.user.is_vendor, 
+        }
+
+        return data
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['is_vendor'] = user.is_vendor
+        token['email'] = user.email
+        token['username'] = user.username
+        return token
 
 # Auths/serializers.py
 class RegisterSerializer(serializers.ModelSerializer):

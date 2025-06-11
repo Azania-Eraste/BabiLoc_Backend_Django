@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, MyTokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils import generate_activation_link
 from django.core.mail import EmailMultiAlternatives
@@ -15,9 +15,46 @@ from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 
 User = get_user_model()
 
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+    @swagger_auto_schema(
+        operation_description="Authentification pour obtenir le JWT",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["username", "password"],
+            properties={
+                'username': openapi.Schema(type=openapi.TYPE_STRING),
+                'password': openapi.Schema(type=openapi.TYPE_STRING),
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Token JWT et infos utilisateur",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'refresh': openapi.Schema(type=openapi.TYPE_STRING),
+                        'access': openapi.Schema(type=openapi.TYPE_STRING),
+                        'email': openapi.Schema(type=openapi.TYPE_STRING),
+                        'username': openapi.Schema(type=openapi.TYPE_STRING),
+                        'is_vendor': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    }
+                )
+            ),
+            401: "Identifiants invalides"
+        },
+        tags=['Authentification']
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]

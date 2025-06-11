@@ -9,3 +9,4 @@ class CustomUser(AbstractUser):
 
     number = models.TextField()
     birthdate = models.DateField()
+    is_vendor = models.BooleanField(default=False)
