@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from Auths import permission
 from .models import Reservation, Bien
 from .serializers import (
     ReservationSerializer,
@@ -289,7 +290,7 @@ class BienListCreateView(generics.ListCreateAPIView):
 
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [permissions.IsAdminUser()]
+            return [permissions.IsAdminUser(), permission.IsVendor()]
         return [permissions.AllowAny()]
 
     @swagger_auto_schema(
@@ -340,5 +341,5 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class MediaCreateView(generics.CreateAPIView):
     serializer_class = MediaSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser, permission.IsVendor]
 
