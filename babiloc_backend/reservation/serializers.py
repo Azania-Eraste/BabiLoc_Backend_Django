@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media
+from .models import Reservation, Bien, Media, Paiement
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -111,3 +111,26 @@ class MediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Media
         fields = ['id', 'image']
+
+
+class HistoriquePaiementSerializer(serializers.ModelSerializer):
+    type_operation_display = serializers.CharField(source='get_type_operation_display', read_only=True)
+    statut_paiement_display = serializers.CharField(source='get_statut_paiement_display', read_only=True)
+    reservation_id = serializers.IntegerField(source='reservation.id', read_only=True)
+    bien_nom = serializers.CharField(source='reservation.annonce_id.nom', read_only=True)
+
+    class Meta:
+        model = Paiement
+        fields = [
+            'id',
+            'montant',
+            'utilisateur',
+            'mode',
+            'statut_paiement',
+            'statut_paiement_display',
+            'type_operation',
+            'type_operation_display',
+            'reservation_id',
+            'bien_nom',
+            'created_at',
+        ]

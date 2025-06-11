@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SoldeHoteView
+from .views import SoldeHoteView, HistoriquePaiementsView
 from .viewserializer import (
     CreateReservationView,
     MesReservationsView,
@@ -28,6 +28,9 @@ urlpatterns = [
     
     #Hote
     path('hote/solde/', SoldeHoteView.as_view(), name='hote-solde'),
+
+    #historique
+    path('api/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
 
     # Statistiques
     path('api/admin/reservation-stats/', reservation_stats, name='reservation-stats'),

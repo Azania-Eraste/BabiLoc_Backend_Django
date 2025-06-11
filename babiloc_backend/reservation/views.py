@@ -3,12 +3,20 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
-from .models import Reservation
+from .models import Reservation, Paiement
 from rest_framework.views import APIView
 from django.db.models import Sum, F
 from Auths import permission
-from .serializers import ReservationSerializer, ReservationCreateSerializer
+from .serializers import ReservationSerializer, ReservationCreateSerializer, HistoriquePaiementSerializer
 from decimal import Decimal
+
+class HistoriquePaiementsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        paiements = Paiement.objects.filter(utilisateur=request.user).order_by('-created_at')
+        serializer = HistoriquePaiementSerializer(paiements, many=True)
+        return Response(serializer.data)
 
 class SoldeHoteView(APIView):
     permission_classes = [permissions.IsAuthenticated, permission.IsVendor]

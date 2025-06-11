@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator,MaxValueValidator
 from decimal import Decimal
 from enum import Enum
+from django.db.models import TextChoices
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -14,6 +16,26 @@ class Typetarif(Enum):
     TRIMESTRIEL = "Trimensuel"
     SEMESTRIEL = "Semestriel"
     ANNUEL = "Annuel"
+
+class TypePaiement(TextChoices):
+    MOBILE_MONEY = 'MOBILE_MONEY','Mobile Money'
+    CREDIT_CARD = 'CREDIT_CARD','Carte de crédit/débit'
+    PREPAID_CARD = 'PREPAID_CARD','Carte prépayée'
+    LIQUIDE = 'LIQUIDE','Liquide'
+
+
+
+class StatutPaiement(TextChoices):
+    EN_ATTENTE = "en_attente", "En attente"
+    EFFECTUE = "effectue", "Effectué"
+    ECHOUE = "echoue", "Échoué"
+
+
+class TypeOperation(TextChoices):
+    RESERVATION = 'reservation', 'Réservation confirmée'
+    EN_ATTENTE = 'en_attente', 'Paiement en attente'
+    FRAIS = 'frais', 'Frais de service'
+    RETRAIT = 'retrait', 'Retrait'
 
 
 class Type_Bien(models.Model):
@@ -82,6 +104,8 @@ class Reservation(models.Model):
         ('cancelled', 'Annulée'),
         ('completed', 'Terminée'),
     ]
+
+    confirmed_at = models.DateTimeField(null=True, blank=True, verbose_name="Confirmée le")
     
     annonce_id = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Reservation_Bien_ids')
     
@@ -139,3 +163,104 @@ class Reservation(models.Model):
     def revenu_net_hote(self):
         return round(self.prix_total - self.frais_service, 2)
     
+    def save(self, *args, **kwargs):
+        if self.status == 'confirmed' and not self.confirmed_at:
+            self.confirmed_at = timezone.now()
+        super().save(*args, **kwargs)
+
+class Mode(models.Model):
+    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    nom = models.CharField(max_length=255)  # Ex: "Wave", "Carte de crédit/débit"
+    description = models.TextField(blank=True, null=True)
+    type_paiement = models.CharField(
+        max_length=20,
+        choices=TypePaiement.choices,
+        default=TypePaiement.MOBILE_MONEY
+    )
+    numero_tel = models.CharField(max_length=255, blank=True, null=True)
+    numero = models.CharField(max_length=255, blank=True, null=True)
+    expiration = models.CharField(max_length=6, blank=True, null=True)
+    code = models.CharField(max_length=6, blank=True, null=True)
+
+    statut = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.nom} - {self.utilisateur.username}"
+
+    class Meta:
+        verbose_name = "Mode de paiement"
+        verbose_name_plural = "Modes de paiement"
+
+class Paiement(models.Model):
+    montant = models.FloatField()
+    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    mode = models.ForeignKey(Mode, on_delete=models.CASCADE, related_name="ModePaiement")
+    
+    statut_paiement = models.CharField(
+        max_length=20,
+        choices=StatutPaiement.choices,
+        default=StatutPaiement.EN_ATTENTE,
+        verbose_name="Statut du paiement"
+    )
+
+    payment_intent_id = models.CharField(max_length=255, null=True, blank=True)
+    statut = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
+
+    type_operation = models.CharField(
+        max_length=50,
+        choices=TypeOperation.choices,
+        verbose_name="Type d’opération"
+    )
+    
+    reservation = models.ForeignKey(
+        Reservation, 
+        on_delete=models.CASCADE, 
+        related_name="paiements", 
+        null=True
+    )
+
+    def enregistrer_historique(self, type_op, montant=None, description=None):
+        HistoriquePaiement.objects.create(
+            paiement=self,
+            utilisateur=self.utilisateur,
+            type_operation=type_op,
+            montant=montant if montant is not None else self.montant,
+            description=description
+        )
+
+
+    def effectuer_paiement(self):
+        if self.mode.type_paiement == "Liquide":
+            print(f"Avant mise à jour statut_paiement : {self.statut_paiement}")
+            self.statut_paiement = StatutPaiement.EFFECTUE
+            self.save()
+            print(f"Après sauvegarde : {self.statut_paiement}")
+            return True
+        print(f"Mode de paiement non éligible pour effectuer_paiement : {self.mode.type_paiement}")
+        return False
+
+    def __str__(self):
+        return f"Paiement N{self.pk} - Réservation {self.reservation.id if self.reservation else 'N/A'}"
+
+class HistoriquePaiement(models.Model):
+    paiement = models.ForeignKey(Paiement, on_delete=models.CASCADE, related_name="historiques")
+    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    
+    type_operation = models.CharField(
+        max_length=50,
+        choices=TypeOperation.choices,
+        verbose_name="Type d’opération"
+    )
+
+    montant = models.FloatField(validators=[MinValueValidator(0.0)])
+    description = models.TextField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_type_operation_display()} - {self.montant} F - {self.utilisateur.username}"
