@@ -7,6 +7,7 @@ from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
+from django.db.models import Count
 from .models import Reservation, Bien
 from .serializers import (
     ReservationSerializer,
@@ -263,7 +264,7 @@ class ReservationDetailView(generics.RetrieveUpdateAPIView):
 )
 @api_view(['GET'])
 @permission_classes([permissions.IsAdminUser])
-def reservation_stats(request):
+def reservations_stats(request):
     data = {
         'total_reservations': Reservation.objects.count(),
         'pending': Reservation.objects.filter(status='pending').count(),
@@ -273,6 +274,60 @@ def reservation_stats(request):
     }
     return Response(data)
 
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Historique des statuts d'une réservation",
+    operation_description="""
+    Retourne combien de fois chaque statut (ex: pending, confirmed, cancelled...) 
+    a été enregistré pour une réservation donnée.
+    """,
+    manual_parameters=[
+        openapi.Parameter(
+            'reservation_id',
+            openapi.IN_PATH,
+            description="ID de la réservation",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description="Statuts historiques de la réservation",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                additional_properties=openapi.Schema(type=openapi.TYPE_INTEGER),
+                example={
+                    "pending": 2,
+                    "confirmed": 1,
+                    "cancelled": 1
+                }
+            )
+        ),
+        404: openapi.Response(description="Réservation non trouvée"),
+        401: "Non authentifié",
+        403: "Permission refusée"
+    },
+    tags=['Réservations']
+)
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated,permission.IsVendor])
+def historique_statuts_reservation(request, reservation_id):
+    try:
+        user = request.user
+        reservation = Reservation.objects.get(pk=reservation_id,user=user)
+    except Reservation.DoesNotExist:
+        return Response({"detail": "Réservation non trouvée"}, status=404)
+
+    stats = (
+        reservation.historiques_statut
+        .values('nouveau_statut')
+        .annotate(compte=Count('id'))
+    )
+
+    result = {item['nouveau_statut']: item['compte'] for item in stats}
+
+    return Response(result)
 
 class BienPagination(PageNumberPagination):
     page_size = 10

@@ -5,9 +5,16 @@ from decimal import Decimal
 from enum import Enum
 from django.db.models import TextChoices
 from django.utils import timezone
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 User = get_user_model()
 
+class StatutReservation(TextChoices):
+    EN_ATTENTE = "pending","En attente"
+    CONFIRMED = "confirmed","Confirmée"
+    CANCELLED = "cancelled","Annulée"
+    COMPLETED = 'completed', 'Terminée'
 class Typetarif(Enum):
     JOURNALIER = "Journalier"
     HEBDOMADAIRE = "Hebdomadaire"
@@ -98,12 +105,7 @@ class Media(models.Model):
         return f"Image pour {self.bien.titre}"
 
 class Reservation(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'En attente'),
-        ('confirmed', 'Confirmée'),
-        ('cancelled', 'Annulée'),
-        ('completed', 'Terminée'),
-    ]
+
 
     confirmed_at = models.DateTimeField(null=True, blank=True, verbose_name="Confirmée le")
     
@@ -122,7 +124,7 @@ class Reservation(models.Model):
     date_fin = models.DateTimeField(verbose_name="Date de fin")
     status = models.CharField(
         max_length=20, 
-        choices=STATUS_CHOICES, 
+        choices=StatutReservation, 
         default='pending',
         verbose_name="Statut"
     )
@@ -167,6 +169,16 @@ class Reservation(models.Model):
         if self.status == 'confirmed' and not self.confirmed_at:
             self.confirmed_at = timezone.now()
         super().save(*args, **kwargs)
+
+class HistoriqueStatutReservation(models.Model):
+    reservation = models.ForeignKey('Reservation', on_delete=models.CASCADE, related_name='historiques_statut')
+    ancien_statut = models.CharField(max_length=50, choices=StatutReservation.choices)
+    nouveau_statut = models.CharField(max_length=50, choices=StatutReservation.choices)
+    date_changement = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Reservation {self.reservation.id} : {self.ancien_statut} → {self.nouveau_statut}"
+
 
 class Mode(models.Model):
     utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -264,3 +276,18 @@ class HistoriquePaiement(models.Model):
 
     def __str__(self):
         return f"{self.get_type_operation_display()} - {self.montant} F - {self.utilisateur.username}"
+    
+
+@receiver(pre_save, sender=Reservation)
+def sauvegarder_historique_statut(sender, instance, **kwargs):
+    if not instance.pk:
+        # Nouvelle réservation, pas besoin d'historique
+        return
+    
+    ancienne = Reservation.objects.get(pk=instance.pk)
+    if ancienne.status != instance.status:
+        HistoriqueStatutReservation.objects.create(
+            reservation=instance,
+            ancien_statut=ancienne.status,
+            nouveau_statut=instance.status
+        )

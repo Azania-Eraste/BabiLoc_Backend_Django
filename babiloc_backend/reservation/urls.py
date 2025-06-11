@@ -5,7 +5,8 @@ from .viewserializer import (
     MesReservationsView,
     AllReservationsView,
     ReservationDetailView,
-    reservation_stats,
+    reservations_stats,
+    historique_statuts_reservation,
     BienListCreateView,
     BienDetailView,
     MediaCreateView
@@ -33,5 +34,6 @@ urlpatterns = [
     path('api/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
 
     # Statistiques
-    path('api/admin/reservation-stats/', reservation_stats, name='reservation-stats'),
+    path('api/admin/reservation-stats/', reservations_stats, name='reservation-stats'),
+    path('api/reservations/<int:reservation_id>/historique-statuts/', historique_statuts_reservation, name='historique_statuts_reservation'),
 ]
