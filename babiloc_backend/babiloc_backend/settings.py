@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'corsheaders',  # Ajouter cette ligne
-    'reservation',
+    'reservation.apps.ReservationConfig',
 ]
 
 MIDDLEWARE = [

@@ -19,7 +19,7 @@ class HistoriquePaiementsView(APIView):
         return Response(serializer.data)
 
 class SoldeHoteView(APIView):
-    permission_classes = [permissions.IsAuthenticated, permission.IsVendor]
+    permission_classes = [permission.IsVendor]
 
     def get(self, request):
         user = request.user

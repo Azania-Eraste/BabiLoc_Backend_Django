@@ -311,7 +311,7 @@ def reservations_stats(request):
     tags=['Réservations']
 )
 @api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated,permission.IsVendor])
+@permission_classes([permission.IsVendor])
 def historique_statuts_reservation(request, reservation_id):
     try:
         user = request.user
@@ -345,7 +345,7 @@ class BienListCreateView(generics.ListCreateAPIView):
 
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [permissions.IsAdminUser(), permission.IsVendor()]
+            return [permission.IsVendor()]
         return [permissions.AllowAny()]
 
     @swagger_auto_schema(
@@ -396,5 +396,5 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class MediaCreateView(generics.CreateAPIView):
     serializer_class = MediaSerializer
-    permission_classes = [permissions.IsAdminUser, permission.IsVendor]
+    permission_classes = [permission.IsVendor]
 
