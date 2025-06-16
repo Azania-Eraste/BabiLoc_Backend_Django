@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Reservation
+from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
     list_display = [
-        'id', 'user', 'annonce_id', 'status', 
+        'id', 'user', 'annonce', 'status',  # Changé 'annonce_id' en 'annonce'
         'date_debut', 'date_fin', 'prix_total', 'created_at'
     ]
     list_filter = ['status', 'created_at', 'date_debut']
@@ -14,7 +14,7 @@ class ReservationAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Informations générales', {
-            'fields': ('user', 'annonce_id', 'status')
+            'fields': ('user', 'annonce', 'status')  # Changé 'annonce_id' en 'annonce'
         }),
         ('Dates', {
             'fields': ('date_debut', 'date_fin')
@@ -27,3 +27,35 @@ class ReservationAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(Favori)
+class FavoriAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'bien', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__username', 'user__email', 'bien__nom']
+    ordering = ['-created_at']
+    readonly_fields = ['created_at']
+
+# Add missing model registrations
+@admin.register(Bien)
+class BienAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nom', 'ville', 'prix', 'owner', 'disponibility', 'type_bien']
+    list_filter = ['disponibility', 'type_bien', 'ville', 'created_at']
+    search_fields = ['nom', 'description', 'ville', 'owner__username']
+    ordering = ['-created_at']
+
+@admin.register(Type_Bien)
+class TypeBienAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nom', 'created_at']
+    search_fields = ['nom', 'description']
+
+@admin.register(Tarif)
+class TarifAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nom', 'prix', 'bien', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['nom', 'bien__nom']
+
+@admin.register(Media)
+class MediaAdmin(admin.ModelAdmin):
+    list_display = ['id', 'bien', 'image']
+    list_filter = ['bien']

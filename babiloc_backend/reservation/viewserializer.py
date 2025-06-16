@@ -8,7 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
 from django.db.models import Count
-from .models import Reservation, Bien, HistoriqueStatutReservation
+from .models import Reservation, Bien, HistoriqueStatutReservation, Favori
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -16,6 +16,9 @@ from .serializers import (
     ReservationListSerializer,
     BienSerializer,
     MediaSerializer,
+    FavoriSerializer,
+    FavoriListSerializer
+
     
 )
 from rest_framework.filters import SearchFilter
@@ -338,12 +341,12 @@ class BienPagination(PageNumberPagination):
 
 
 class BienListCreateView(generics.ListCreateAPIView):
-    queryset = Bien.objects.all().select_related('Type')
+    queryset = Bien.objects.all().select_related('type_bien')
     serializer_class = BienSerializer
     pagination_class = BienPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = BienFilter
-    search_fields = ['titre', 'ville', 'description', 'Type__nom']  
+    search_fields = ['nom', 'ville', 'description', 'type_bien__nom']  
 
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -399,4 +402,169 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 class MediaCreateView(generics.CreateAPIView):
     serializer_class = MediaSerializer
     permission_classes = [permission.IsVendor]
+
+
+class FavoriPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class AjouterFavoriView(generics.CreateAPIView):
+    """
+    Ajouter un bien aux favoris
+    """
+    serializer_class = FavoriSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Ajouter un bien aux favoris",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'bien_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID du bien à ajouter')
+            },
+            required=['bien_id']
+        ),
+        responses={
+            201: FavoriSerializer,
+            400: "Données invalides ou bien déjà en favoris",
+            401: "Non authentifié",
+            404: "Bien non trouvé"
+        },
+        tags=['Favoris']
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class MesFavorisView(generics.ListAPIView):
+    """
+    Liste des favoris de l'utilisateur connecté
+    """
+    serializer_class = FavoriListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = FavoriPagination
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer mes favoris",
+        responses={
+            200: FavoriListSerializer(many=True),
+            401: "Non authentifié"
+        },
+        tags=['Favoris']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        # Protection contre les appels Swagger sans utilisateur authentifié
+        if getattr(self, 'swagger_fake_view', False):
+            return Favori.objects.none()
+        
+        if not self.request.user.is_authenticated:
+            return Favori.objects.none()
+            
+        return Favori.objects.filter(user=self.request.user).select_related('bien')
+
+
+class RetirerFavoriView(generics.DestroyAPIView):
+    """
+    Retirer un bien des favoris
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Retirer un bien des favoris",
+        responses={
+            204: "Favori supprimé",
+            401: "Non authentifié",
+            404: "Favori non trouvé"
+        },
+        tags=['Favoris']
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        # Protection contre les appels Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return Favori.objects.none()
+        
+        if not self.request.user.is_authenticated:
+            return Favori.objects.none()
+            
+        return Favori.objects.filter(user=self.request.user)
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Basculer un bien en favori (ajouter ou retirer)",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'bien_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID du bien')
+        },
+        required=['bien_id']
+    ),
+    responses={
+        200: openapi.Response(
+            description="Résultat de l'opération",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'action': openapi.Schema(type=openapi.TYPE_STRING, enum=['added', 'removed']),
+                    'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    'favori': openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                            'bien_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                            'created_at': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+                        }
+                    )
+                }
+            )
+        ),
+        400: "Données invalides",
+        401: "Non authentifié",
+        404: "Bien non trouvé"
+    },
+    tags=['Favoris']
+)
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def toggle_favori(request):
+    """
+    Basculer un bien en favori : l'ajouter s'il n'y est pas, le retirer s'il y est
+    """
+    bien_id = request.data.get('bien_id')
+    
+    if not bien_id:
+        return Response({'error': 'bien_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        bien = Bien.objects.get(id=bien_id)
+    except Bien.DoesNotExist:
+        return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Vérifier si le favori existe
+    favori = Favori.objects.filter(user=request.user, bien=bien).first()
+    
+    if favori:
+        # Retirer des favoris
+        favori.delete()
+        return Response({
+            'action': 'removed',
+            'message': 'Bien retiré des favoris'
+        }, status=status.HTTP_200_OK)
+    else:
+        # Ajouter aux favoris
+        favori = Favori.objects.create(user=request.user, bien=bien)
+        serializer = FavoriSerializer(favori)
+        return Response({
+            'action': 'added',
+            'message': 'Bien ajouté aux favoris',
+            'favori': serializer.data
+        }, status=status.HTTP_200_OK)
 
