@@ -8,14 +8,15 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
 from django.db.models import Count
-from .models import Reservation, Bien
+from .models import Reservation, Bien, HistoriqueStatutReservation
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
     ReservationUpdateSerializer,
     ReservationListSerializer,
     BienSerializer,
-    MediaSerializer
+    MediaSerializer,
+    
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -277,57 +278,58 @@ def reservations_stats(request):
 
 @swagger_auto_schema(
     method='get',
-    operation_summary="Historique des statuts d'une réservation",
+    operation_summary="Historique des statuts des réservations d’un bien",
     operation_description="""
     Retourne combien de fois chaque statut (ex: pending, confirmed, cancelled...) 
-    a été enregistré pour une réservation donnée.
+    a été enregistré pour les réservations liées à un bien spécifique.
     """,
     manual_parameters=[
         openapi.Parameter(
-            'reservation_id',
+            'bien_id',
             openapi.IN_PATH,
-            description="ID de la réservation",
+            description="ID du bien",
             type=openapi.TYPE_INTEGER,
             required=True
         ),
     ],
     responses={
         200: openapi.Response(
-            description="Statuts historiques de la réservation",
+            description="Statuts historiques des réservations du bien",
             schema=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 additional_properties=openapi.Schema(type=openapi.TYPE_INTEGER),
                 example={
-                    "pending": 2,
-                    "confirmed": 1,
+                    "pending": 3,
+                    "confirmed": 5,
                     "cancelled": 1
                 }
             )
         ),
-        404: openapi.Response(description="Réservation non trouvée"),
+        404: openapi.Response(description="Bien non trouvé ou non autorisé"),
         401: "Non authentifié",
         403: "Permission refusée"
     },
     tags=['Réservations']
 )
 @api_view(['GET'])
-@permission_classes([permission.IsVendor])
-def historique_statuts_reservation(request, reservation_id):
+@permission_classes([permissions.IsAuthenticated])  # ou IsVendor si tu as une permission custom
+def historique_statuts_reservations_bien(request, bien_id):
     try:
         user = request.user
-        reservation = Reservation.objects.get(pk=reservation_id,user=user)
-    except Reservation.DoesNotExist:
-        return Response({"detail": "Réservation non trouvée"}, status=404)
+        bien = Bien.objects.get(id=bien_id, owner=user)
+    except Bien.DoesNotExist:
+        return Response({"detail": "Bien non trouvé ou accès interdit"}, status=404)
 
     stats = (
-        reservation.historiques_statut
+        HistoriqueStatutReservation.objects
+        .filter(reservation__annonce_id=bien)
         .values('nouveau_statut')
         .annotate(compte=Count('id'))
     )
 
     result = {item['nouveau_statut']: item['compte'] for item in stats}
-
     return Response(result)
+
 
 class BienPagination(PageNumberPagination):
     page_size = 10

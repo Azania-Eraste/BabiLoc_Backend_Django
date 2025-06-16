@@ -6,7 +6,7 @@ from .viewserializer import (
     AllReservationsView,
     ReservationDetailView,
     reservations_stats,
-    historique_statuts_reservation,
+    historique_statuts_reservations_bien,
     BienListCreateView,
     BienDetailView,
     MediaCreateView
@@ -28,12 +28,13 @@ urlpatterns = [
     path('medias/', MediaCreateView.as_view(), name='media-create'),
     
     #Hote
-    path('hote/solde/', SoldeHoteView.as_view(), name='hote-solde'),
+    path('Dashboard/solde/', SoldeHoteView.as_view(), name='hote-solde'),
 
     #historique
-    path('api/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
+    path('Dashboard/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
 
     # Statistiques
     path('api/admin/reservation-stats/', reservations_stats, name='reservation-stats'),
-    path('api/reservations/<int:reservation_id>/historique-statuts/', historique_statuts_reservation, name='historique_statuts_reservation'),
+    path('Dashboard/biens/<int:bien_id>/reservations/historiques-statuts/', historique_statuts_reservations_bien, name='historiques_statuts_reservations_bien'),
+
 ]
