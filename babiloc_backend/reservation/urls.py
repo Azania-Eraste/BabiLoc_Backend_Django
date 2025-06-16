@@ -14,7 +14,8 @@ from .viewserializer import (
     MesFavorisView,
     RetirerFavoriView,
     toggle_favori,
-    MediaCreateView
+    MediaCreateView,
+    likes_de_mon_bien
 
 )
 
@@ -48,5 +49,5 @@ urlpatterns = [
     # Statistiques
     path('api/admin/reservation-stats/', reservations_stats, name='reservation-stats'),
     path('Dashboard/biens/<int:bien_id>/reservations/historiques-statuts/', historique_statuts_reservations_bien, name='historiques_statuts_reservations_bien'),
-
+    path('Dashboard/biens/<int:bien_id>/likes', likes_de_mon_bien, name='likes_de_mon_bien'),
 ]

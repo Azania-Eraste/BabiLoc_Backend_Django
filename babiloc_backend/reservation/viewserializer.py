@@ -315,7 +315,7 @@ def reservations_stats(request):
     tags=['Réservations']
 )
 @api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])  # ou IsVendor si tu as une permission custom
+@permission_classes([permission.IsVendor])  # ou IsVendor si tu as une permission custom
 def historique_statuts_reservations_bien(request, bien_id):
     try:
         user = request.user
@@ -568,3 +568,45 @@ def toggle_favori(request):
             'favori': serializer.data
         }, status=status.HTTP_200_OK)
 
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Voir les utilisateurs qui ont liké un bien",
+    operation_description="""
+    Permet à un vendeur de voir tous les utilisateurs qui ont ajouté ce bien à leurs favoris.
+    Le bien doit appartenir au vendeur connecté.
+    """,
+    manual_parameters=[
+        openapi.Parameter(
+            'bien_id',
+            openapi.IN_PATH,
+            description="ID du bien",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="Liste des utilisateurs ayant liké le bien",
+            schema=openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_OBJECT)
+            )
+        ),
+        404: "Bien non trouvé ou non autorisé",
+        401: "Non authentifié"
+    },
+    tags=["Favoris", "Vendeur"]
+)
+@api_view(['GET'])
+@permission_classes([permission.IsVendor])
+def likes_de_mon_bien(request, bien_id):
+    user = request.user
+    
+    try:
+        bien = Bien.objects.get(id=bien_id, owner=user)
+    except Bien.DoesNotExist:
+        return Response({"detail": "Bien non trouvé ou vous n'en êtes pas le propriétaire."}, status=status.HTTP_404_NOT_FOUND)
+
+    favoris = Favori.objects.filter(bien=bien).select_related('user')
+    serializer = FavoriSerializer(favoris, many=True)
+    return Response(serializer.data)

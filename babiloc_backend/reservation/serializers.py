@@ -117,10 +117,12 @@ class FavoriSerializer(serializers.ModelSerializer):
     """Serializer pour les favoris"""
     bien = BienSerializer(read_only=True)
     bien_id = serializers.IntegerField(write_only=True)
-    
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = Favori
-        fields = ['id', 'bien', 'bien_id', 'created_at']
+        fields = ['id', 'bien', 'bien_id', 'user_id', 'username','created_at']
         read_only_fields = ['id', 'created_at']
     
     def validate_bien_id(self, value):

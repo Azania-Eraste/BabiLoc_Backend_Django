@@ -95,6 +95,9 @@ class Bien(models.Model):
     def get_first_image(self):
         """Récupère la première image du bien pour l'affichage en liste"""
         return self.medias.first().image.url if self.medias.exists() else None
+    
+    def nombre_likes(self):
+        return self.favoris.count()
 
     def __str__(self):
         return self.nom
