@@ -15,8 +15,10 @@ from .viewserializer import (
     RetirerFavoriView,
     toggle_favori,
     MediaCreateView,
-    likes_de_mon_bien
-
+    likes_de_mon_bien,
+    TarifCreateView,
+    TarifDeleteView,
+    TarifUpdateView
 )
 
 urlpatterns = [
@@ -33,6 +35,11 @@ urlpatterns = [
     path('api/biens/<int:pk>/', BienDetailView.as_view(), name='biens-detail'),
     path('medias/', MediaCreateView.as_view(), name='media-create'),
     
+    #Tarifs
+    path('tarifs/create/', TarifCreateView.as_view(), name='tarif-create'),
+    path('tarifs/<int:pk>/update/', TarifUpdateView.as_view(), name='tarif-update'),
+    path('tarifs/<int:pk>/delete/', TarifDeleteView.as_view(), name='tarif-delete'),
+
     # Favoris
     path('api/favoris/', AjouterFavoriView.as_view(), name='ajouter-favori'),
     path('api/mes-favoris/', MesFavorisView.as_view(), name='mes-favoris'),

@@ -8,7 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
 from django.db.models import Count
-from .models import Reservation, Bien, HistoriqueStatutReservation, Favori
+from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -17,8 +17,8 @@ from .serializers import (
     BienSerializer,
     MediaSerializer,
     FavoriSerializer,
-    FavoriListSerializer
-
+    FavoriListSerializer,
+    TarifSerializer
     
 )
 from rest_framework.filters import SearchFilter
@@ -375,13 +375,20 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BienSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.vues += 1
+        instance.save(update_fields=["vues"])
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @swagger_auto_schema(
         operation_description="Récupérer les détails d’un bien",
         responses={200: BienSerializer, 404: "Bien non trouvé"},
         tags=["Biens"]
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        return self.retrieve(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_description="Mettre à jour un bien",
@@ -399,9 +406,54 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
 
+
 class MediaCreateView(generics.CreateAPIView):
     serializer_class = MediaSerializer
     permission_classes = [permission.IsVendor]
+
+
+class TarifCreateView(generics.CreateAPIView):
+    serializer_class = TarifSerializer
+    permission_classes = [permission.IsVendor]
+
+    @swagger_auto_schema(
+        operation_summary="Créer un tarif pour un bien",
+        tags=["Tarifs"]
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+class TarifUpdateView(generics.UpdateAPIView):
+    serializer_class = TarifSerializer
+    permission_classes = [permission.IsVendor]
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        return Tarif.objects.filter(bien__owner=self.request.user)
+
+    @swagger_auto_schema(
+        operation_summary="Mettre à jour un tarif",
+        tags=["Tarifs"]
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+# 🔹 DELETE : Supprimer un tarif
+class TarifDeleteView(generics.DestroyAPIView):
+    serializer_class = TarifSerializer
+    permission_classes = [permission.IsVendor]
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        return Tarif.objects.filter(bien__owner=self.request.user)
+
+    @swagger_auto_schema(
+        operation_summary="Supprimer un tarif",
+        tags=["Tarifs"]
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
 
 
 class FavoriPagination(PageNumberPagination):

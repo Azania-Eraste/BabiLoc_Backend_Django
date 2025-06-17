@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement
+from .models import Reservation, Bien, Media, Favori, Paiement, Tarif
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -36,11 +36,58 @@ class ReservationSerializer(serializers.ModelSerializer):
     def get_revenu_net_hote(self, obj):
         return obj.revenu_net_hote
 
+# Serializer pour un Bien, incluant les tarifs liés
+
+
+class TarifSerializer(serializers.ModelSerializer):
+    bien_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = Tarif
+        fields = ['id', 'nom', 'prix', 'type_tarif', 'bien_id']
+
+    def validate_bien_id(self, value):
+        user = self.context['request'].user
+        try:
+            bien = Bien.objects.get(id=value, owner=user)
+        except Bien.DoesNotExist:
+            raise serializers.ValidationError("Ce bien n'existe pas ou ne vous appartient pas.")
+        return value
+
+    def create(self, validated_data):
+        bien_id = validated_data.pop('bien_id')
+        bien = Bien.objects.get(id=bien_id)
+        return Tarif.objects.create(bien=bien, **validated_data)
+
 class BienSerializer(serializers.ModelSerializer):
+    tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
+    nombre_likes = serializers.IntegerField(source='nombre_likes', read_only=True)
+    premiere_image = serializers.SerializerMethodField()
+
     class Meta:
         model = Bien
-        fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at']
+        fields = [
+            'id',
+            'nom',
+            'description',
+            'ville',
+            'prix',
+            'noteGlobale',
+            'vues',
+            'disponibility',
+            'type_bien',
+            'created_at',
+            'updated_at',
+            'nombre_likes',
+            'premiere_image',
+            'tarifs',
+        ]
+
+    def get_premiere_image(self, obj):
+        request = self.context.get('request')
+        image_url = obj.get_first_image()
+        return request.build_absolute_uri(image_url) if request and image_url else None
+
 
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
@@ -151,6 +198,9 @@ class FavoriListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favori
         fields = ['id', 'bien', 'created_at']
+
+
+
 
 
 class HistoriquePaiementSerializer(serializers.ModelSerializer):

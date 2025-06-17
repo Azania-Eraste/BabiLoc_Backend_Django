@@ -81,6 +81,7 @@ class Bien(models.Model):
             MaxValueValidator(5.0)       # Note maximale : 5/5
         ]
     ) 
+    vues = models.PositiveIntegerField(default=0)  # ➤ Nouveau champ
     owner = models.ForeignKey(  # Propriétaire du bien
         User, 
         on_delete=models.CASCADE, 
