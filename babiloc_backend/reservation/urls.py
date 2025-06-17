@@ -23,16 +23,16 @@ from .viewserializer import (
 
 urlpatterns = [
     # Endpoints principaux
-    path('api/reservations/', CreateReservationView.as_view(), name='create-reservation'),
-    path('api/mes-reservations/', MesReservationsView.as_view(), name='mes-reservations'),
-    path('api/all-reservations/', AllReservationsView.as_view(), name='all-reservations'),
+    path('reservations/', CreateReservationView.as_view(), name='create-reservation'),
+    path('mes-reservations/', MesReservationsView.as_view(), name='mes-reservations'),
+    path('all-reservations/', AllReservationsView.as_view(), name='all-reservations'),
     
     # Détails et mise à jour
-    path('api/reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
+    path('reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
 
     # Biens
-    path('api/biens/', BienListCreateView.as_view(), name='biens-list-create'),
-    path('api/biens/<int:pk>/', BienDetailView.as_view(), name='biens-detail'),
+    path('biens/', BienListCreateView.as_view(), name='biens-list-create'),
+    path('biens/<int:pk>/', BienDetailView.as_view(), name='biens-detail'),
     path('medias/', MediaCreateView.as_view(), name='media-create'),
     
     #Tarifs
@@ -41,10 +41,10 @@ urlpatterns = [
     path('tarifs/<int:pk>/delete/', TarifDeleteView.as_view(), name='tarif-delete'),
 
     # Favoris
-    path('api/favoris/', AjouterFavoriView.as_view(), name='ajouter-favori'),
-    path('api/mes-favoris/', MesFavorisView.as_view(), name='mes-favoris'),
-    path('api/favoris/<int:pk>/', RetirerFavoriView.as_view(), name='retirer-favori'),
-    path('api/favoris/toggle/', toggle_favori, name='toggle-favori'),
+    path('favoris/', AjouterFavoriView.as_view(), name='ajouter-favori'),
+    path('mes-favoris/', MesFavorisView.as_view(), name='mes-favoris'),
+    path('favoris/<int:pk>/', RetirerFavoriView.as_view(), name='retirer-favori'),
+    path('favoris/toggle/', toggle_favori, name='toggle-favori'),
     
     
     #Hote
@@ -54,7 +54,7 @@ urlpatterns = [
     path('Dashboard/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
 
     # Statistiques
-    path('api/admin/reservation-stats/', reservations_stats, name='reservation-stats'),
+    path('admin/reservation-stats/', reservations_stats, name='reservation-stats'),
     path('Dashboard/biens/<int:bien_id>/reservations/historiques-statuts/', historique_statuts_reservations_bien, name='historiques_statuts_reservations_bien'),
     path('Dashboard/biens/<int:bien_id>/likes', likes_de_mon_bien, name='likes_de_mon_bien'),
 ]
