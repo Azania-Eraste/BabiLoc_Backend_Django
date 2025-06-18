@@ -165,12 +165,6 @@ class Reservation(models.Model):
         related_name='reservations',
         verbose_name="Utilisateur"
     )
-    annonce = models.ForeignKey(
-        Bien,
-        on_delete=models.CASCADE, 
-        related_name='reservations',
-        verbose_name="Bien réservé"
-    )
     
     date_debut = models.DateTimeField(verbose_name="Date de début")
     date_fin = models.DateTimeField(verbose_name="Date de fin")

@@ -7,6 +7,6 @@ class CustomUser(AbstractUser):
         verbose_name = "Utilisateur"
         verbose_name_plural = "Utilisateurs"
 
-    number = models.TextField()
-    birthdate = models.DateField()
+    number = models.TextField(null=True)
+    birthdate = models.DateField(null=True)
     is_vendor = models.BooleanField(default=False)

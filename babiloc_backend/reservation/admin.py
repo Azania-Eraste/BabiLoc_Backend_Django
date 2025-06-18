@@ -4,7 +4,7 @@ from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
     list_display = [
-        'id', 'user', 'annonce', 'status',  # Changé 'annonce_id' en 'annonce'
+        'id', 'user', 'annonce_id', 'status',  # Changé 'annonce_id_id' en 'annonce_id'
         'date_debut', 'date_fin', 'prix_total', 'created_at'
     ]
     list_filter = ['status', 'created_at', 'date_debut']
@@ -14,7 +14,7 @@ class ReservationAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Informations générales', {
-            'fields': ('user', 'annonce', 'status')  # Changé 'annonce_id' en 'annonce'
+            'fields': ('user', 'annonce_id', 'status')  # Changé 'annonce_id_id' en 'annonce_id'
         }),
         ('Dates', {
             'fields': ('date_debut', 'date_fin')

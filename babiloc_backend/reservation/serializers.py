@@ -61,7 +61,6 @@ class TarifSerializer(serializers.ModelSerializer):
 
 class BienSerializer(serializers.ModelSerializer):
     tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
-    nombre_likes = serializers.IntegerField(source='nombre_likes', read_only=True)
     premiere_image = serializers.SerializerMethodField()
 
     class Meta:
@@ -96,7 +95,7 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         # Correction : utiliser 'annonce' au lieu de 'annonce_id'
-        fields = ['annonce', 'date_debut', 'date_fin', 'prix_total', 'message']
+        fields = ['annonce_id', 'date_debut', 'date_fin', 'prix_total', 'message']
     
     def validate(self, data):
         """Validation personnalisée"""

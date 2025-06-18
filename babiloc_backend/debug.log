@@ -758,3 +758,504 @@ Watching for file changes with StatReloader
 "GET /swagger/?format=openapi HTTP/1.1" 200 17930
 "GET /swagger/ HTTP/1.1" 200 2211
 "GET /swagger/?format=openapi HTTP/1.1" 200 17930
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\admin.py changed, reloading.
+Watching for file changes with StatReloader
+Not Found: /
+"GET / HTTP/1.1" 404 3361
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3412
+"GET /admin/ HTTP/1.1" 302 0
+"GET /admin/login/?next=/admin/ HTTP/1.1" 200 4251
+"GET /static/admin/css/base.css HTTP/1.1" 200 22120
+"GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2808
+"GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+"GET /static/admin/css/login.css HTTP/1.1" 200 951
+"GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+"GET /static/admin/css/responsive.css HTTP/1.1" 200 16565
+"GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+Method Not Allowed: /api/auth/register/
+"GET /api/auth/register/ HTTP/1.1" 405 5685
+"GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 200 3426
+"GET /static/rest_framework/css/prettify.css HTTP/1.1" 200 817
+"GET /static/rest_framework/css/default.css HTTP/1.1" 200 1152
+"GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 200 121457
+"GET /static/rest_framework/js/csrf.js HTTP/1.1" 200 1793
+"GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 200 3796
+"GET /static/rest_framework/img/grid.png HTTP/1.1" 200 1458
+"GET /static/rest_framework/js/default.js HTTP/1.1" 200 1268
+"GET /static/rest_framework/js/load-ajax-form.js HTTP/1.1" 200 59
+"GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 200 13632
+"GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 200 39680
+"GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.1" 200 87533
+Not Found: /
+"GET / HTTP/1.1" 404 3361
+"GET /admin/ HTTP/1.1" 302 0
+"GET /admin/login/?next=/admin/ HTTP/1.1" 200 4251
+Method Not Allowed: /api/auth/register/
+"GET /api/auth/register/ HTTP/1.1" 405 5685
+"GET /api/ HTTP/1.1" 200 2207
+"GET /static/drf-yasg/style.css HTTP/1.1" 200 1047
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui.css HTTP/1.1" 200 145206
+"GET /static/drf-yasg/insQ.min.js HTTP/1.1" 200 2093
+"GET /static/drf-yasg/swagger-ui-init.js HTTP/1.1" 200 15480
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-bundle.js HTTP/1.1" 200 1046583
+"GET /static/drf-yasg/immutable.min.js HTTP/1.1" 200 56904
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-standalone-preset.js HTTP/1.1" 200 322863
+"GET /static/drf-yasg/swagger-ui-dist/favicon-32x32.png HTTP/1.1" 200 628
+Internal Server Error: /api/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\views.py", line 112, in get
+    schema = generator.get_schema(request, self.public)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 276, in get_schema
+    paths, prefix = self.get_paths(endpoints, components, request, public)
+                    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 482, in get_paths
+    operation = self.get_operation(view, path, prefix, method, components, request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 524, in get_operation
+    operation = view_inspector.get_operation(operation_keys)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 45, in get_operation
+    responses = self.get_responses()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 182, in get_responses
+    responses=self.get_response_schemas(response_serializers)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 271, in get_response_schemas
+    schema=self.serializer_to_schema(serializer),
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 438, in serializer_to_schema
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'get_schema', serializer, {'field_inspectors': self.field_inspectors}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 49, in get_schema
+    return self.probe_field_inspectors(serializer, openapi.Schema, self.use_definitions)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 228, in probe_field_inspectors
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'field_to_swagger_object', field, {'field_inspectors': self.field_inspectors},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        swagger_object_type=swagger_object_type, use_references=use_references, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 93, in field_to_swagger_object
+    child_schema = self.probe_field_inspectors(field.child, ChildSwaggerType, use_references)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 228, in probe_field_inspectors
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'field_to_swagger_object', field, {'field_inspectors': self.field_inspectors},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        swagger_object_type=swagger_object_type, use_references=use_references, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 140, in field_to_swagger_object
+    actual_schema = definitions.setdefault(ref_name, make_schema_definition)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\openapi.py", line 685, in setdefault
+    ret = maker()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 109, in make_schema_definition
+    for property_name, child in serializer.fields.items():
+                                ^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 375, in fields
+    fields[key] = value
+    ~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\utils\serializer_helpers.py", line 167, in __setitem__
+    field.bind(field_name=key, parent=self.serializer)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 358, in bind
+    assert self.source != field_name, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: It is redundant to specify `source='nombre_likes'` on field 'IntegerField' in serializer 'BienSerializer', because it is the same as the field name. Remove the `source` keyword argument.
+"GET /api/?format=openapi HTTP/1.1" 500 244525
+Internal Server Error: /api/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\views.py", line 112, in get
+    schema = generator.get_schema(request, self.public)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 276, in get_schema
+    paths, prefix = self.get_paths(endpoints, components, request, public)
+                    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 482, in get_paths
+    operation = self.get_operation(view, path, prefix, method, components, request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 524, in get_operation
+    operation = view_inspector.get_operation(operation_keys)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 45, in get_operation
+    responses = self.get_responses()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 182, in get_responses
+    responses=self.get_response_schemas(response_serializers)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 271, in get_response_schemas
+    schema=self.serializer_to_schema(serializer),
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 438, in serializer_to_schema
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'get_schema', serializer, {'field_inspectors': self.field_inspectors}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 49, in get_schema
+    return self.probe_field_inspectors(serializer, openapi.Schema, self.use_definitions)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 228, in probe_field_inspectors
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'field_to_swagger_object', field, {'field_inspectors': self.field_inspectors},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        swagger_object_type=swagger_object_type, use_references=use_references, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 93, in field_to_swagger_object
+    child_schema = self.probe_field_inspectors(field.child, ChildSwaggerType, use_references)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 228, in probe_field_inspectors
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'field_to_swagger_object', field, {'field_inspectors': self.field_inspectors},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        swagger_object_type=swagger_object_type, use_references=use_references, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 140, in field_to_swagger_object
+    actual_schema = definitions.setdefault(ref_name, make_schema_definition)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\openapi.py", line 685, in setdefault
+    ret = maker()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 109, in make_schema_definition
+    for property_name, child in serializer.fields.items():
+                                ^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 375, in fields
+    fields[key] = value
+    ~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\utils\serializer_helpers.py", line 167, in __setitem__
+    field.bind(field_name=key, parent=self.serializer)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 358, in bind
+    assert self.source != field_name, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: It is redundant to specify `source='nombre_likes'` on field 'IntegerField' in serializer 'BienSerializer', because it is the same as the field name. Remove the `source` keyword argument.
+"GET /api/?format=openapi HTTP/1.1" 500 244618
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Internal Server Error: /api/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\views.py", line 112, in get
+    schema = generator.get_schema(request, self.public)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 276, in get_schema
+    paths, prefix = self.get_paths(endpoints, components, request, public)
+                    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 482, in get_paths
+    operation = self.get_operation(view, path, prefix, method, components, request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\generators.py", line 524, in get_operation
+    operation = view_inspector.get_operation(operation_keys)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 32, in get_operation
+    body = self.get_request_body_parameters(consumes)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 85, in get_request_body_parameters
+    schema = self.get_request_body_schema(serializer)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\view.py", line 142, in get_request_body_schema
+    return self.serializer_to_schema(serializer)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 438, in serializer_to_schema
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'get_schema', serializer, {'field_inspectors': self.field_inspectors}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 49, in get_schema
+    return self.probe_field_inspectors(serializer, openapi.Schema, self.use_definitions)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 228, in probe_field_inspectors
+    return self.probe_inspectors(
+           ~~~~~~~~~~~~~~~~~~~~~^
+        self.field_inspectors, 'field_to_swagger_object', field, {'field_inspectors': self.field_inspectors},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        swagger_object_type=swagger_object_type, use_references=use_references, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\base.py", line 110, in probe_inspectors
+    result = method(obj, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 140, in field_to_swagger_object
+    actual_schema = definitions.setdefault(ref_name, make_schema_definition)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\openapi.py", line 685, in setdefault
+    ret = maker()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\drf_yasg\inspectors\field.py", line 109, in make_schema_definition
+    for property_name, child in serializer.fields.items():
+                                ^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 374, in fields
+    for key, value in self.get_fields().items():
+                      ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1105, in get_fields
+    field_class, field_kwargs = self.build_field(
+                                ~~~~~~~~~~~~~~~~^
+        source, info, model, depth
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1251, in build_field
+    return self.build_unknown_field(field_name, model_class)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1369, in build_unknown_field
+    raise ImproperlyConfigured(
+    ...<2 lines>...
+    )
+django.core.exceptions.ImproperlyConfigured: Field name `annonce` is not valid for model `Reservation` in `reservation.serializers.ReservationCreateSerializer`.
+"GET /api/?format=openapi HTTP/1.1" 500 230969
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/?format=openapi HTTP/1.1" 200 22722
+"GET /api HTTP/1.1" 301 0
+"GET /api/ HTTP/1.1" 200 2207
+"GET /api/?format=openapi HTTP/1.1" 200 22722
+"GET /api/ HTTP/1.1" 200 2207
+"GET /api/?format=openapi HTTP/1.1" 200 22722
+Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\http\request.py", line 186, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Bad Request: /api/
+"GET /api/ HTTP/1.1" 400 77242
+Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\http\request.py", line 186, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 22884
+Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\http\request.py", line 186, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Bad Request: /api/
+"GET /api/ HTTP/1.1" 400 77242
+Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\http\request.py", line 186, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '10.0.2.2:8000'. You may need to add '10.0.2.2' to ALLOWED_HOSTS.
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 22884
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\babiloc_backend\settings.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\babiloc_backend\settings.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/ HTTP/1.1" 200 2207
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 97
+"GET /api/ HTTP/1.1" 200 2207
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 97
+"GET /api/ HTTP/1.1" 200 2207
+"POST /api/auth/register/ HTTP/1.1" 201 645
+Unauthorized: /api/auth/activate/MQ/crk62h-c738687fee158aa4dbc4181c30e63b61/
+"GET //api/auth/activate/MQ/crk62h-c738687fee158aa4dbc4181c30e63b61/ HTTP/1.1" 401 5442
+Unauthorized: /api/auth/activate/MQ/crk62h-c738687fee158aa4dbc4181c30e63b61/
+"GET /api/auth/activate/MQ/crk62h-c738687fee158aa4dbc4181c30e63b61/ HTTP/1.1" 401 5442
+Unauthorized: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 401 79
+Unauthorized: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 401 79
+"GET /admin/ HTTP/1.1" 302 0
+"GET /admin/login/?next=/admin/ HTTP/1.1" 200 4251
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 4495
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 4494
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 4494
+Watching for file changes with StatReloader
+"POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+"GET /admin/ HTTP/1.1" 200 9973
+"GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+"GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+"GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /admin/ HTTP/1.1" 200 11081
+"GET /admin/Auths/customuser/ HTTP/1.1" 200 16110
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /static/admin/css/changelists.css HTTP/1.1" 200 6878
+"GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+"GET /static/admin/js/core.js HTTP/1.1" 200 6208
+"GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+"GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 9777
+"GET /static/admin/js/actions.js HTTP/1.1" 200 8076
+"GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+"GET /static/admin/img/search.svg HTTP/1.1" 200 458
+"GET /static/admin/img/icon-no.svg HTTP/1.1" 200 560
+"GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 200 285314
+"GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 200 325171
+"GET /static/admin/js/filters.js HTTP/1.1" 200 978
+"GET /static/admin/img/tooltag-add.svg HTTP/1.1" 200 331
+"GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 200 581
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\admin.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /admin/Auths/customuser/ HTTP/1.1" 200 16424
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+"GET /admin/Auths/customuser/1/change/ HTTP/1.1" 200 29465
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /static/admin/css/forms.css HTTP/1.1" 200 8525
+"GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+"GET /static/admin/js/calendar.js HTTP/1.1" 200 9141
+"GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 200 19319
+"GET /static/admin/css/widgets.css HTTP/1.1" 200 11991
+"GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+"GET /static/admin/img/icon-clock.svg HTTP/1.1" 200 677
+"GET /static/admin/img/icon-calendar.svg HTTP/1.1" 200 1086
+"POST /admin/Auths/customuser/1/change/ HTTP/1.1" 302 0
+"GET /admin/Auths/customuser/ HTTP/1.1" 200 16642
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/Auths/customuser/1/change/ HTTP/1.1" 200 29473
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+Unauthorized: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 401 79
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/auth/activate/MQ/crk62h-c738687fee158aa4dbc4181c30e63b61/ HTTP/1.1" 200 5672
+"GET /api/auth/activate/MQ/crk62h-c738687fee158aa4dbc4181c30e63b61/ HTTP/1.1" 200 5672
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 745
