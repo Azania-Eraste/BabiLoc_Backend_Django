@@ -44,7 +44,12 @@ class TarifSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tarif
-        fields = ['id', 'nom', 'prix', 'type_tarif', 'bien_id']
+        fields = [
+            'id',
+            'type_tarif',
+            'prix', 
+            'bien_id'
+            ]
 
     def validate_bien_id(self, value):
         user = self.context['request'].user

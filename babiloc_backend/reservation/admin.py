@@ -53,9 +53,9 @@ class TypeBienAdmin(admin.ModelAdmin):
 
 @admin.register(Tarif)
 class TarifAdmin(admin.ModelAdmin):
-    list_display = ['id', 'nom', 'prix', 'bien', 'created_at']
+    list_display = ['id', 'type_tarif', 'prix', 'bien', 'created_at']
     list_filter = ['created_at']
-    search_fields = ['nom', 'bien__nom']
+    search_fields = ['type_tarif', 'bien__nom']
 
 @admin.register(Media)
 class MediaAdmin(admin.ModelAdmin):

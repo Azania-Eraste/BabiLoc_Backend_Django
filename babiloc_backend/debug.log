@@ -1593,3 +1593,349 @@ Unauthorized: /api/auth/login/
 "POST /api/auth/login/ HTTP/1.1" 200 745
 "GET /api/location/biens/ HTTP/1.1" 200 513
 "GET /api/location/biens/ HTTP/1.1" 200 513
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 513
+"GET /api/location/biens/ HTTP/1.1" 200 513
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\admin.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/location/biens/ HTTP/1.1" 200 513
+"GET /api/location/biens/ HTTP/1.1" 200 513
+Not Found: /
+"GET / HTTP/1.1" 404 3361
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3412
+"GET /admin/ HTTP/1.1" 200 12897
+"GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+"GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+"GET /admin/reservation/tarif/ HTTP/1.1" 200 12825
+"GET /static/admin/js/actions.js HTTP/1.1" 200 8076
+"GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+"GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+"GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 9777
+"GET /static/admin/js/core.js HTTP/1.1" 200 6208
+"GET /static/admin/js/filters.js HTTP/1.1" 200 978
+"GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 200 285314
+"GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 200 325171
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/reservation/tarif/add/ HTTP/1.1" 200 14780
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+"GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+Internal Server Error: /admin/reservation/tarif/add/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: reservation_tarif.nom
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 719, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\sites.py", line 246, in inner
+    return view(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 1984, in add_view
+    return self.changeform_view(request, None, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 1843, in changeform_view
+    return self._changeform_view(request, object_id, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 1894, in _changeform_view
+    self.save_model(request, new_object, form, not add)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 1314, in save_model
+    obj.save()
+    ~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\base.py", line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\base.py", line 1008, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\base.py", line 1169, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\base.py", line 1210, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\query.py", line 1864, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1882, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: reservation_tarif.nom
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 500 217954
+Watching for file changes with StatReloader
+Internal Server Error: /admin/reservation/tarif/add/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 719, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\sites.py", line 246, in inner
+    return view(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 1984, in add_view
+    return self.changeform_view(request, None, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 1843, in changeform_view
+    return self._changeform_view(request, object_id, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 1900, in _changeform_view
+    self.log_addition(request, new_object, change_message)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\options.py", line 953, in log_addition
+    return LogEntry.objects.log_actions(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        user_id=request.user.pk,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        single_object=True,
+        ^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\contrib\admin\models.py", line 89, in log_actions
+    object_repr=str(obj)[:200],
+                ~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py", line 121, in __str__
+    return self.nom
+           ^^^^^^^^
+AttributeError: 'Tarif' object has no attribute 'nom'
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 500 143787
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/tarif/add/ HTTP/1.1" 200 15076
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/tarif/ HTTP/1.1" 200 15620
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /api/location/biens/ HTTP/1.1" 200 615
+"GET /api/location/biens/ HTTP/1.1" 200 615
+"GET /api/location/biens/ HTTP/1.1" 200 615
+"GET /api/location/biens/ HTTP/1.1" 200 615
+"GET /api/location/biens/ HTTP/1.1" 200 615
+"GET /api/location/biens/ HTTP/1.1" 200 615
+"GET /api/location/biens/ HTTP/1.1" 200 615
+"GET /admin/reservation/bien/ HTTP/1.1" 200 15976
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/reservation/bien/add/ HTTP/1.1" 200 18779
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/bien/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/bien/ HTTP/1.1" 200 16730
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/reservation/bien/add/ HTTP/1.1" 200 18779
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/bien/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/bien/ HTTP/1.1" 200 17241
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /api/location/biens/ HTTP/1.1" 200 1576
+"GET /admin/reservation/tarif/ HTTP/1.1" 200 15385
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/reservation/tarif/add/ HTTP/1.1" 200 14871
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/tarif/add/ HTTP/1.1" 200 15172
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/tarif/add/ HTTP/1.1" 200 15174
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/tarif/add/ HTTP/1.1" 200 15165
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/tarif/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/tarif/ HTTP/1.1" 200 17488
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+Unauthorized: /api/location/biens/
+"GET /api/location/biens/ HTTP/1.1" 401 172
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader

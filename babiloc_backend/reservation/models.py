@@ -111,7 +111,6 @@ class Bien(models.Model):
 # Un bien peut avoir plusieurs tarifs (journalier, hebdomadaire, mensuel)
 class Tarif(models.Model):
 
-    nom = models.CharField(max_length=250)
     prix = models.FloatField(validators=[MinValueValidator(0.0)])
     type_tarif = models.CharField(max_length=50, choices=[(tag.name, tag.value) for tag in Typetarif], null=True)
     bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Tarifs_Biens_id')
@@ -119,7 +118,7 @@ class Tarif(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
     def __str__(self):
-        return self.nom
+        return f"{self.type_tarif} - {self.bien.nom}"
 
 
 # ============================================================================
