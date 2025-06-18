@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement, Tarif
+from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -59,10 +59,21 @@ class TarifSerializer(serializers.ModelSerializer):
         bien = Bien.objects.get(id=bien_id)
         return Tarif.objects.create(bien=bien, **validated_data)
 
+class MediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Media
+        fields = ['id', 'image']
+
+class TypeBienSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type_Bien
+        fields = '__all__'
+
 class BienSerializer(serializers.ModelSerializer):
     tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
+    media = MediaSerializer(source='medias', many=True,read_only=True)
     premiere_image = serializers.SerializerMethodField()
-
+    type_bien = TypeBienSerializer(read_only=True)
     class Meta:
         model = Bien
         fields = [
@@ -70,17 +81,23 @@ class BienSerializer(serializers.ModelSerializer):
             'nom',
             'description',
             'ville',
-            'prix',
             'noteGlobale',
             'vues',
             'disponibility',
             'type_bien',
             'created_at',
+            'owner',
             'updated_at',
             'nombre_likes',
             'premiere_image',
             'tarifs',
+            'media'
         ]
+
+    def validate_owner(self, value):
+        if not value.is_vendor:
+            raise serializers.ValidationError("L'utilisateur doit être un vendeur.")
+        return value
 
     def get_premiere_image(self, obj):
         request = self.context.get('request')
@@ -154,10 +171,7 @@ class ReservationListSerializer(serializers.ModelSerializer):
             'number': getattr(obj.user, 'number', '')
         }
     
-class MediaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Media
-        fields = ['id', 'image']
+
 
 class FavoriSerializer(serializers.ModelSerializer):
     """Serializer pour les favoris"""

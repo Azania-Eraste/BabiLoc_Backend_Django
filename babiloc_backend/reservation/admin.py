@@ -1,4 +1,5 @@
 from django.contrib import admin
+from .forms import BienForm
 from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media
 
 @admin.register(Reservation)
@@ -39,7 +40,8 @@ class FavoriAdmin(admin.ModelAdmin):
 # Add missing model registrations
 @admin.register(Bien)
 class BienAdmin(admin.ModelAdmin):
-    list_display = ['id', 'nom', 'ville', 'prix', 'owner', 'disponibility', 'type_bien']
+    form = BienForm
+    list_display = ['id', 'nom', 'ville', 'owner', 'disponibility', 'type_bien']
     list_filter = ['disponibility', 'type_bien', 'ville', 'created_at']
     search_fields = ['nom', 'description', 'ville', 'owner__username']
     ordering = ['-created_at']

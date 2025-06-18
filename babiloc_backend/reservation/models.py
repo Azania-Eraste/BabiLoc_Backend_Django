@@ -73,7 +73,6 @@ class Bien(models.Model):
     nom = models.CharField(max_length=250)  # Ex: "Villa moderne 4 chambres"
     description = models.TextField()  # Description complète du bien
     ville = models.CharField(max_length=100, verbose_name="Ville", default="Abidjan")
-    prix = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prix", default=0)
     
     noteGlobale = models.FloatField(  # Note moyenne sur 5 étoiles
         validators=[
