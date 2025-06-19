@@ -1,0 +1,294 @@
+# ============================================================================
+# DJANGO GITIGNORE - Configuration complète pour projets Django
+# ============================================================================
+
+# ============================================================================
+# FICHIERS SYSTÈME & ENVIRONNEMENT
+# ============================================================================
+# Variables d'environnement et secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# Fichiers système
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ============================================================================
+# PYTHON & DJANGO
+# ============================================================================
+# Bytecode Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Scrapy stuff
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ============================================================================
+# DJANGO SPÉCIFIQUE
+# ============================================================================
+# Base de données
+*.sqlite3
+*.db
+*.sqlite
+
+# Fichiers statiques collectés
+/static/
+/staticfiles/
+staticfiles/
+
+# Fichiers médias (uploads utilisateurs)
+/media/
+media/
+
+# Fichiers de migration (optionnel - décommentez si vous ne voulez pas les versionner)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Fichiers de cache Django
+.cache/
+
+# Logs Django
+*.log
+debug.log
+error.log
+django.log
+
+# Fichiers de session
+django_session/
+
+# Fichiers de configuration locale
+local_settings.py
+settings_local.py
+settings/local.py
+
+# ============================================================================
+# ÉDITEURS & IDE
+# ============================================================================
+# Visual Studio Code
+.vscode/
+.history/
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================================================
+# BASES DE DONNÉES
+# ============================================================================
+# SQLite
+*.sqlite3
+*.sqlite3-journal
+*.db
+
+# PostgreSQL
+*.pgsql
+
+# MySQL
+*.mysql
+
+# ============================================================================
+# SERVEURS & DÉPLOIEMENT
+# ============================================================================
+# Gunicorn
+gunicorn.pid
+
+# uWSGI
+uwsgi.ini
+*.sock
+
+# Nginx
+nginx.conf
+
+# Apache
+.htaccess
+
+# ============================================================================
+# OUTILS DE DÉVELOPPEMENT
+# ============================================================================
+# Node.js (si vous utilisez des outils frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Webpack
+webpack-stats.json
+
+# ============================================================================
+# SÉCURITÉ
+# ============================================================================
+# Clés et certificats
+*.key
+*.pem
+*.crt
+*.cert
+*.p12
+
+# Secrets
+secrets.json
+secrets.py
+
+# ============================================================================
+# OUTILS CLOUD & CONTENEURS
+# ============================================================================
+# Docker
+Dockerfile.prod
+docker-compose.prod.yml
+.dockerignore
+
+# Heroku
+Procfile.local
+
+# AWS
+.aws/
+
+# ============================================================================
+# FICHIERS TEMPORAIRES
+# ============================================================================
+# Fichiers temporaires divers
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+
+# Dossiers temporaires
+tmp/
+temp/
