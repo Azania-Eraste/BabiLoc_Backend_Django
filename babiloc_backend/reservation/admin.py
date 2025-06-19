@@ -21,7 +21,7 @@ class ReservationAdmin(admin.ModelAdmin):
             'fields': ('date_debut', 'date_fin')
         }),
         ('Prix et message', {
-            'fields': ('prix_total', 'message')
+            'fields': ('type_tarif', 'message')
         }),
         ('Métadonnées', {
             'fields': ('created_at', 'updated_at'),

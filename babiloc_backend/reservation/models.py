@@ -156,6 +156,13 @@ class Reservation(models.Model):
         ('cancelled', 'Annulée'),
         ('completed', 'Terminée'),
     ]
+
+    type_tarif = models.CharField(
+        max_length=50,
+        choices=[(tag.name, tag.value) for tag in Typetarif],
+        default=Typetarif.JOURNALIER.name,
+        verbose_name="Type de tarif"
+    )
     
     user = models.ForeignKey(
         User, 
@@ -213,6 +220,25 @@ class Reservation(models.Model):
         if self.status == 'confirmed' and not self.confirmed_at:
             self.confirmed_at = timezone.now()
         super().save(*args, **kwargs)
+
+    def get_tarif_bien(self):
+        return self.annonce_id.Tarifs_Biens_id.filter(type_tarif=self.type_tarif).first()
+    
+    def save(self, *args, **kwargs):
+        # S’il s’agit d’une nouvelle réservation, calcule le prix
+        if not self.pk:
+            tarif = self.get_tarif_bien()
+            if tarif:
+                nb_jours = (self.date_fin - self.date_debut).days or 1
+                self.prix_total = Decimal(tarif.prix) * Decimal(nb_jours)
+            else:
+                raise ValueError("Aucun tarif trouvé pour ce bien et ce type de tarif.")
+        
+        if self.status == 'confirmed' and not self.confirmed_at:
+            self.confirmed_at = timezone.now()
+        
+        super().save(*args, **kwargs)
+
 
 class HistoriqueStatutReservation(models.Model):
     reservation = models.ForeignKey('Reservation', on_delete=models.CASCADE, related_name='historiques_statut')

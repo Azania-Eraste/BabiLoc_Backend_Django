@@ -110,9 +110,30 @@ class BienSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(image_url) if request and image_url else None
 
 
+class BienReservationSerializer(serializers.ModelSerializer):
+    premiere_image = serializers.SerializerMethodField()
+    type_bien = TypeBienSerializer(read_only=True)
+
+    class Meta:
+        model = Bien
+        fields = [
+            "id",
+            "nom",
+            "description",
+            "type_bien",
+            "premiere_image",
+        ]
+
+    def get_premiere_image(self, obj):
+        request = self.context.get("request")
+        image_url = obj.get_first_image()
+        return request.build_absolute_uri(image_url) if request and image_url else None
+
+
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer une réservation"""
+    
     
     class Meta:
         model = Reservation
@@ -160,6 +181,7 @@ class ReservationListSerializer(serializers.ModelSerializer):
     
     user_info = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    annonce_id = BienReservationSerializer()
     
     class Meta:
         model = Reservation

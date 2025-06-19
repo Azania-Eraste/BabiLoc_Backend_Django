@@ -1939,3 +1939,518 @@ C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed
 Watching for file changes with StatReloader
 C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
 Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+"GET /api/auth/me/ HTTP/1.1" 200 207
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\Auths\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+Unauthorized: /api/location/mes-reservations/
+"GET /api/location/mes-reservations/ HTTP/1.1" 401 172
+Unauthorized: /api/location/biens/
+"GET /api/location/biens/ HTTP/1.1" 401 172
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 214
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 52
+Not Found: /
+"GET / HTTP/1.1" 404 3361
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3412
+"GET /admin/ HTTP/1.1" 200 14755
+"GET /static/admin/css/base.css HTTP/1.1" 304 0
+"GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+"GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+"GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+"GET /static/admin/css/dashboard.css HTTP/1.1" 304 0
+"GET /static/admin/js/theme.js HTTP/1.1" 304 0
+"GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+"GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+"GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+"GET /admin/reservation/reservation/ HTTP/1.1" 200 14138
+"GET /static/admin/img/search.svg HTTP/1.1" 304 0
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/reservation/reservation/add/ HTTP/1.1" 200 20846
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /static/admin/img/icon-clock.svg HTTP/1.1" 304 0
+"GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+"GET /static/admin/img/calendar-icons.svg HTTP/1.1" 200 2455
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\admin.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /admin/reservation/reservation/ HTTP/1.1" 200 14138
+"GET /admin/reservation/reservation/add/ HTTP/1.1" 200 21173
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/reservation/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/reservation/ HTTP/1.1" 200 17352
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+"GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1097
+"GET /admin/reservation/reservation/1/change/ HTTP/1.1" 200 21550
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/reservation/1/change/ HTTP/1.1" 302 0
+"GET /admin/reservation/reservation/ HTTP/1.1" 200 17357
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /admin/reservation/reservation/add/ HTTP/1.1" 200 21173
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/reservation/add/ HTTP/1.1" 302 0
+"GET /admin/reservation/reservation/ HTTP/1.1" 200 17990
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"POST /admin/reservation/reservation/ HTTP/1.1" 200 11437
+"GET /static/admin/js/cancel.js HTTP/1.1" 200 884
+"POST /admin/reservation/reservation/ HTTP/1.1" 302 0
+"GET /admin/reservation/reservation/ HTTP/1.1" 200 17265
+"GET /admin/jsi18n/ HTTP/1.1" 200 8634
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 373
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 373
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 215
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 373
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 373
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Internal Server Error: /api/location/mes-reservations/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 104, in get
+    return super().get(request, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\generics.py", line 203, in get
+    return self.list(request, *args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 797, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 716, in to_representation
+    self.child.to_representation(item) for item in iterable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 525, in to_representation
+    for field in fields:
+                 ^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 386, in _readable_fields
+    for field in self.fields.values():
+                 ^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 374, in fields
+    for key, value in self.get_fields().items():
+                      ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1105, in get_fields
+    field_class, field_kwargs = self.build_field(
+                                ~~~~~~~~~~~~~~~~^
+        source, info, model, depth
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1251, in build_field
+    return self.build_unknown_field(field_name, model_class)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1369, in build_unknown_field
+    raise ImproperlyConfigured(
+    ...<2 lines>...
+    )
+django.core.exceptions.ImproperlyConfigured: Field name `premiere_image` is not valid for model `Bien` in `reservation.serializers.BienReservationSerializer`.
+"GET /api/location/mes-reservations/ HTTP/1.1" 500 26890
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 429
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 429
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Internal Server Error: /api/location/mes-reservations/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 104, in get
+    return super().get(request, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\generics.py", line 203, in get
+    return self.list(request, *args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 797, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 716, in to_representation
+    self.child.to_representation(item) for item in iterable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 525, in to_representation
+    for field in fields:
+                 ^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 386, in _readable_fields
+    for field in self.fields.values():
+                 ^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 374, in fields
+    for key, value in self.get_fields().items():
+                      ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1081, in get_fields
+    field_names = self.get_field_names(declared_fields, info)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1177, in get_field_names
+    assert field_name in fields, (
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: The field 'premiere_image' was declared on serializer BienReservationSerializer, but has not been included in the 'fields' option.
+"GET /api/location/mes-reservations/ HTTP/1.1" 500 26731
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 215
+Internal Server Error: /api/location/mes-reservations/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 104, in get
+    return super().get(request, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\generics.py", line 203, in get
+    return self.list(request, *args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 797, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 716, in to_representation
+    self.child.to_representation(item) for item in iterable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 525, in to_representation
+    for field in fields:
+                 ^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 386, in _readable_fields
+    for field in self.fields.values():
+                 ^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 374, in fields
+    for key, value in self.get_fields().items():
+                      ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1081, in get_fields
+    field_names = self.get_field_names(declared_fields, info)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1177, in get_field_names
+    assert field_name in fields, (
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: The field 'premiere_image' was declared on serializer BienReservationSerializer, but has not been included in the 'fields' option.
+"GET /api/location/mes-reservations/ HTTP/1.1" 500 26731
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 215
+Internal Server Error: /api/location/mes-reservations/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 104, in get
+    return super().get(request, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\generics.py", line 203, in get
+    return self.list(request, *args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 797, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 716, in to_representation
+    self.child.to_representation(item) for item in iterable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 525, in to_representation
+    for field in fields:
+                 ^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 386, in _readable_fields
+    for field in self.fields.values():
+                 ^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 374, in fields
+    for key, value in self.get_fields().items():
+                      ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1081, in get_fields
+    field_names = self.get_field_names(declared_fields, info)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1177, in get_field_names
+    assert field_name in fields, (
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: The field 'premiere_image' was declared on serializer BienReservationSerializer, but has not been included in the 'fields' option.
+"GET /api/location/mes-reservations/ HTTP/1.1" 500 26731
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 1780
+"GET /api/auth/me/ HTTP/1.1" 200 215
+Internal Server Error: /api/location/mes-reservations/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 104, in get
+    return super().get(request, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\generics.py", line 203, in get
+    return self.list(request, *args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 797, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 716, in to_representation
+    self.child.to_representation(item) for item in iterable
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 525, in to_representation
+    for field in fields:
+                 ^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 386, in _readable_fields
+    for field in self.fields.values():
+                 ^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 374, in fields
+    for key, value in self.get_fields().items():
+                      ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1081, in get_fields
+    field_names = self.get_field_names(declared_fields, info)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1177, in get_field_names
+    assert field_name in fields, (
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: The field 'premiere_image' was declared on serializer BienReservationSerializer, but has not been included in the 'fields' option.
+"GET /api/location/mes-reservations/ HTTP/1.1" 500 26731
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader

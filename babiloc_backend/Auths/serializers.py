@@ -31,13 +31,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     
-
-
     class Meta:
         model = CustomUser
         fields = (
             'username', 'email', 'first_name', 'last_name',
-            'number', 'birthdate', 'password',
+            'number', 'birthdate', 'password','reservations',
         )
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -47,8 +45,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
-            'username', 'email', 'first_name', 'last_name',
-            'number', 'birthdate', 'password', 'password2'
+            'id','username', 'email', 'first_name', 'last_name','date_joined',
+            'number', 'birthdate', 'password', 'password2','reservations'
         )
 
     def validate_number(self, value):
