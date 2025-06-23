@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, MyTokenObtainPairSerializer
+from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils import generate_activation_link
 from django.core.mail import EmailMultiAlternatives
@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
@@ -175,6 +176,14 @@ class RegisterView(APIView):
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 
 class ActivateAccountView(APIView):

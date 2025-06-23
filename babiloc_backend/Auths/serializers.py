@@ -36,6 +36,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'username', 'email', 'first_name', 'last_name',
             'number', 'birthdate', 'password','reservations',
+            'carte_identite','permis_conduire','est_verifie',
         )
 
 class RegisterSerializer(serializers.ModelSerializer):

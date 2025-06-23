@@ -3,6 +3,7 @@ from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
+from Auths.serializers import UserSerializer
 
 User = get_user_model()
 
@@ -79,6 +80,8 @@ class BienSerializer(serializers.ModelSerializer):
     media = MediaSerializer(source='medias', many=True,read_only=True)
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
+    is_favori = serializers.SerializerMethodField()
+    owner = UserSerializer(read_only=True)
     class Meta:
         model = Bien
         fields = [
@@ -91,6 +94,7 @@ class BienSerializer(serializers.ModelSerializer):
             'disponibility',
             'type_bien',
             'created_at',
+            'is_favori',
             'owner',
             'updated_at',
             'nombre_likes',
@@ -103,6 +107,12 @@ class BienSerializer(serializers.ModelSerializer):
         if not value.is_vendor:
             raise serializers.ValidationError("L'utilisateur doit être un vendeur.")
         return value
+
+    def get_is_favori(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return Favori.objects.filter(user=user, bien=obj).exists()
+        return False
 
     def get_premiere_image(self, obj):
         request = self.context.get('request')
@@ -138,7 +148,7 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         # Correction : utiliser 'annonce' au lieu de 'annonce_id'
-        fields = ['annonce_id', 'date_debut', 'date_fin', 'prix_total', 'message']
+        fields = ['annonce_id', 'date_debut', 'date_fin', 'type_tarif','user']
     
     def validate(self, data):
         """Validation personnalisée"""
@@ -205,11 +215,11 @@ class FavoriSerializer(serializers.ModelSerializer):
     bien = BienSerializer(read_only=True)
     bien_id = serializers.IntegerField(write_only=True)
     user_id = serializers.IntegerField(source='user.id', read_only=True)
-    username = serializers.CharField(source='user.username', read_only=True)
+    
 
     class Meta:
         model = Favori
-        fields = ['id', 'bien', 'bien_id', 'user_id', 'username','created_at']
+        fields = ['id', 'bien', 'bien_id', 'user_id','created_at']
         read_only_fields = ['id', 'created_at']
     
     def validate_bien_id(self, value):

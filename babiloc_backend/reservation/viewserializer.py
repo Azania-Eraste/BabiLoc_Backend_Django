@@ -487,7 +487,25 @@ class AjouterFavoriView(generics.CreateAPIView):
         tags=['Favoris']
     )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        bien_id = request.data.get('bien_id')
+
+        if not bien_id:
+            return Response({'error': 'Le champ bien_id est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            bien = Bien.objects.get(pk=bien_id)
+        except Bien.DoesNotExist:
+            return Response({'error': 'Bien non trouvé.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Vérifier si le favori existe déjà
+        favori_existe = Favori.objects.filter(user=request.user, bien=bien).exists()
+        if favori_existe:
+            return Response({'error': 'Ce bien est déjà dans vos favoris.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Création du favori
+        favori = Favori.objects.create(user=request.user, bien=bien)
+        serializer = self.get_serializer(favori)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class MesFavorisView(generics.ListAPIView):
