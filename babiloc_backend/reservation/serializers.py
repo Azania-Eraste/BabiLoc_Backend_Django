@@ -3,12 +3,12 @@ from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
-from Auths.serializers import UserSerializer
+from Auths.serializers import RegisterSerializer as AuthUserSerializer
 
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer pour les informations utilisateur"""
+    """Serializer pour les informations utilisateur dans les réservations"""
     
     class Meta:
         model = User
