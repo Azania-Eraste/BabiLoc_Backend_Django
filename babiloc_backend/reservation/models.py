@@ -7,6 +7,9 @@ from django.db.models import TextChoices
 from django.utils import timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.core.mail import EmailMessage
+from django.conf import settings
 
 User = get_user_model()
 
@@ -424,3 +427,36 @@ class Favori(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.bien.nom}"
+    
+
+@receiver(post_save, sender=Document)
+def send_document_email(sender, instance, created, **kwargs):
+    if created:
+        subject = f"Nouveau document soumis : {instance.nom}"
+        message = f"""
+Bonjour,
+
+Un nouveau document a été soumis pour le bien : {instance.bien.nom}.
+
+Détails :
+- Type : {instance.get_type_display()}
+- Nom du fichier : {instance.fichier.name}
+- Propriétaire : {instance.bien.owner.get_full_name() or instance.bien.owner.username}
+
+Veuillez le vérifier en pièce jointe.
+
+Merci.
+        """
+
+        email = EmailMessage(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,
+            [settings.EMAIL_HOST_USER,],  # Change ça par l'adresse du modérateur
+        )
+
+        # Ajoute le fichier
+        if instance.fichier:
+            email.attach_file(instance.fichier.path)
+
+        email.send(fail_silently=False)

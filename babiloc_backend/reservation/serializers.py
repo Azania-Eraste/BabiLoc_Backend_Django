@@ -79,7 +79,8 @@ class TypeBienSerializer(serializers.ModelSerializer):
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = ['id', 'nom', 'fichier', 'type', 'date_upload']
+        fields = ['id', 'nom', 'fichier', 'type']
+        read_only_fields = ['date_upload']
 
 
 class BienSerializer(serializers.ModelSerializer):
@@ -109,7 +110,8 @@ class BienSerializer(serializers.ModelSerializer):
             'premiere_image',
             'tarifs',
             'media',
-            'documents'
+            'documents',
+            'est_verifie'
         ]
 
     def validate_owner(self, value):

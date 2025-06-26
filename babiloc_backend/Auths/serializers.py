@@ -49,8 +49,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = (
             'id','username', 'email', 'first_name', 'last_name','date_joined',
-            'number', 'birthdate', 'password', 'password2','is_vendor',
-            'carte_identite','permis_conduire','est_verifie'
+            'number', 'birthdate', 'password', 'password2',
         )
 
     def validate_number(self, value):

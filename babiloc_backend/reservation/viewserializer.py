@@ -414,7 +414,8 @@ class MediaCreateView(generics.CreateAPIView):
 
 class TarifCreateView(generics.CreateAPIView):
     serializer_class = TarifSerializer
-    permission_classes = [permission.IsVendor]
+    
+    permission_classes = [permissions.IsAuthenticated, permission.IsVendor]
 
     @swagger_auto_schema(
         operation_summary="Créer un tarif pour un bien",
@@ -425,7 +426,7 @@ class TarifCreateView(generics.CreateAPIView):
 
 class TarifUpdateView(generics.UpdateAPIView):
     serializer_class = TarifSerializer
-    permission_classes = [permission.IsVendor]
+    permission_classes = [permissions.IsAuthenticated, permission.IsVendor]
     lookup_field = 'pk'
 
     def get_queryset(self):
