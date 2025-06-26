@@ -92,6 +92,18 @@ class Bien(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
+    # Exemple de champ spécifique à un véhicule
+    marque = models.CharField(max_length=100, null=True, blank=True)
+    modele = models.CharField(max_length=100, null=True, blank=True)
+    plaque = models.CharField(max_length=20, null=True, blank=True)
+    nb_places = models.IntegerField(null=True, blank=True)
+
+    # Exemple pour une maison
+    nb_chambres = models.IntegerField(null=True, blank=True)
+    has_piscine = models.BooleanField(null=True, blank=True)
+
+    est_verifie = models.BooleanField(default=False) 
+
     def get_first_image(self):
         """Récupère la première image du bien pour l'affichage en liste"""
         return self.medias.first().image.url if self.medias.exists() else None
@@ -102,6 +114,24 @@ class Bien(models.Model):
     def __str__(self):
         return self.nom
 
+
+class Document(models.Model):
+    bien = models.ForeignKey("Bien", related_name="documents", on_delete=models.CASCADE)
+    nom = models.CharField(max_length=255)  # Exemple: "Carte Grise", "Attestation de propriété"
+    fichier = models.FileField(upload_to='documents_biens/')
+    type = models.CharField(
+        max_length=100,
+        choices=[
+            ('carte_grise', 'Carte Grise'),
+            ('assurance', 'Assurance'),
+            ('attestation_propriete', 'Attestation de propriété'),
+            ('autre', 'Autre'),
+        ]
+    )
+    date_upload = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.nom} pour {self.bien.nom}"
 
 # ============================================================================
 # MODÈLE TARIF

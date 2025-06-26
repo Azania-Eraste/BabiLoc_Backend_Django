@@ -341,7 +341,7 @@ class BienPagination(PageNumberPagination):
 
 
 class BienListCreateView(generics.ListCreateAPIView):
-    queryset = Bien.objects.all().select_related('type_bien')
+    queryset = Bien.objects.all().select_related('type_bien').filter(est_verifie=True)
     serializer_class = BienSerializer
     pagination_class = BienPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]

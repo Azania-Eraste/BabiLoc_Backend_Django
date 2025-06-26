@@ -37,6 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name', 'last_name',
             'number', 'birthdate', 'password','reservations',
             'carte_identite','permis_conduire','est_verifie',
+            'is_vendor'
         )
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -47,7 +48,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = (
             'id','username', 'email', 'first_name', 'last_name','date_joined',
-            'number', 'birthdate', 'password', 'password2','reservations'
+            'number', 'birthdate', 'password', 'password2','reservations','is_vendor',
+            'carte_identite','permis_conduire','est_verifie'
         )
 
     def validate_number(self, value):

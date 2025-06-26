@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien
+from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -75,6 +75,12 @@ class TypeBienSerializer(serializers.ModelSerializer):
         model = Type_Bien
         fields = '__all__'
 
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['id', 'nom', 'fichier', 'type', 'date_upload']
+
+
 class BienSerializer(serializers.ModelSerializer):
     tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
     media = MediaSerializer(source='medias', many=True,read_only=True)
@@ -82,6 +88,7 @@ class BienSerializer(serializers.ModelSerializer):
     type_bien = TypeBienSerializer(read_only=True)
     is_favori = serializers.SerializerMethodField()
     owner = UserSerializer(read_only=True)
+    documents = DocumentSerializer(many=True, read_only=True)
     class Meta:
         model = Bien
         fields = [
@@ -100,7 +107,8 @@ class BienSerializer(serializers.ModelSerializer):
             'nombre_likes',
             'premiere_image',
             'tarifs',
-            'media'
+            'media',
+            'documents'
         ]
 
     def validate_owner(self, value):
@@ -118,6 +126,7 @@ class BienSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         image_url = obj.get_first_image()
         return request.build_absolute_uri(image_url) if request and image_url else None
+
 
 
 class BienReservationSerializer(serializers.ModelSerializer):
