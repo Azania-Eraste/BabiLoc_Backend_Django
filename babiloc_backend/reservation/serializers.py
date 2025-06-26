@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'number', 'date_joined']
         read_only_fields = ['id', 'username', 'date_joined']
+        ref_name = 'ReservationUser'
 
 class ReservationSerializer(serializers.ModelSerializer):
     """Serializer complet pour les réservations"""
