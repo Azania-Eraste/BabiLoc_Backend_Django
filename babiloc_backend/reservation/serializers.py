@@ -111,7 +111,6 @@ class BienSerializer(serializers.ModelSerializer):
             'tarifs',
             'media',
             'documents',
-            'est_verifie'
         ]
 
     def validate_owner(self, value):
