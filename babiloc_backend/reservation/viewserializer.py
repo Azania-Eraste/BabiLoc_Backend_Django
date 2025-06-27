@@ -7,6 +7,7 @@ from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
+from rest_framework import serializers
 from django.db.models import Count
 from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif
 from .serializers import (
@@ -54,6 +55,25 @@ class CreateReservationView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
+    def validate(self, data):
+        bien = data.get('bien')
+        date_debut = data.get('date_debut')
+        date_fin = data.get('date_fin')
+
+        if date_debut > date_fin:
+            raise serializers.ValidationError("La date de début doit être avant la date de fin.")
+
+        # Vérifie le chevauchement
+        conflits = Reservation.objects.filter(
+            bien=bien,
+            date_debut__lte=date_fin,
+            date_fin__gte=date_debut
+        )
+        if conflits.exists():
+            raise serializers.ValidationError("Ce bien est déjà réservé pendant cette période.")
+
+        return data
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -34,10 +34,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
-            'username', 'email', 'first_name', 'last_name',
+            'id','username', 'email', 'first_name', 'last_name',
             'number', 'birthdate', 'password','reservations',
             'carte_identite','permis_conduire','est_verifie',
-            'is_vendor'
+            'is_vendor','date_joined',
         )
         ref_name = 'AuthUser'
 
