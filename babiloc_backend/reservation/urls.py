@@ -18,7 +18,13 @@ from .viewserializer import (
     likes_de_mon_bien,
     TarifCreateView,
     TarifDeleteView,
-    TarifUpdateView
+    TarifUpdateView,
+    AvisListCreateView,
+    AvisDetailView,
+    ReponseProprietaireView,
+    statistiques_avis_bien,
+    mes_avis,
+    avis_recus
 )
 
 urlpatterns = [
@@ -57,4 +63,12 @@ urlpatterns = [
     path('admin/reservation-stats/', reservations_stats, name='reservation-stats'),
     path('Dashboard/biens/<int:bien_id>/reservations/historiques-statuts/', historique_statuts_reservations_bien, name='historiques_statuts_reservations_bien'),
     path('Dashboard/biens/<int:bien_id>/likes', likes_de_mon_bien, name='likes_de_mon_bien'),
+
+    # Avis
+    path('avis/', AvisListCreateView.as_view(), name='avis-list-create'),
+    path('avis/<int:pk>/', AvisDetailView.as_view(), name='avis-detail'),
+    path('avis/<int:pk>/repondre/', ReponseProprietaireView.as_view(), name='avis-repondre'),
+    path('biens/<int:bien_id>/avis/statistiques/', statistiques_avis_bien, name='statistiques-avis-bien'),
+    path('mes-avis/', mes_avis, name='mes-avis'),
+    path('avis-recus/', avis_recus, name='avis-recus'),
 ]

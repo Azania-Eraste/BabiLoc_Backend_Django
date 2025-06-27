@@ -8,7 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
 from django.db.models import Count
-from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif
+from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -18,8 +18,9 @@ from .serializers import (
     MediaSerializer,
     FavoriSerializer,
     FavoriListSerializer,
-    TarifSerializer
-    
+    TarifSerializer,
+    AvisSerializer, AvisCreateSerializer, 
+    ReponseProprietaireSerializer, StatistiquesAvisSerializer
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -52,7 +53,7 @@ class CreateReservationView(generics.CreateAPIView):
         return super().post(request, *args, **kwargs)
     
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(owner=self.request.user)
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -353,6 +354,10 @@ class BienListCreateView(generics.ListCreateAPIView):
             return [permission.IsVendor()]
         return [permissions.AllowAny()]
 
+    # Add this method to set the owner automatically
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
     @swagger_auto_schema(
         operation_description="Lister tous les biens ou en créer un nouveau",
         responses={200: BienSerializer(many=True)},
@@ -411,6 +416,8 @@ class MediaCreateView(generics.CreateAPIView):
     serializer_class = MediaSerializer
     permission_classes = [permission.IsVendor]
 
+    def perform_create(self, serializer):
+        serializer.save()
 
 class TarifCreateView(generics.CreateAPIView):
     serializer_class = TarifSerializer
@@ -679,4 +686,261 @@ def likes_de_mon_bien(request, bien_id):
 
     favoris = Favori.objects.filter(bien=bien).select_related('user')
     serializer = FavoriSerializer(favoris, many=True)
+    return Response(serializer.data)
+
+class AvisPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+class AvisListCreateView(generics.ListCreateAPIView):
+    """
+    Liste et création d'avis
+    """
+    pagination_class = AvisPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['commentaire', 'user__username']
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AvisCreateSerializer
+        return AvisSerializer
+    
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+    
+    def get_queryset(self):
+        queryset = Avis.objects.filter(est_valide=True).select_related(
+            'user', 'bien', 'reservation'
+        ).order_by('-created_at')
+        
+        # Filtrer par bien
+        bien_id = self.request.query_params.get('bien_id')
+        if bien_id:
+            queryset = queryset.filter(bien_id=bien_id)
+        
+        # Filtrer par note
+        note_min = self.request.query_params.get('note_min')
+        if note_min:
+            try:
+                queryset = queryset.filter(note__gte=int(note_min))
+            except ValueError:
+                pass
+        
+        return queryset
+    
+    @swagger_auto_schema(
+        operation_description="Lister les avis ou en créer un nouveau",
+        manual_parameters=[
+            openapi.Parameter(
+                'bien_id', openapi.IN_QUERY,
+                description="Filtrer par ID du bien",
+                type=openapi.TYPE_INTEGER
+            ),
+            openapi.Parameter(
+                'note_min', openapi.IN_QUERY,
+                description="Note minimale (1-5)",
+                type=openapi.TYPE_INTEGER
+            ),
+        ],
+        responses={
+            200: AvisSerializer(many=True),
+            201: AvisSerializer,
+            400: "Données invalides"
+        },
+        tags=['Avis']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Créer un avis",
+        request_body=AvisCreateSerializer,
+        responses={
+            201: AvisSerializer,
+            400: "Données invalides",
+            401: "Non authentifié"
+        },
+        tags=['Avis']
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+class AvisDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Détails, modification et suppression d'un avis
+    """
+    serializer_class = AvisSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Avis.objects.none()
+        
+        user = self.request.user
+        if user.is_staff:
+            return Avis.objects.all()
+        return Avis.objects.filter(user=user)
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer un avis",
+        responses={200: AvisSerializer},
+        tags=['Avis']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Modifier un avis",
+        responses={200: AvisSerializer},
+        tags=['Avis']
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Supprimer un avis",
+        responses={204: "Supprimé"},
+        tags=['Avis']
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+class ReponseProprietaireView(generics.UpdateAPIView):
+    """
+    Permet au propriétaire de répondre à un avis
+    """
+    serializer_class = ReponseProprietaireSerializer
+    permission_classes = [permission.IsVendor]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Avis.objects.none()
+        
+        return Avis.objects.filter(
+            bien__owner=self.request.user,
+            reponse_proprietaire__isnull=True
+        )
+    
+    @swagger_auto_schema(
+        operation_description="Répondre à un avis en tant que propriétaire",
+        request_body=ReponseProprietaireSerializer,
+        responses={
+            200: AvisSerializer,
+            403: "Vous n'êtes pas le propriétaire de ce bien",
+            404: "Avis non trouvé"
+        },
+        tags=['Avis', 'Propriétaire']
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Statistiques des avis pour un bien",
+    manual_parameters=[
+        openapi.Parameter(
+            'bien_id', openapi.IN_PATH,
+            description="ID du bien",
+            type=openapi.TYPE_INTEGER, required=True
+        )
+    ],
+    responses={
+        200: StatistiquesAvisSerializer,
+        404: "Bien non trouvé"
+    },
+    tags=['Avis', 'Statistiques']
+)
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def statistiques_avis_bien(request, bien_id):
+    """
+    Retourne les statistiques d'avis pour un bien donné
+    """
+    try:
+        bien = Bien.objects.get(id=bien_id)
+    except Bien.DoesNotExist:
+        return Response({"detail": "Bien non trouvé"}, status=404)
+    
+    avis = bien.avis.filter(est_valide=True)
+    
+    # Statistiques de base
+    stats = avis.aggregate(
+        note_moyenne=Avg('note'),
+        nombre_avis=Count('id')
+    )
+    
+    # Répartition des notes
+    repartition = {}
+    for i in range(1, 6):
+        repartition[f"{i}_etoiles"] = avis.filter(note=i).count()
+    
+    # Pourcentage de recommandation
+    total_avis = stats['nombre_avis'] or 0
+    recommandations = avis.filter(recommande=True).count()
+    pourcentage_recommandation = (recommandations / total_avis * 100) if total_avis > 0 else 0
+    
+    # Notes moyennes par catégorie
+    notes_categories = avis.aggregate(
+        proprete=Avg('note_proprete'),
+        communication=Avg('note_communication'),
+        emplacement=Avg('note_emplacement'),
+        rapport_qualite_prix=Avg('note_rapport_qualite_prix')
+    )
+    
+    # Nettoyer les valeurs None
+    notes_categories = {
+        k: round(v, 1) if v is not None else None 
+        for k, v in notes_categories.items()
+    }
+    
+    data = {
+        'note_moyenne': round(stats['note_moyenne'], 1) if stats['note_moyenne'] else 0,
+        'nombre_avis': total_avis,
+        'repartition_notes': repartition,
+        'pourcentage_recommandation': round(pourcentage_recommandation, 1),
+        'notes_moyennes_categories': notes_categories
+    }
+    
+    return Response(data)
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Mes avis donnés",
+    responses={200: AvisSerializer(many=True)},
+    tags=['Avis', 'Utilisateur']
+)
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def mes_avis(request):
+    """
+    Liste des avis donnés par l'utilisateur connecté
+    """
+    avis = Avis.objects.filter(user=request.user).select_related(
+        'bien', 'reservation'
+    ).order_by('-created_at')
+    
+    serializer = AvisSerializer(avis, many=True, context={'request': request})
+    return Response(serializer.data)
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Avis reçus sur mes biens",
+    responses={200: AvisSerializer(many=True)},
+    tags=['Avis', 'Propriétaire']
+)
+@api_view(['GET'])
+@permission_classes([permission.IsVendor])
+def avis_recus(request):
+    """
+    Liste des avis reçus sur les biens du propriétaire
+    """
+    avis = Avis.objects.filter(
+        bien__owner=request.user,
+        est_valide=True
+    ).select_related('user', 'bien', 'reservation').order_by('-created_at')
+    
+    serializer = AvisSerializer(avis, many=True, context={'request': request})
     return Response(serializer.data)

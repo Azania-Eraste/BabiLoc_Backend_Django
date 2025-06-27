@@ -48,9 +48,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
-            'id','username', 'email', 'first_name', 'last_name','date_joined',
-            'number', 'birthdate', 'password', 'password2','is_vendor',
-            'carte_identite','permis_conduire','est_verifie'
+            'username', 'email', 'first_name', 'last_name',
+            'number', 'birthdate', 'password', 'password2', 'is_vendor',
+            'carte_identite', 'permis_conduire'
         )
 
     def validate_number(self, value):
