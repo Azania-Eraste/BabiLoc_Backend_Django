@@ -1,9 +1,11 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document
+from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document, CodePromo
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
 from Auths.serializers import RegisterSerializer as AuthUserSerializer
+from decimal import Decimal
+
 
 User = get_user_model()
 
@@ -154,32 +156,65 @@ class BienReservationSerializer(serializers.ModelSerializer):
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer une réservation"""
-    
-    
+    code_promo = serializers.CharField(required=False, write_only=True)
+
     class Meta:
         model = Reservation
-        # Correction : utiliser 'annonce' au lieu de 'annonce_id'
-        fields = ['annonce_id', 'date_debut', 'date_fin', 'type_tarif','user']
-    
+        fields = ['annonce_id', 'date_debut', 'date_fin', 'type_tarif', 'user', 'code_promo']
+
     def validate(self, data):
-        """Validation personnalisée"""
-        date_debut = data.get('date_debut')
-        date_fin = data.get('date_fin')
-        
-        # Vérifier que les dates sont dans le futur
-        now = timezone.now()
-        if date_debut and date_debut <= now:
-            raise serializers.ValidationError({
-                'date_debut': 'La date de début doit être dans le futur.'
-            })
-        
-        # Vérifier que date_fin > date_debut
-        if date_debut and date_fin and date_fin <= date_debut:
-            raise serializers.ValidationError({
-                'date_fin': 'La date de fin doit être après la date de début.'
-            })
-        
+        annonce = data['annonce_id']
+        date_debut = data['date_debut']
+        date_fin = data['date_fin']
+
+        if date_debut >= date_fin:
+            raise serializers.ValidationError("La date de début doit être avant la date de fin.")
+
+        conflits = Reservation.objects.filter(
+            annonce_id=annonce,
+            status__in=['pending', 'confirmed'],
+            date_debut__lt=date_fin,
+            date_fin__gt=date_debut
+        )
+
+        if conflits.exists():
+            raise serializers.ValidationError("Ce bien est déjà réservé pendant cette période.")
+
+        # Vérifie le code promo si fourni
+        code_promo_str = self.initial_data.get('code_promo')
+        if code_promo_str:
+            try:
+                code_promo = CodePromo.objects.get(nom=code_promo_str)
+                data['code_promo_obj'] = code_promo  # transmis au create()
+            except CodePromo.DoesNotExist:
+                raise serializers.ValidationError("Code promotionnel invalide.")
+
         return data
+
+    def create(self, validated_data):
+        promo_obj = validated_data.pop('code_promo_obj', None)
+        reservation = Reservation(**validated_data)
+
+        tarif = reservation.get_tarif_bien()
+        if not tarif:
+            raise serializers.ValidationError("Aucun tarif défini pour ce bien.")
+
+        nb_jours = (reservation.date_fin - reservation.date_debut).days or 1
+        prix_total = Decimal(tarif.prix) * Decimal(nb_jours)
+
+        # Applique la réduction si code promo
+        if promo_obj:
+            prix_total -= prix_total * promo_obj.reduction
+
+        reservation.prix_total = prix_total
+        reservation.save()
+
+        # Ajoute la réservation à la promo
+        if promo_obj:
+            promo_obj.reservations.add(reservation)
+
+        return reservation
+
 
 class ReservationUpdateSerializer(serializers.ModelSerializer):
     """Serializer pour mettre à jour le statut d'une réservation"""

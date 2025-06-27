@@ -248,11 +248,6 @@ class Reservation(models.Model):
     @property
     def revenu_net_hote(self):
         return round(self.prix_total - self.frais_service, 2)
-    
-    def save(self, *args, **kwargs):
-        if self.status == 'confirmed' and not self.confirmed_at:
-            self.confirmed_at = timezone.now()
-        super().save(*args, **kwargs)
 
     def get_tarif_bien(self):
         return self.annonce_id.Tarifs_Biens_id.filter(type_tarif=self.type_tarif).first()
@@ -271,6 +266,27 @@ class Reservation(models.Model):
             self.confirmed_at = timezone.now()
         
         super().save(*args, **kwargs)
+
+
+class CodePromo(models.Model):
+    nom = models.CharField(unique=True)
+    reduction = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(Decimal('0.0')),
+            MaxValueValidator(Decimal('0.5'))
+        ]
+    )
+    reservations = models.ManyToManyField(
+        "Reservation",
+        related_name="codes_promos",
+        blank=True,
+        help_text="Réservations qui ont utilisé ce code promo"
+    )
+
+    def __str__(self):
+        return f"{self.nom} - {int(self.reduction * 100)}%"
 
 
 class HistoriqueStatutReservation(models.Model):
