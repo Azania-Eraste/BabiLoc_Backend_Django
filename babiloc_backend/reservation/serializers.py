@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document
+from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document, Avis
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -67,9 +67,26 @@ class TarifSerializer(serializers.ModelSerializer):
         return Tarif.objects.create(bien=bien, **validated_data)
 
 class MediaSerializer(serializers.ModelSerializer):
+    bien_id = serializers.IntegerField(write_only=True)
+    
     class Meta:
         model = Media
-        fields = ['id', 'image']
+        fields = ['id', 'image', 'bien_id']
+        read_only_fields = ['id']
+    
+    def validate_bien_id(self, value):
+        """Vérifier que le bien existe et appartient à l'utilisateur"""
+        user = self.context['request'].user
+        try:
+            bien = Bien.objects.get(id=value, owner=user)
+        except Bien.DoesNotExist:
+            raise serializers.ValidationError("Ce bien n'existe pas ou ne vous appartient pas.")
+        return value
+    
+    def create(self, validated_data):
+        bien_id = validated_data.pop('bien_id')
+        bien = Bien.objects.get(id=bien_id)
+        return Media.objects.create(bien=bien, **validated_data)
 
 class TypeBienSerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,39 +101,34 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class BienSerializer(serializers.ModelSerializer):
-    tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
-    media = MediaSerializer(source='medias', many=True,read_only=True)
+    is_favori = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
-    is_favori = serializers.SerializerMethodField()
+    type_bien_id = serializers.IntegerField(write_only=True)
     owner = UserSerializer(read_only=True)
-    documents = DocumentSerializer(many=True, read_only=True)
+
     class Meta:
         model = Bien
         fields = [
-            'id',
-            'nom',
-            'description',
-            'ville',
-            'noteGlobale',
-            'vues',
-            'disponibility',
-            'type_bien',
-            'created_at',
-            'is_favori',
-            'owner',
-            'updated_at',
-            'nombre_likes',
-            'premiere_image',
-            'tarifs',
-            'media',
-            'documents',
+            'id', 'nom', 'description', 'ville', 'noteGlobale', 'vues',
+            'owner', 'disponibility', 'type_bien', 'type_bien_id', 'created_at', 'updated_at',
+            'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', 
+            'has_piscine', 'est_verifie', 'is_favori', 'premiere_image'
         ]
+        read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues', 'is_favori', 'premiere_image']
 
-    def validate_owner(self, value):
-        if not value.is_vendor:
-            raise serializers.ValidationError("L'utilisateur doit être un vendeur.")
+    def validate_type_bien_id(self, value):
+        try:
+            Type_Bien.objects.get(id=value)
+        except Type_Bien.DoesNotExist:
+            raise serializers.ValidationError("Ce type de bien n'existe pas.")
         return value
+
+    def create(self, validated_data):
+        type_bien_id = validated_data.pop('type_bien_id')
+        type_bien = Type_Bien.objects.get(id=type_bien_id)
+        validated_data['type_bien'] = type_bien
+        return super().create(validated_data)
 
     def get_is_favori(self, obj):
         user = self.context.get('request').user
@@ -285,3 +297,102 @@ class HistoriquePaiementSerializer(serializers.ModelSerializer):
             'bien_nom',
             'created_at',
         ]
+
+class AvisSerializer(serializers.ModelSerializer):
+    """Serializer pour les avis"""
+    user = UserSerializer(read_only=True)
+    bien_nom = serializers.CharField(source='bien.nom', read_only=True)
+    note_moyenne_detaillee = serializers.ReadOnlyField()
+    peut_repondre = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Avis
+        fields = [
+            'id', 'user', 'bien', 'bien_nom', 'reservation', 'note',
+            'commentaire', 'note_proprete', 'note_communication',
+            'note_emplacement', 'note_rapport_qualite_prix', 'recommande',
+            'note_moyenne_detaillee', 'reponse_proprietaire', 'date_reponse',
+            'created_at', 'updated_at', 'peut_repondre'
+        ]
+        read_only_fields = [
+            'id', 'user', 'created_at', 'updated_at', 
+            'note_moyenne_detaillee', 'peut_repondre'
+        ]
+    
+    def get_peut_repondre(self, obj):
+        """Vérifie si l'utilisateur connecté peut répondre à cet avis"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.bien.owner == request.user and not obj.reponse_proprietaire
+        return False
+
+class AvisCreateSerializer(serializers.ModelSerializer):
+    """Serializer pour créer un avis"""
+    
+    class Meta:
+        model = Avis
+        fields = [
+            'bien', 'reservation', 'note', 'commentaire',
+            'note_proprete', 'note_communication', 'note_emplacement',
+            'note_rapport_qualite_prix', 'recommande'
+        ]
+    
+    def validate_reservation(self, value):
+        """Valider que la réservation peut recevoir un avis"""
+        user = self.context['request'].user
+        
+        # Vérifier que la réservation appartient à l'utilisateur
+        if value.user != user:
+            raise serializers.ValidationError("Cette réservation ne vous appartient pas.")
+        
+        # Vérifier que la réservation est terminée
+        if value.status != 'completed':
+            raise serializers.ValidationError("Vous ne pouvez donner un avis que pour une réservation terminée.")
+        
+        # Vérifier qu'un avis n'existe pas déjà
+        if Avis.objects.filter(user=user, reservation=value).exists():
+            raise serializers.ValidationError("Vous avez déjà donné un avis pour cette réservation.")
+        
+        return value
+    
+    def validate_bien(self, value):
+        """Valider que le bien correspond à la réservation"""
+        reservation = self.initial_data.get('reservation')
+        if reservation:
+            try:
+                reservation_obj = Reservation.objects.get(id=reservation)
+                if reservation_obj.annonce_id != value:
+                    raise serializers.ValidationError("Le bien ne correspond pas à la réservation.")
+            except Reservation.DoesNotExist:
+                raise serializers.ValidationError("Réservation introuvable.")
+        return value
+    
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+class ReponseProprietaireSerializer(serializers.ModelSerializer):
+    """Serializer pour les réponses du propriétaire"""
+    
+    class Meta:
+        model = Avis
+        fields = ['reponse_proprietaire']
+    
+    def validate(self, data):
+        if not data.get('reponse_proprietaire'):
+            raise serializers.ValidationError("La réponse ne peut pas être vide.")
+        return data
+    
+    def update(self, instance, validated_data):
+        instance.reponse_proprietaire = validated_data['reponse_proprietaire']
+        instance.date_reponse = timezone.now()
+        instance.save()
+        return instance
+
+class StatistiquesAvisSerializer(serializers.Serializer):
+    """Serializer pour les statistiques d'avis d'un bien"""
+    note_moyenne = serializers.FloatField()
+    nombre_avis = serializers.IntegerField()
+    repartition_notes = serializers.DictField()
+    pourcentage_recommandation = serializers.FloatField()
+    notes_moyennes_categories = serializers.DictField()

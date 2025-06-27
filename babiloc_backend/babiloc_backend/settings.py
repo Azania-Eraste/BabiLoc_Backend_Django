@@ -104,6 +104,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
 }
 
 # Swagger settings
@@ -186,15 +189,40 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Security settings (à modifier en production)
 SECRET_KEY = 'django-insecure-your-secret-key-change-this-in-production'
 
-# CORS settings (si vous utilisez CORS)
+# CORS settings - Configuration plus permissive pour le développement
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8080",
+    "http://localhost:8081",  # Ajout pour Flutter web
+    "http://127.0.0.1:8081",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Pour le développement uniquement - à retirer en production
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
 
 # Logging configuration
 LOGGING = {
@@ -215,3 +243,11 @@ LOGGING = {
         },
     },
 }
+
+# Désactiver CSRF pour les API (développement uniquement)
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
