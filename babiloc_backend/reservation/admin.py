@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .forms import BienForm
-from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media
+from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, DisponibiliteHebdo
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
@@ -38,6 +38,12 @@ class FavoriAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at']
 
 # Add missing model registrations
+
+@admin.register(DisponibiliteHebdo)
+class DisponibiliteHebdoAdmin(admin.ModelAdmin):
+    list_display = ('bien', 'jours', )
+    list_filter = ('bien',)
+
 @admin.register(Bien)
 class BienAdmin(admin.ModelAdmin):
     form = BienForm

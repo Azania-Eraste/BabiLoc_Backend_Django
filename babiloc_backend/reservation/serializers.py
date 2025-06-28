@@ -1,10 +1,11 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document, CodePromo
+from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document, CodePromo, DisponibiliteHebdo
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
 from Auths.serializers import RegisterSerializer as AuthUserSerializer
 from decimal import Decimal
+from datetime import timedelta
 
 
 User = get_user_model()
@@ -84,15 +85,22 @@ class DocumentSerializer(serializers.ModelSerializer):
         fields = ['id', 'nom', 'fichier', 'type']
         read_only_fields = ['date_upload']
 
+class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DisponibiliteHebdo  # Ce modèle doit exister
+        fields = ['jours']
+
 
 class BienSerializer(serializers.ModelSerializer):
     tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
-    media = MediaSerializer(source='medias', many=True,read_only=True)
+    media = MediaSerializer(source='medias', many=True, read_only=True)
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
     is_favori = serializers.SerializerMethodField()
     owner = UserSerializer(read_only=True)
     documents = DocumentSerializer(many=True, read_only=True)
+    disponibilite_hebdo = DisponibiliteHebdoSerializer(write_only=True, required=False)
+
     class Meta:
         model = Bien
         fields = [
@@ -113,6 +121,7 @@ class BienSerializer(serializers.ModelSerializer):
             'tarifs',
             'media',
             'documents',
+            'disponibilite_hebdo',
         ]
 
     def validate_owner(self, value):
@@ -130,6 +139,16 @@ class BienSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         image_url = obj.get_first_image()
         return request.build_absolute_uri(image_url) if request and image_url else None
+
+    def create(self, validated_data):
+        dispo_data = validated_data.pop('disponibilite_hebdo', None)
+        bien = Bien.objects.create(**validated_data)
+
+        if dispo_data:
+            DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
+
+        return bien
+
 
 
 
@@ -157,35 +176,67 @@ class BienReservationSerializer(serializers.ModelSerializer):
 class ReservationCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer une réservation"""
     code_promo = serializers.CharField(required=False, write_only=True)
+    annonce = serializers.PrimaryKeyRelatedField(queryset=Bien.objects.all())
 
     class Meta:
         model = Reservation
-        fields = ['annonce_id', 'date_debut', 'date_fin', 'type_tarif', 'user', 'code_promo']
+        fields = ['annonce', 'date_debut', 'date_fin', 'type_tarif', 'user', 'code_promo']
 
     def validate(self, data):
-        annonce = data['annonce_id']
+        annonce = data['annonce']
         date_debut = data['date_debut']
         date_fin = data['date_fin']
+
+        # Sécurité : s’assurer que ce sont des dates valides
+        if isinstance(date_debut, datetime):
+            date_debut = date_debut.date()
+        if isinstance(date_fin, datetime):
+            date_fin = date_fin.date()
 
         if date_debut >= date_fin:
             raise serializers.ValidationError("La date de début doit être avant la date de fin.")
 
+        # Conflits de réservations existantes
         conflits = Reservation.objects.filter(
-            annonce_id=annonce,
+            annonce_id=annonce.id,
             status__in=['pending', 'confirmed'],
-            date_debut__lt=date_fin,
-            date_fin__gt=date_debut
+            date_debut__lt=data['date_fin'],
+            date_fin__gt=data['date_debut']
         )
-
         if conflits.exists():
             raise serializers.ValidationError("Ce bien est déjà réservé pendant cette période.")
+
+        # Vérification des plages de disponibilités hebdo
+        plages = annonce.plages_disponibilites.all()
+        if not plages.exists():
+            raise serializers.ValidationError("Ce bien n'a pas de plages de disponibilité définies.")
+
+        current_date = data['date_debut'].date()
+        end_date = data['date_fin'].date()
+        while current_date <= end_date:
+            jour_semaine = current_date.weekday()  # 0 = lundi, ..., 6 = dimanche
+            dispo = plages.filter(
+                jour=jour_semaine,
+                date_debut__lte=current_date,
+                date_fin__gte=current_date
+            ).exists()
+            if not dispo:
+                raise serializers.ValidationError(
+                    f"Le bien n'est pas disponible le {current_date.strftime('%A')} ({current_date})."
+                )
+            current_date += timedelta(days=1)
 
         # Vérifie le code promo si fourni
         code_promo_str = self.initial_data.get('code_promo')
         if code_promo_str:
             try:
                 code_promo = CodePromo.objects.get(nom=code_promo_str)
-                data['code_promo_obj'] = code_promo  # transmis au create()
+
+                # ➕ Vérifie expiration du code promo s'il a ce champ
+                if hasattr(code_promo, 'expiration') and code_promo.expiration and code_promo.expiration < datetime.now().date():
+                    raise serializers.ValidationError("Ce code promotionnel est expiré.")
+
+                data['code_promo_obj'] = code_promo
             except CodePromo.DoesNotExist:
                 raise serializers.ValidationError("Code promotionnel invalide.")
 
@@ -202,19 +253,19 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
         nb_jours = (reservation.date_fin - reservation.date_debut).days or 1
         prix_total = Decimal(tarif.prix) * Decimal(nb_jours)
 
-        # Applique la réduction si code promo
+        # Applique la réduction si un code promo est utilisé
         if promo_obj:
-            prix_total -= prix_total * promo_obj.reduction
+            reduction = prix_total * promo_obj.reduction
+            prix_total -= reduction
 
         reservation.prix_total = prix_total
         reservation.save()
 
-        # Ajoute la réservation à la promo
+        # Ajout dans la promo si applicable
         if promo_obj:
             promo_obj.reservations.add(reservation)
 
         return reservation
-
 
 class ReservationUpdateSerializer(serializers.ModelSerializer):
     """Serializer pour mettre à jour le statut d'une réservation"""
