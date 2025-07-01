@@ -34,9 +34,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
-            'username', 'email', 'first_name', 'last_name',
+            'id','username', 'email', 'first_name', 'last_name',
             'number', 'birthdate', 'password','reservations',
+            'carte_identite','permis_conduire','est_verifie',
+            'is_vendor','date_joined',
         )
+        ref_name = 'AuthUser'
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -45,8 +48,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
-            'id','username', 'email', 'first_name', 'last_name','date_joined',
-            'number', 'birthdate', 'password', 'password2','reservations'
+            'username', 'email', 'first_name', 'last_name',
+            'number', 'birthdate', 'password', 'password2', 'is_vendor',
+            'carte_identite', 'permis_conduire'
         )
 
     def validate_number(self, value):
@@ -63,15 +67,19 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password2')
-        user =  CustomUser.objects.create(
-                username=validated_data['username'],
-                email=validated_data['email'],
-                first_name=validated_data['first_name'],
-                last_name=validated_data['last_name'],
-                number=validated_data['number'],
-                birthdate=validated_data['birthdate'],
-                is_active=False  # ✅ important
-            )
+        user = CustomUser.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            number=validated_data['number'],
+            birthdate=validated_data['birthdate'],
+            is_vendor=validated_data.get('is_vendor', False),
+            carte_identite=validated_data.get('carte_identite', None),
+            permis_conduire=validated_data.get('permis_conduire', None),
+            est_verifie=validated_data.get('est_verifie', False),
+            is_active=False  # ✅ important
+        )
         user.set_password(validated_data['password'])
         user.save()
         return user

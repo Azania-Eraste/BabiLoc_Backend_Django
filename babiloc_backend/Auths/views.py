@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, MyTokenObtainPairSerializer
+from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils import generate_activation_link
 from django.core.mail import EmailMultiAlternatives
@@ -15,13 +15,19 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
+from django.http import HttpResponse
 
 User = get_user_model()
+
+
+
+def welcome_view(request):
+    return HttpResponse("<h1>Bienvenue sur Babiloc !</h1><p>Votre plateforme de location.</p>")
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -62,7 +68,7 @@ class MeView(APIView):
 
     def get(self, request):
         user = request.user
-        serializer = RegisterSerializer(user)
+        serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ForgotPasswordView(APIView):
@@ -171,10 +177,19 @@ class RegisterView(APIView):
                     'last_name': user.last_name,
                     'number': user.number,
                     'birthdate': user.birthdate,
+                    'is_vendor': user.is_vendor,
                 }
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 
 class ActivateAccountView(APIView):
