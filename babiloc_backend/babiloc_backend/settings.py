@@ -251,3 +251,32 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+# CinetPay Configuration
+CINETPAY_API_KEY = config('CINETPAY_API_KEY', default='136374542367d0c397639a18.35212918')
+CINETPAY_SITE_ID = config('CINETPAY_SITE_ID', default='105899348')
+CINETPAY_SECRET_KEY = config('CINETPAY_SECRET_KEY', default='89221587685942e4ae2573.09390795')
+
+# URLs pour les redirections (adaptées pour Flutter)
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+BASE_URL = config('BASE_URL', default='http://localhost:8000')
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'payments.log',
+        },
+    },
+    'loggers': {
+        'reservation.payment_services': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

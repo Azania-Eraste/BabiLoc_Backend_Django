@@ -1,10 +1,19 @@
-from django.urls import path
-from .views import SoldeHoteView, HistoriquePaiementsView
-from .viewserializer import (
+from django.urls import path, include
+from .views import (
+    SoldeHoteView, 
+    HistoriquePaiementsView,
     CreateReservationView,
     MesReservationsView,
     AllReservationsView,
-    ReservationDetailView,
+    ReservationDetailView,  # ✅ Maintenant disponible dans views.py
+    CreatePaymentView,
+    PaymentStatusView,
+    CinetPayWebhookView,
+    cancel_payment,
+)
+
+# ✅ Garder les imports depuis viewserializer.py pour les autres vues
+from .viewserializer import (
     reservations_stats,
     historique_statuts_reservations_bien,
     BienListCreateView,
@@ -14,7 +23,6 @@ from .viewserializer import (
     MesFavorisView,
     RetirerFavoriView,
     toggle_favori,
-    MediaCreateView,
     likes_de_mon_bien,
     TarifCreateView,
     TarifDeleteView,
@@ -24,7 +32,7 @@ from .viewserializer import (
     ReponseProprietaireView,
     statistiques_avis_bien,
     mes_avis,
-    avis_recus
+    avis_recus,
 )
 
 urlpatterns = [
@@ -71,4 +79,12 @@ urlpatterns = [
     path('biens/<int:bien_id>/avis/statistiques/', statistiques_avis_bien, name='statistiques-avis-bien'),
     path('mes-avis/', mes_avis, name='mes-avis'),
     path('avis-recus/', avis_recus, name='avis-recus'),
+
+    # Paiements CinetPay
+    path('payments/create/', CreatePaymentView.as_view(), name='create-payment'),
+    path('payments/status/', PaymentStatusView.as_view(), name='payment-status'),
+    path('payments/cancel/', cancel_payment, name='cancel-payment'),
+    
+    # Webhooks
+    path('webhooks/cinetpay/', CinetPayWebhookView.as_view(), name='cinetpay-webhook'),
 ]

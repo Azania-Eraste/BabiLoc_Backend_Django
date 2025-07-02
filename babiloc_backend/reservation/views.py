@@ -2,13 +2,53 @@ from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from .payment_services import cinetpay_service
+import json
+import logging
+
+# ✅ Ajouter les imports manquants pour Swagger
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 from django.shortcuts import get_object_or_404
 from .models import Reservation, Paiement
 from rest_framework.views import APIView
 from django.db.models import Sum, F
 from Auths import permission
-from .serializers import ReservationSerializer, ReservationCreateSerializer, HistoriquePaiementSerializer
+from .serializers import (
+    ReservationSerializer, 
+    ReservationCreateSerializer, 
+    ReservationUpdateSerializer,
+    ReservationListSerializer,
+    HistoriquePaiementSerializer
+)
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
+
+# ✅ Ajouter les vues manquantes
+class ReservationDetailView(generics.RetrieveUpdateAPIView):
+    """Détails et mise à jour d'une réservation"""
+    serializer_class = ReservationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
+        
+        if not self.request.user.is_authenticated:
+            return Reservation.objects.none()
+            
+        if self.request.user.is_staff:
+            return Reservation.objects.all()
+        return Reservation.objects.filter(user=self.request.user)
+    
+    def get_serializer_class(self):
+        if self.request.method in ['PATCH', 'PUT']:
+            return ReservationUpdateSerializer
+        return ReservationSerializer
 
 class HistoriquePaiementsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -46,13 +86,165 @@ class CreateReservationView(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 
 class MesReservationsView(generics.ListAPIView):
-    serializer_class = ReservationSerializer
+    serializer_class = ReservationListSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
+        
+        if not self.request.user.is_authenticated:
+            return Reservation.objects.none()
+            
         return Reservation.objects.filter(user=self.request.user)
 
 class AllReservationsView(generics.ListAPIView):
     queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
-    permission_classes = [permissions.IsAdminUser]  # Only admin can see all reservations
+    serializer_class = ReservationListSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+class CreatePaymentView(APIView):
+    """Créer un paiement CinetPay"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Initialiser un paiement avec CinetPay",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["reservation_id"],
+            properties={
+                'reservation_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID de la réservation à payer"
+                ),
+                'return_url': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="URL de retour après paiement (optionnel)"
+                ),
+                'notify_url': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="URL de notification (optionnel)"
+                ),
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Paiement initialisé",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'payment_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'payment_url': openapi.Schema(type=openapi.TYPE_STRING),
+                        'transaction_id': openapi.Schema(type=openapi.TYPE_STRING),
+                        'amount': openapi.Schema(type=openapi.TYPE_NUMBER),
+                    }
+                )
+            ),
+            400: "Erreur dans les données"
+        },
+        tags=['Paiements']
+    )
+    def post(self, request):
+        reservation_id = request.data.get('reservation_id')
+        return_url = request.data.get('return_url')
+        notify_url = request.data.get('notify_url')
+        
+        if not reservation_id:
+            return Response({'error': 'reservation_id requis'}, status=400)
+        
+        result = cinetpay_service.create_payment(
+            reservation_id=reservation_id,
+            return_url=return_url,
+            notify_url=notify_url
+        )
+        
+        if 'error' in result:
+            return Response(result, status=400)
+        
+        return Response(result)
+
+class PaymentStatusView(APIView):
+    """Vérifier le statut d'un paiement"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Vérifier le statut d'un paiement",
+        manual_parameters=[
+            openapi.Parameter(
+                'transaction_id',
+                openapi.IN_QUERY,
+                description="ID de transaction",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ],
+        tags=['Paiements']
+    )
+    def get(self, request):
+        transaction_id = request.query_params.get('transaction_id')
+        
+        if not transaction_id:
+            return Response({'error': 'transaction_id requis'}, status=400)
+        
+        result = cinetpay_service.check_payment_status(transaction_id)
+        return Response(result)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CinetPayWebhookView(APIView):
+    """Webhook pour les notifications CinetPay"""
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        try:
+            # Log de la requête reçue
+            logger.info(f"CinetPay webhook reçu: {request.body}")
+            
+            data = json.loads(request.body) if request.body else request.data
+            
+            transaction_id = data.get('cpm_trans_id')  # ID de votre transaction
+            cinetpay_transaction_id = data.get('cpm_trans_id')  # ID CinetPay
+            status = data.get('cpm_result')
+            
+            if status == '00':  # Paiement réussi
+                result = cinetpay_service.confirm_payment(
+                    transaction_id=transaction_id,
+                    cinetpay_transaction_id=cinetpay_transaction_id
+                )
+                
+                if result.get('success'):
+                    logger.info(f"Paiement confirmé: {transaction_id}")
+                    return Response({'status': 'success'})
+                else:
+                    logger.error(f"Erreur confirmation paiement: {result}")
+                    return Response({'status': 'error', 'message': result.get('error')})
+            else:
+                # Paiement échoué
+                cinetpay_service.cancel_payment(
+                    transaction_id=transaction_id,
+                    reason=f"Paiement échoué - Code: {status}"
+                )
+                logger.info(f"Paiement échoué: {transaction_id} - Code: {status}")
+                return Response({'status': 'failed'})
+                
+        except Exception as e:
+            logger.error(f"Erreur webhook CinetPay: {str(e)}")
+            return Response({'status': 'error', 'message': str(e)}, status=400)
+
+# Fonction utilitaire pour les tests
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def cancel_payment(request):
+    """Annuler un paiement"""
+    transaction_id = request.data.get('transaction_id')
+    reason = request.data.get('reason', 'Annulé par l\'utilisateur')
+    
+    if not transaction_id:
+        return Response({'error': 'transaction_id requis'}, status=400)
+    
+    result = cinetpay_service.cancel_payment(transaction_id, reason)
+    
+    if 'error' in result:
+        return Response(result, status=400)
+    
+    return Response(result)

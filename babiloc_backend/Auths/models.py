@@ -39,10 +39,10 @@ class CustomUser(AbstractUser):
         return self.otp_code
     
     def is_otp_valid(self):
-        """Vérifie si l'OTP est encore valide (5 minutes)"""
+        """Vérifie si l'OTP est encore valide (2 minutes)"""
         if not self.otp_created_at:
             return False
-        expiry_time = self.otp_created_at + timedelta(minutes=5)
+        expiry_time = self.otp_created_at + timedelta(minutes=2)
         return timezone.now() <= expiry_time
     
     def verify_otp(self, otp_code):
