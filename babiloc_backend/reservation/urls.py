@@ -54,7 +54,7 @@ urlpatterns = [
     path('Dashboard/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
 
     # Statistiques
-    path('admin/reservation-stats/', reservations_stats, name='reservation-stats'),
+    path('Dashboard/reservation-stats/', reservations_stats, name='reservation-stats'),
     path('Dashboard/biens/<int:bien_id>/reservations/historiques-statuts/', historique_statuts_reservations_bien, name='historiques_statuts_reservations_bien'),
     path('Dashboard/biens/<int:bien_id>/likes', likes_de_mon_bien, name='likes_de_mon_bien'),
 ]

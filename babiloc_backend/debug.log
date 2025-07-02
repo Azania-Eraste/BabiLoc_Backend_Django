@@ -1280,3 +1280,775 @@ Watching for file changes with StatReloader
 "GET /api/location/biens/ HTTP/1.1" 200 2691
 "GET /api/location/mes-favoris/ HTTP/1.1" 200 52
 "GET /api/auth/me/ HTTP/1.1" 200 356
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 2688
+"GET /media/biens/bmw-m3-2018-2019-right-front-three-quarter9.png HTTP/1.1" 200 317469
+"GET /media/biens/1x-1.png HTTP/1.1" 200 1158496
+"GET /media/biens/mercedesC500.png HTTP/1.1" 200 2695649
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 2880
+"GET /api/location/biens/ HTTP/1.1" 200 2688
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 2880
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"GET /api/location/biens/ HTTP/1.1" 200 2688
+"GET /media/biens/bmw-m3-2018-2019-right-front-three-quarter9.png HTTP/1.1" 200 317469
+"GET /media/biens/1x-1.png HTTP/1.1" 200 1158496
+"GET /media/biens/mercedesC500.png HTTP/1.1" 200 2695649
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 2880
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 2880
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 2880
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"POST /api/auth/login/ HTTP/1.1" 200 654
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 654
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /media/biens/bmw-m3-2018-2019-right-front-three-quarter9.png HTTP/1.1" 200 317469
+"GET /media/biens/1x-1.png HTTP/1.1" 200 1158496
+"GET /media/biens/mercedesC500.png HTTP/1.1" 200 2695649
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 2688
+"GET /api/location/biens/2/ HTTP/1.1" 200 922
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 2880
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 709
+"POST /api/auth/login/ HTTP/1.1" 200 654
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/biens/1/ HTTP/1.1" 200 852
+Internal Server Error: /api/location/favoris/toggle/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 636, in toggle_favori
+    'favori': serializer.data
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 1870, in to_representation
+    return method(value)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py", line 133, in get_is_favori
+    user = self.context.get('request').user
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'user'
+"POST /api/location/favoris/toggle/ HTTP/1.1" 500 25310
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 967
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 967
+Not Found: /api/location/biens/8/
+"GET /api/location/biens/8/ HTTP/1.1" 404 45
+Not Found: /api/location/biens/8/
+"GET /api/location/biens/8/ HTTP/1.1" 404 45
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"POST /api/auth/login/ HTTP/1.1" 200 654
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/location/biens/2/ HTTP/1.1" 200 923
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 2688
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"POST /api/auth/login/ HTTP/1.1" 200 654
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 967
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 967
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 967
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 967
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"POST /api/auth/login/ HTTP/1.1" 200 654
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"POST /api/location/favoris/toggle/ HTTP/1.1" 200 57
+"GET /api/location/biens/1/ HTTP/1.1" 200 852
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 52
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/biens/1/ HTTP/1.1" 200 852
+Internal Server Error: /api/location/favoris/toggle/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 636, in toggle_favori
+    'favori': serializer.data
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 1870, in to_representation
+    return method(value)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py", line 133, in get_is_favori
+    user = self.context.get('request').user
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'user'
+"POST /api/location/favoris/toggle/ HTTP/1.1" 500 25310
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 967
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"POST /api/location/favoris/toggle/ HTTP/1.1" 200 57
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 52
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/biens/1/ HTTP/1.1" 200 852
+Internal Server Error: /api/location/favoris/toggle/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 636, in toggle_favori
+    'favori': serializer.data
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 1870, in to_representation
+    return method(value)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py", line 133, in get_is_favori
+    user = self.context.get('request').user
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'user'
+"POST /api/location/favoris/toggle/ HTTP/1.1" 500 25310
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 968
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/2/ HTTP/1.1" 200 923
+Internal Server Error: /api/location/favoris/toggle/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 636, in toggle_favori
+    'favori': serializer.data
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 1870, in to_representation
+    return method(value)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py", line 133, in get_is_favori
+    user = self.context.get('request').user
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'user'
+"POST /api/location/favoris/toggle/ HTTP/1.1" 500 25310
+"POST /api/location/favoris/toggle/ HTTP/1.1" 200 57
+Internal Server Error: /api/location/favoris/toggle/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 636, in toggle_favori
+    'favori': serializer.data
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 1870, in to_representation
+    return method(value)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py", line 133, in get_is_favori
+    user = self.context.get('request').user
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'user'
+"POST /api/location/favoris/toggle/ HTTP/1.1" 500 25310
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1956
+Not Found: /api/location/biens/12/
+"GET /api/location/biens/12/ HTTP/1.1" 404 45
+"GET /api/location/biens/ HTTP/1.1" 200 2689
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1956
+"GET /api/location/biens/ HTTP/1.1" 200 2689
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1956
+"GET /api/location/biens/ HTTP/1.1" 200 2689
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/2/ HTTP/1.1" 200 922
+"GET /api/location/biens/3/ HTTP/1.1" 200 862
+"GET /api/location/biens/3/ HTTP/1.1" 200 862
+"GET /api/location/biens/2/ HTTP/1.1" 200 922
+"POST /api/location/favoris/toggle/ HTTP/1.1" 200 57
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 968
+"GET /api/location/biens/ HTTP/1.1" 200 2690
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"GET /api/location/biens/2/ HTTP/1.1" 200 924
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 968
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/biens/2/ HTTP/1.1" 200 924
+Internal Server Error: /api/location/favoris/toggle/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 636, in toggle_favori
+    'favori': serializer.data
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 1870, in to_representation
+    return method(value)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py", line 133, in get_is_favori
+    user = self.context.get('request').user
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'user'
+"POST /api/location/favoris/toggle/ HTTP/1.1" 500 25310
+"GET /api/location/biens/1/ HTTP/1.1" 200 851
+"POST /api/location/favoris/toggle/ HTTP/1.1" 200 57
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1040
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/biens/2/ HTTP/1.1" 200 923
+"GET /api/location/biens/1/ HTTP/1.1" 200 852
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1040
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1040
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1040
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1040
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 745
+"GET /api/location/biens/ HTTP/1.1" 200 2689
+"GET /media/biens/bmw-m3-2018-2019-right-front-three-quarter9.png HTTP/1.1" 200 317469
+"GET /media/biens/1x-1.png HTTP/1.1" 200 1158496
+"GET /media/biens/mercedesC500.png HTTP/1.1" 200 2695649
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 2881
+"GET /api/auth/me/ HTTP/1.1" 200 401
+"GET /api/location/biens/ HTTP/1.1" 200 2689
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 654
+"GET /api/location/biens/ HTTP/1.1" 200 2691
+"GET /media/biens/bmw-m3-2018-2019-right-front-three-quarter9.png HTTP/1.1" 200 317469
+"GET /media/biens/1x-1.png HTTP/1.1" 200 1158496
+"GET /media/biens/mercedesC500.png HTTP/1.1" 200 2695649
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\models.py changed, reloading.
+Watching for file changes with StatReloader
+Internal Server Error: /api/location/biens/2/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: reservation_tagbien
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 388, in get
+    return self.retrieve(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 380, in retrieve
+    return Response(serializer.data)
+                    ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\relations.py", line 566, in to_representation
+    for value in iterable
+                 ^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\query.py", line 1945, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: reservation_tagbien
+"GET /api/location/biens/2/ HTTP/1.1" 500 27919
+Internal Server Error: /api/location/biens/1/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: reservation_tagbien
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 388, in get
+    return self.retrieve(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 380, in retrieve
+    return Response(serializer.data)
+                    ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\relations.py", line 566, in to_representation
+    for value in iterable
+                 ^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\query.py", line 1945, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: reservation_tagbien
+"GET /api/location/biens/1/ HTTP/1.1" 500 27919
+Watching for file changes with StatReloader
+"GET /api/location/biens/1/ HTTP/1.1" 200 862
+Internal Server Error: /api/location/favoris/toggle/
+Traceback (most recent call last):
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py", line 636, in toggle_favori
+    'favori': serializer.data
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 573, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\venv\Lib\site-packages\rest_framework\fields.py", line 1870, in to_representation
+    return method(value)
+  File "C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\serializers.py", line 133, in get_is_favori
+    user = self.context.get('request').user
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'user'
+"POST /api/location/favoris/toggle/ HTTP/1.1" 500 25402
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1977
+"GET /api/location/biens/ HTTP/1.1" 200 2720
+"GET /api/location/biens/1/ HTTP/1.1" 200 861
+"POST /api/location/favoris/toggle/ HTTP/1.1" 200 57
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1050
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1050
+"GET /api/location/biens/ HTTP/1.1" 200 2721
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1050
+"GET /api/location/biens/2/ HTTP/1.1" 200 933
+"GET /api/location/biens/ HTTP/1.1" 200 2721
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1050
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/biens/ HTTP/1.1" 200 2721
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1050
+"GET /api/location/biens/ HTTP/1.1" 200 2721
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1050
+"GET /api/location/biens/ HTTP/1.1" 200 2721
+"GET /api/location/biens/1/ HTTP/1.1" 200 862
+"GET /api/location/mes-favoris/ HTTP/1.1" 200 1050
+"GET /api/auth/me/ HTTP/1.1" 200 356
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 52
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/location/mes-reservations/ HTTP/1.1" 200 52
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\HP\Desktop\BabiLoc_Backend\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader

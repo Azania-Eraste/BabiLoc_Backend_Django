@@ -64,6 +64,24 @@ class CreateReservationView(generics.CreateAPIView):
         response_serializer = ReservationSerializer(reservation)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
+class MesReservationsHostView(generics.ListAPIView):
+
+    serializer_class = ReservationListSerializer
+    permission_classes = [permission.IsVendor]
+    pagination_class = ReservationPagination
+
+    def get_queryset(self):
+
+        # Protection contre les appels Swagger sans utilisateur authentifié
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
+        
+        if not self.request.user.is_authenticated:
+            return Reservation.objects.none()
+            
+        queryset = Reservation.objects.filter(annonce_id__owner = self.request.user)
+        
+        return queryset
 
 
 class MesReservationsView(generics.ListAPIView):

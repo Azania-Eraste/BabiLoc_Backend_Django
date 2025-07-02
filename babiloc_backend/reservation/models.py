@@ -48,6 +48,16 @@ class TypeOperation(TextChoices):
     RETRAIT = 'retrait', 'Retrait'
 
 
+class TagBien(models.Model):
+    nom = models.CharField(max_length=100, unique=True)  # Ex: "Vue mer", "Proche transport"
+    description = models.TextField(blank=True, null=True)  # Description optionnelle du tag
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    def __str__(self):
+        return self.nom
+
+
 # ============================================================================
 # MODÈLE TYPE_BIEN
 # ============================================================================
@@ -58,11 +68,13 @@ class Type_Bien(models.Model):
     
     nom = models.CharField(max_length=250)  # Ex: "Appartement", "Villa"
     description = models.TextField()  # Description détaillée du type
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le", default=timezone.now())
+    tags = models.ManyToManyField(TagBien, related_name="types_bien", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
     def __str__(self):
         return self.nom
+
 
 
 # ============================================================================
