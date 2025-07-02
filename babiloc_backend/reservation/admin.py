@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .forms import BienForm
-from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, DisponibiliteHebdo
+from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, Avis, DisponibiliteHebdo
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
@@ -67,3 +67,46 @@ class TarifAdmin(admin.ModelAdmin):
 class MediaAdmin(admin.ModelAdmin):
     list_display = ['id', 'bien', 'image']
     list_filter = ['bien']
+
+@admin.register(Avis)
+class AvisAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'user', 'bien', 'note', 'recommande', 
+        'est_valide', 'created_at', 'has_response'
+    ]
+    list_filter = [
+        'note', 'recommande', 'est_valide', 'created_at',
+        'note_proprete', 'note_communication'
+    ]
+    search_fields = [
+        'user__username', 'user__email', 'bien__nom', 
+        'commentaire', 'reponse_proprietaire'
+    ]
+    readonly_fields = ['created_at', 'updated_at', 'note_moyenne_detaillee']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('user', 'bien', 'reservation', 'est_valide')
+        }),
+        ('Évaluation', {
+            'fields': (
+                'note', 'commentaire', 'recommande',
+                'note_proprete', 'note_communication',
+                'note_emplacement', 'note_rapport_qualite_prix'
+            )
+        }),
+        ('Réponse du propriétaire', {
+            'fields': ('reponse_proprietaire', 'date_reponse'),
+            'classes': ('collapse',)
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at', 'note_moyenne_detaillee'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def has_response(self, obj):
+        return bool(obj.reponse_proprietaire)
+    has_response.boolean = True
+    has_response.short_description = "A une réponse"
