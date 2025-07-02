@@ -3,10 +3,8 @@ from rest_framework import serializers
 from .models import CustomUser
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework import serializers
 
 
-# Normal login (optionnel, tu peux garder celui par défaut)
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
@@ -27,7 +25,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['username'] = user.username
         return token
 
-# Auths/serializers.py
 
 class UserSerializer(serializers.ModelSerializer):
     
@@ -40,6 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
             'is_vendor','date_joined',
         )
         ref_name = 'AuthUser'
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -83,3 +81,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class OTPVerificationSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    otp_code = serializers.CharField(max_length=4, min_length=4)

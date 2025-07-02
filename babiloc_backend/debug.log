@@ -2930,3 +2930,50 @@ Watching for file changes with StatReloader
 "GET /static/drf-yasg/immutable.min.js HTTP/1.1" 200 56904
 "GET /static/drf-yasg/swagger-ui-dist/swagger-ui-standalone-preset.js HTTP/1.1" 200 322863
 "GET /api/?format=openapi HTTP/1.1" 200 34440
+Watching for file changes with StatReloader
+Not Found: /
+"GET / HTTP/1.1" 404 3361
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3412
+"GET /api HTTP/1.1" 301 0
+"GET /api/ HTTP/1.1" 200 2207
+"GET /static/drf-yasg/style.css HTTP/1.1" 200 1047
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui.css HTTP/1.1" 200 145206
+"GET /static/drf-yasg/swagger-ui-init.js HTTP/1.1" 200 15480
+"GET /static/drf-yasg/insQ.min.js HTTP/1.1" 200 2093
+"GET /static/drf-yasg/immutable.min.js HTTP/1.1" 200 56904
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-bundle.js HTTP/1.1" 200 1046583
+"GET /static/drf-yasg/swagger-ui-dist/swagger-ui-standalone-preset.js HTTP/1.1" 200 322863
+"GET /static/drf-yasg/swagger-ui-dist/favicon-32x32.png HTTP/1.1" 200 628
+"GET /api/?format=openapi HTTP/1.1" 200 34591
+Watching for file changes with StatReloader
+Not Found: /
+"GET / HTTP/1.1" 404 3361
+"GET /api/ HTTP/1.1" 200 2207
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 125
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 125
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 125
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 125
+C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\Auths\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/ HTTP/1.1" 200 2207
+"GET /api/?format=openapi HTTP/1.1" 200 38275
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 214
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 214
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 214
+C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\reservation\viewserializer.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\Auths\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/ HTTP/1.1" 200 2207

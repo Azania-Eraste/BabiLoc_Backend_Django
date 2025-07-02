@@ -26,6 +26,7 @@ from .serializers import (
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import BienFilter
+from django.contrib.auth.models import AnonymousUser
 
 
 class ReservationPagination(PageNumberPagination):
@@ -457,6 +458,14 @@ class TarifUpdateView(generics.UpdateAPIView):
     lookup_field = 'pk'
 
     def get_queryset(self):
+        # Vérifier si c'est pour la génération du schéma Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return Tarif.objects.none()
+        
+        # Vérifier si l'utilisateur est authentifié
+        if isinstance(self.request.user, AnonymousUser):
+            return Tarif.objects.none()
+        
         return Tarif.objects.filter(bien__owner=self.request.user)
 
     @swagger_auto_schema(
@@ -473,6 +482,14 @@ class TarifDeleteView(generics.DestroyAPIView):
     lookup_field = 'pk'
 
     def get_queryset(self):
+        # Vérifier si c'est pour la génération du schéma Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return Tarif.objects.none()
+        
+        # Vérifier si l'utilisateur est authentifié
+        if isinstance(self.request.user, AnonymousUser):
+            return Tarif.objects.none()
+        
         return Tarif.objects.filter(bien__owner=self.request.user)
 
     @swagger_auto_schema(
@@ -481,8 +498,6 @@ class TarifDeleteView(generics.DestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
-
-
 
 class FavoriPagination(PageNumberPagination):
     page_size = 20
