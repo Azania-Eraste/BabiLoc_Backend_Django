@@ -24,7 +24,8 @@ from .viewserializer import (
     ReponseProprietaireView,
     statistiques_avis_bien,
     mes_avis,
-    avis_recus
+    avis_recus, 
+    MesReservationsHostView,
 )
 
 urlpatterns = [
@@ -55,6 +56,7 @@ urlpatterns = [
     
     #Hote
     path('Dashboard/solde/', SoldeHoteView.as_view(), name='hote-solde'),
+    path('Dashboard/mes-reservations/', MesReservationsHostView.as_view(), name='hote-mes-reservations'),
 
     #historique
     path('Dashboard/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),

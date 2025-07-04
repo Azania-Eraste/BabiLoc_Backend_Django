@@ -97,7 +97,7 @@ class MesReservationsHostView(generics.ListAPIView):
         if getattr(self, 'swagger_fake_view', False):
             return Reservation.objects.none()
         
-        if not self.request.user.is_authenticated:
+        if not self.request.user.is_authenticated and self.request.user.is_vendor:
             return Reservation.objects.none()
             
         queryset = Reservation.objects.filter(annonce_id__owner = self.request.user)
