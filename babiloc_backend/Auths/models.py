@@ -24,6 +24,8 @@ class CustomUser(AbstractUser):
     permis_conduire = models.FileField(upload_to=upload_path_permis, null=True, blank=True)
     est_verifie = models.BooleanField(default=False)  # Pour marquer si les documents sont vérifiés manuellement
     is_vendor = models.BooleanField(default=False)
+    photo_profil = models.ImageField(upload_to='photos_profil/', null=True, blank=True)
+    image_banniere = models.ImageField(upload_to='bannieres/', null=True, blank=True)
     
     # Nouveaux champs pour OTP
     otp_code = models.CharField(max_length=4, null=True, blank=True)

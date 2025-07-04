@@ -114,7 +114,6 @@ class BienSerializer(serializers.ModelSerializer):
     is_favori = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
-    type_bien_id = serializers.IntegerField(write_only=True)
     owner = UserSerializer(read_only=True)
     documents = DocumentSerializer(many=True, read_only=True)
     disponibilite_hebdo = DisponibiliteHebdoSerializer(write_only=True, required=False)
@@ -138,6 +137,7 @@ class BienSerializer(serializers.ModelSerializer):
             'tarifs',
             'media',
             'documents',
+            'disponibilite_hebdo',
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues', 'is_favori', 'premiere_image']
 
