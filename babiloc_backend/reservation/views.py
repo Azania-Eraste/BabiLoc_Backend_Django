@@ -13,7 +13,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from django.shortcuts import get_object_or_404
-from .models import Reservation, Paiement
+from .models import Reservation, Paiement, HistoriquePaiement, TypeOperation
 from rest_framework.views import APIView
 from django.db.models import Sum, F
 from Auths import permission
@@ -59,23 +59,36 @@ class HistoriquePaiementsView(APIView):
         return Response(serializer.data)
 
 class SoldeHoteView(APIView):
-    permission_classes = [permission.IsVendor]
-
+    """Vue pour afficher le solde du propriétaire (hôte)"""
+    permission_classes = [permissions.IsAuthenticated]
+    
     def get(self, request):
         user = request.user
-        reservations = Reservation.objects.filter(
-            annonce_id__owner=user,
-            status="completed"
+        
+        # Récupérer toutes les réservations complétées pour les biens de l'utilisateur
+        reservations_completees = Reservation.objects.filter(
+            bien__owner=user,  # L'utilisateur est propriétaire du bien
+            status="completed"  # Réservation terminée
         )
 
-        total_revenus = reservations.aggregate(total=Sum('prix_total'))['total'] or 0
-        frais_total = total_revenus * Decimal("0.15")
-        solde = total_revenus - frais_total
+        # Calculer les revenus
+        total_revenus_bruts = reservations_completees.aggregate(
+            total=Sum('prix_total')
+        )['total'] or Decimal("0")
+        
+        # Commission de la plateforme (15%)
+        commission_totale = total_revenus_bruts * Decimal("0.15")
+        
+        # Revenus nets du propriétaire (85%)
+        revenus_nets_proprietaire = total_revenus_bruts * Decimal("0.85")
 
         return Response({
-            "total_revenus": total_revenus,
-            "frais_service": frais_total,
-            "solde_disponible": solde
+            "nombre_reservations": reservations_completees.count(),
+            "revenus_bruts_total": float(total_revenus_bruts),
+            "commission_plateforme": float(commission_totale),
+            "revenus_nets_proprietaire": float(revenus_nets_proprietaire),
+            "pourcentage_commission": 15,
+            "pourcentage_proprietaire": 85
         })
 
 class CreateReservationView(generics.CreateAPIView):
@@ -248,3 +261,40 @@ def cancel_payment(request):
         return Response(result, status=400)
     
     return Response(result)
+
+class HistoriqueRevenusProprietaireView(APIView):
+    """Historique des revenus pour un propriétaire"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Historique des revenus du propriétaire",
+        responses={200: "Liste des revenus"},
+        tags=['Propriétaire', 'Revenus']
+    )
+    def get(self, request):
+        user = request.user
+        
+        # Récupérer tous les paiements liés aux biens du propriétaire
+        revenus = HistoriquePaiement.objects.filter(
+            utilisateur=user,
+            type_operation=TypeOperation.RESERVATION
+        ).select_related('paiement__reservation__bien').order_by('-created_at')
+        
+        data = []
+        for revenu in revenus:
+            reservation = revenu.paiement.reservation
+            data.append({
+                'id': revenu.id,
+                'montant_revenu': revenu.montant,
+                'reservation_id': reservation.id,
+                'bien_nom': reservation.bien.nom,
+                'client': reservation.user.username,
+                'date_paiement': revenu.created_at,
+                'montant_total_reservation': float(reservation.prix_total),
+                'commission_plateforme': float(reservation.commission_plateforme)
+            })
+        
+        return Response({
+            'revenus': data,
+            'total_revenus': sum(item['montant_revenu'] for item in data)
+        })

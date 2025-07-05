@@ -177,14 +177,14 @@ class Media(models.Model):
 # Exemple : "Jean réserve la Villa à Cocody du 15/01 au 20/01 pour 125000 FCFA"
 # Gère le cycle de vie : En attente → Confirmée → Terminée ou Annulée
 class Reservation(models.Model):
-
-
     confirmed_at = models.DateTimeField(null=True, blank=True, verbose_name="Confirmée le")
     
-    annonce_id = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Reservation_Bien_ids')
+    # Renommer annonce_id en bien
+    bien = models.ForeignKey(Bien, on_delete=models.CASCADE, related_name='reservations')
     
-    frais_service_percent = Decimal("0.15")
-
+    # Commission de la plateforme (15%)
+    commission_percent = Decimal("0.15")
+    
     STATUS_CHOICES = [
         ('pending', 'En attente'),
         ('confirmed', 'Confirmée'),
@@ -244,12 +244,24 @@ class Reservation(models.Model):
         return (self.date_fin - self.date_debut).days
     
     @property
+    def commission_plateforme(self):
+        """Commission de 15% gardée par la plateforme"""
+        return round(self.prix_total * self.commission_percent, 2)
+
+    @property
+    def revenu_proprietaire(self):
+        """85% du prix total pour le propriétaire"""
+        return round(self.prix_total * (Decimal("1") - self.commission_percent), 2)
+    
+    @property
     def frais_service(self):
-        return round(self.prix_total * self.frais_service_percent, 2)
+        """Alias pour commission_plateforme (compatibilité)"""
+        return self.commission_plateforme
 
     @property
     def revenu_net_hote(self):
-        return round(self.prix_total - self.frais_service, 2)
+        """Alias pour revenu_proprietaire (compatibilité)"""
+        return self.revenu_proprietaire
     
     def save(self, *args, **kwargs):
         if self.status == 'confirmed' and not self.confirmed_at:
@@ -257,7 +269,29 @@ class Reservation(models.Model):
         super().save(*args, **kwargs)
 
     def get_tarif_bien(self):
-        return self.annonce_id.Tarifs_Biens_id.filter(type_tarif=self.type_tarif).first()
+        """Récupère le tarif du bien selon le type choisi"""
+        return self.bien.Tarifs_Biens_id.filter(type_tarif=self.type_tarif).first()
+    
+    def save(self, *args, **kwargs):
+        # Only calculate price for new reservations
+        if not self.pk and not self.prix_total:
+            tarif = self.get_tarif_bien()
+            if tarif:
+                nb_jours = (self.date_fin - self.date_debut).days or 1
+                self.prix_total = Decimal(tarif.prix) * Decimal(nb_jours)
+            else:
+                # Instead of raising an error, provide a more helpful message
+                from django.core.exceptions import ValidationError
+                raise ValidationError(
+                    f"Aucun tarif '{self.type_tarif}' trouvé pour le bien '{self.bien.nom}'. "
+                    f"Veuillez contacter le propriétaire ou choisir un autre type de tarif."
+                )
+        
+        # Update confirmation time
+        if self.status == 'confirmed' and not self.confirmed_at:
+            self.confirmed_at = timezone.now()
+        
+        super().save(*args, **kwargs)
     
     def save(self, *args, **kwargs):
         # S’il s’agit d’une nouvelle réservation, calcule le prix
@@ -619,3 +653,71 @@ def mettre_a_jour_note_globale_bien(sender, instance, **kwargs):
         bien.noteGlobale = 0.0
     
     bien.save(update_fields=['noteGlobale'])
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Reservation)
+def creer_revenu_proprietaire(sender, instance, **kwargs):
+    """Créer un enregistrement de revenu quand une réservation est complétée"""
+    if instance.status == 'completed':
+        # Vérifier si un revenu n'existe pas déjà
+        if not hasattr(instance, 'revenu_proprietaire'):
+            RevenuProprietaire.objects.create(
+                proprietaire=instance.bien.owner,
+                reservation=instance,
+                montant_brut=instance.prix_total,
+                commission_plateforme=instance.commission_plateforme,
+                revenu_net=instance.revenu_proprietaire
+            )
+
+
+class RevenuProprietaire(models.Model):
+    """Suivi des revenus des propriétaires"""
+    
+    proprietaire = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='revenus_proprietaire'
+    )
+    reservation = models.OneToOneField(
+        Reservation,
+        on_delete=models.CASCADE,
+        related_name='revenu_proprietaire'
+    )
+    
+    montant_brut = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        verbose_name="Montant brut (prix total)"
+    )
+    commission_plateforme = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        verbose_name="Commission plateforme (15%)"
+    )
+    revenu_net = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        verbose_name="Revenu net propriétaire (85%)"
+    )
+    
+    status_paiement = models.CharField(
+        max_length=20,
+        choices=[
+            ('en_attente', 'En attente'),
+            ('verse', 'Versé'),
+            ('bloque', 'Bloqué')
+        ],
+        default='en_attente'
+    )
+    
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_versement = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Revenu Propriétaire"
+        verbose_name_plural = "Revenus Propriétaires"
+    
+    def __str__(self):
+        return f"Revenu {self.proprietaire.username} - Réservation #{self.reservation.id}"

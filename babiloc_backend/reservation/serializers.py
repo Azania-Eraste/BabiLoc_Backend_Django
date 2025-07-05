@@ -26,7 +26,7 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = [
-            'id', 'user', 'annonce_id', 'date_debut', 'date_fin',
+            'id', 'user', 'bien', 'date_debut', 'date_fin',  # Change annonce_id to bien
             'status', 'status_display', 'prix_total', 'message',
             'duree_jours', 'created_at', 'updated_at'
         ]
@@ -167,29 +167,39 @@ class BienReservationSerializer(serializers.ModelSerializer):
 class ReservationCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer une réservation"""
     
-    
     class Meta:
         model = Reservation
-        # Correction : utiliser 'annonce' au lieu de 'annonce_id'
-        fields = ['annonce_id', 'date_debut', 'date_fin', 'type_tarif','user']
+        fields = ['bien', 'date_debut', 'date_fin', 'type_tarif', 'message']
     
     def validate(self, data):
         """Validation personnalisée"""
+        bien = data.get('bien')
         date_debut = data.get('date_debut')
         date_fin = data.get('date_fin')
+        type_tarif = data.get('type_tarif')
         
-        # Vérifier que les dates sont dans le futur
-        now = timezone.now()
-        if date_debut and date_debut <= now:
-            raise serializers.ValidationError({
-                'date_debut': 'La date de début doit être dans le futur.'
-            })
+        if date_debut >= date_fin:
+            raise serializers.ValidationError("La date de fin doit être postérieure à la date de début.")
         
-        # Vérifier que date_fin > date_debut
-        if date_debut and date_fin and date_fin <= date_debut:
-            raise serializers.ValidationError({
-                'date_fin': 'La date de fin doit être après la date de début.'
-            })
+        # Vérifier qu'un tarif existe pour ce bien et ce type
+        tarif_exists = bien.Tarifs_Biens_id.filter(type_tarif=type_tarif).exists()
+        if not tarif_exists:
+            available_tarifs = list(bien.Tarifs_Biens_id.values_list('type_tarif', flat=True))
+            raise serializers.ValidationError(
+                f"Aucun tarif '{type_tarif}' disponible pour ce bien. "
+                f"Tarifs disponibles: {available_tarifs}"
+            )
+        
+        # Vérifier les conflits de dates
+        conflits = Reservation.objects.filter(
+            bien=bien,
+            date_debut__lt=date_fin,
+            date_fin__gt=date_debut,
+            status__in=['pending', 'confirmed']
+        ).exclude(pk=self.instance.pk if self.instance else None)
+        
+        if conflits.exists():
+            raise serializers.ValidationError("Ce bien est déjà réservé pour cette période.")
         
         return data
 
@@ -214,12 +224,12 @@ class ReservationListSerializer(serializers.ModelSerializer):
     
     user_info = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    annonce_id = BienReservationSerializer()
+    bien = BienReservationSerializer()  # Change annonce_id to bien
     
     class Meta:
         model = Reservation
         fields = [
-            'id', 'user_info', 'annonce_id', 'date_debut', 'date_fin',
+            'id', 'user_info', 'bien', 'date_debut', 'date_fin',  # Change annonce_id to bien
             'status', 'status_display', 'prix_total', 'created_at'
         ]
     
@@ -280,7 +290,8 @@ class HistoriquePaiementSerializer(serializers.ModelSerializer):
     type_operation_display = serializers.CharField(source='get_type_operation_display', read_only=True)
     statut_paiement_display = serializers.CharField(source='get_statut_paiement_display', read_only=True)
     reservation_id = serializers.IntegerField(source='reservation.id', read_only=True)
-    bien_nom = serializers.CharField(source='reservation.annonce_id.nom', read_only=True)
+    # Change annonce_id to bien
+    bien_nom = serializers.CharField(source='reservation.bien.nom', read_only=True)
 
     class Meta:
         model = Paiement
@@ -361,7 +372,7 @@ class AvisCreateSerializer(serializers.ModelSerializer):
         if reservation:
             try:
                 reservation_obj = Reservation.objects.get(id=reservation)
-                if reservation_obj.annonce_id != value:
+                if reservation_obj.bien != value:  # Change annonce_id to bien
                     raise serializers.ValidationError("Le bien ne correspond pas à la réservation.")
             except Reservation.DoesNotExist:
                 raise serializers.ValidationError("Réservation introuvable.")

@@ -33,6 +33,8 @@ from .viewserializer import (
     statistiques_avis_bien,
     mes_avis,
     avis_recus,
+    TypeBienListCreateView,
+    TypeBienDetailView,
 )
 
 urlpatterns = [
@@ -43,6 +45,10 @@ urlpatterns = [
     
     # Détails et mise à jour
     path('reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
+
+    # Types de bien
+    path('types-bien/', TypeBienListCreateView.as_view(), name='types-bien-list-create'),
+    path('types-bien/<int:pk>/', TypeBienDetailView.as_view(), name='types-bien-detail'),
 
     # Biens
     path('biens/', BienListCreateView.as_view(), name='biens-list-create'),
@@ -66,6 +72,9 @@ urlpatterns = [
 
     #historique
     path('Dashboard/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
+
+    # Revenus propriétaire
+    path('Dashboard/revenus/', HistoriqueRevenusProprietaireView.as_view(), name='historique-revenus'),
 
     # Statistiques
     path('admin/reservation-stats/', reservations_stats, name='reservation-stats'),

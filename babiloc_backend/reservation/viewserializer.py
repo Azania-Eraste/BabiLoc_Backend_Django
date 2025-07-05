@@ -8,8 +8,8 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
 from rest_framework import serializers
-from django.db.models import Count
-from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis
+from django.db.models import Count, Avg
+from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -21,7 +21,8 @@ from .serializers import (
     FavoriListSerializer,
     TarifSerializer,
     AvisSerializer, AvisCreateSerializer, 
-    ReponseProprietaireSerializer, StatistiquesAvisSerializer
+    ReponseProprietaireSerializer, StatistiquesAvisSerializer,
+    TypeBienSerializer
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -110,9 +111,9 @@ class MesReservationsView(generics.ListAPIView):
                 enum=['pending', 'confirmed', 'cancelled', 'completed']
             ),
             openapi.Parameter(
-                'annonce_id',
+                'bien_id',  # Changer annonce_id en bien_id
                 openapi.IN_QUERY,
-                description="Filtrer par ID d'annonce",
+                description="Filtrer par ID du bien",
                 type=openapi.TYPE_INTEGER
             )
         ],
@@ -140,9 +141,10 @@ class MesReservationsView(generics.ListAPIView):
         if status_filter:
             queryset = queryset.filter(status=status_filter)
         
-        annonce_id = self.request.query_params.get('annonce_id')
-        if annonce_id:
-            queryset = queryset.filter(annonce_id=annonce_id)
+        # Changer annonce_id en bien_id
+        bien_id = self.request.query_params.get('bien_id')
+        if bien_id:
+            queryset = queryset.filter(bien_id=bien_id)
         
         return queryset
 
@@ -347,7 +349,7 @@ def historique_statuts_reservations_bien(request, bien_id):
 
     stats = (
         HistoriqueStatutReservation.objects
-        .filter(reservation__annonce_id=bien)
+        .filter(reservation__bien=bien)  # Changer annonce_id en bien
         .values('nouveau_statut')
         .annotate(compte=Count('id'))
     )
@@ -980,3 +982,100 @@ def avis_recus(request):
     
     serializer = AvisSerializer(avis, many=True, context={'request': request})
     return Response(serializer.data)
+
+class TypeBienListCreateView(generics.ListCreateAPIView):
+    """
+    Liste et création de types de bien
+    """
+    queryset = Type_Bien.objects.all()
+    serializer_class = TypeBienSerializer
+    
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
+    
+    @swagger_auto_schema(
+        operation_description="Lister tous les types de bien",
+        responses={200: TypeBienSerializer(many=True)},
+        tags=["Types de bien"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Créer un type de bien (admin uniquement)",
+        request_body=TypeBienSerializer,
+        responses={
+            201: TypeBienSerializer,
+            400: "Données invalides",
+            403: "Permission refusée"
+        },
+        tags=["Types de bien"]
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class TypeBienDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Détails, modification et suppression d'un type de bien
+    """
+    queryset = Type_Bien.objects.all()
+    serializer_class = TypeBienSerializer
+    
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer les détails d'un type de bien",
+        responses={
+            200: TypeBienSerializer,
+            404: "Type de bien non trouvé"
+        },
+        tags=["Types de bien"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Mettre à jour un type de bien (admin uniquement)",
+        request_body=TypeBienSerializer,
+        responses={
+            200: TypeBienSerializer,
+            400: "Données invalides",
+            403: "Permission refusée",
+            404: "Type de bien non trouvé"
+        },
+        tags=["Types de bien"]
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Mettre à jour partiellement un type de bien (admin uniquement)",
+        request_body=TypeBienSerializer,
+        responses={
+            200: TypeBienSerializer,
+            400: "Données invalides",
+            403: "Permission refusée",
+            404: "Type de bien non trouvé"
+        },
+        tags=["Types de bien"]
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Supprimer un type de bien (admin uniquement)",
+        responses={
+            204: "Supprimé avec succès",
+            403: "Permission refusée",
+            404: "Type de bien non trouvé"
+        },
+        tags=["Types de bien"]
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
