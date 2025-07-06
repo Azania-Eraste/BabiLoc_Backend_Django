@@ -5,11 +5,18 @@ from .views import (
     CreateReservationView,
     MesReservationsView,
     AllReservationsView,
-    ReservationDetailView,  # ✅ Maintenant disponible dans views.py
+    ReservationDetailView,
     CreatePaymentView,
     PaymentStatusView,
     CinetPayWebhookView,
     cancel_payment,
+    HistoriqueRevenusProprietaireView,  # ✅ Ajouter cette import
+    FactureListView,
+    FactureDetailView,
+    FactureCreateView,
+    FactureDownloadView,
+    FactureResendEmailView,
+    FacturesHoteView,
 )
 
 # ✅ Garder les imports depuis viewserializer.py pour les autres vues
@@ -35,6 +42,10 @@ from .viewserializer import (
     avis_recus,
     TypeBienListCreateView,
     TypeBienDetailView,
+    DocumentCreateView,
+    DocumentListView,
+    DocumentUpdateView,
+    DocumentDeleteView,
 )
 
 urlpatterns = [
@@ -96,4 +107,18 @@ urlpatterns = [
     
     # Webhooks
     path('webhooks/cinetpay/', CinetPayWebhookView.as_view(), name='cinetpay-webhook'),
+
+    # Documents
+    path('documents/create/', DocumentCreateView.as_view(), name='document-create'),
+    path('biens/<int:bien_id>/documents/', DocumentListView.as_view(), name='document-list'),
+    path('documents/<int:pk>/update/', DocumentUpdateView.as_view(), name='document-update'),
+    path('documents/<int:pk>/delete/', DocumentDeleteView.as_view(), name='document-delete'),
+
+    # Factures
+    path('factures/', FactureListView.as_view(), name='factures-list'),
+    path('factures/<int:pk>/', FactureDetailView.as_view(), name='facture-detail'),
+    path('factures/create/', FactureCreateView.as_view(), name='facture-create'),
+    path('factures/<int:pk>/download/', FactureDownloadView.as_view(), name='facture-download'),
+    path('factures/<int:pk>/resend-email/', FactureResendEmailView.as_view(), name='facture-resend-email'),
+    path('hote/factures/', FacturesHoteView.as_view(), name='factures-hote'),
 ]

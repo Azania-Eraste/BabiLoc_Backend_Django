@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from Auths import permission
 from rest_framework import serializers
 from django.db.models import Count, Avg
-from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien
+from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -22,7 +22,8 @@ from .serializers import (
     TarifSerializer,
     AvisSerializer, AvisCreateSerializer, 
     ReponseProprietaireSerializer, StatistiquesAvisSerializer,
-    TypeBienSerializer
+    TypeBienSerializer,
+    DocumentSerializer
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -1076,6 +1077,171 @@ class TypeBienDetailView(generics.RetrieveUpdateDestroyAPIView):
             404: "Type de bien non trouvé"
         },
         tags=["Types de bien"]
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+class DocumentCreateView(generics.CreateAPIView):
+    """
+    Créer un document (fichier ou image) pour un bien
+    """
+    serializer_class = DocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Uploader un document ou une image pour un bien",
+        # ✅ Remove manual_parameters and use request_body instead
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['bien_id', 'nom', 'type'],
+            properties={
+                'bien_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID du bien"
+                ),
+                'nom': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Nom du document"
+                ),
+                'type': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['carte_grise', 'assurance', 'attestation_propriete', 'autre'],
+                    description="Type de document"
+                ),
+                'fichier': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_BINARY,
+                    description="Fichier document (PDF, DOC, etc.)"
+                ),
+                'image': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_BINARY,
+                    description="Image du document (JPG, PNG, etc.)"
+                ),
+            }
+        ),
+        responses={
+            201: DocumentSerializer,
+            400: "Données invalides",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Bien non trouvé"
+        },
+        tags=['Documents']
+    )
+    def post(self, request, *args, **kwargs):
+        bien_id = request.data.get('bien_id')
+        
+        if not bien_id:
+            return Response({'error': 'bien_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            bien = Bien.objects.get(id=bien_id)
+        except Bien.DoesNotExist:
+            return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Vérifier que l'utilisateur est le propriétaire du bien
+        if bien.owner != request.user:
+            return Response({'error': 'Vous n\'êtes pas autorisé à ajouter des documents à ce bien'}, 
+                          status=status.HTTP_403_FORBIDDEN)
+        
+        # Ajouter le bien aux données
+        data = request.data.copy()
+        data['bien'] = bien.id
+        
+        serializer = self.get_serializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DocumentListView(generics.ListAPIView):
+    """
+    Liste des documents d'un bien
+    """
+    serializer_class = DocumentSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer la liste des documents d'un bien",
+        manual_parameters=[
+            openapi.Parameter(
+                'bien_id',
+                openapi.IN_PATH,
+                description="ID du bien",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+        ],
+        responses={
+            200: DocumentSerializer(many=True),
+            404: "Bien non trouvé"
+        },
+        tags=['Documents']
+    )
+    def get(self, request, bien_id, *args, **kwargs):
+        try:
+            bien = Bien.objects.get(id=bien_id)
+        except Bien.DoesNotExist:
+            return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        
+        documents = Document.objects.filter(bien=bien)
+        serializer = self.get_serializer(documents, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class DocumentUpdateView(generics.UpdateAPIView):
+    """
+    Mettre à jour un document
+    """
+    serializer_class = DocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Document.objects.none()
+        
+        return Document.objects.filter(bien__owner=self.request.user)
+    
+    @swagger_auto_schema(
+        operation_description="Mettre à jour un document",
+        consumes=['multipart/form-data'],
+        responses={
+            200: DocumentSerializer,
+            400: "Données invalides",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Document non trouvé"
+        },
+        tags=['Documents']
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+
+class DocumentDeleteView(generics.DestroyAPIView):
+    """
+    Supprimer un document
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Document.objects.none()
+        
+        return Document.objects.filter(bien__owner=self.request.user)
+    
+    @swagger_auto_schema(
+        operation_description="Supprimer un document",
+        responses={
+            204: "Document supprimé",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Document non trouvé"
+        },
+        tags=['Documents']
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)

@@ -8,21 +8,24 @@ from .payment_services import cinetpay_service
 import json
 import logging
 
-# ✅ Ajouter les imports manquants pour Swagger
+# ✅ Add missing imports
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.db import models  # ✅ Add this import
+from django.http import HttpResponse, Http404
 
 from django.shortcuts import get_object_or_404
-from .models import Reservation, Paiement, HistoriquePaiement, TypeOperation
+from .models import Reservation, Paiement, HistoriquePaiement, TypeOperation, Facture
 from rest_framework.views import APIView
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q  # ✅ Add Q import
 from Auths import permission
 from .serializers import (
     ReservationSerializer, 
     ReservationCreateSerializer, 
     ReservationUpdateSerializer,
     ReservationListSerializer,
-    HistoriquePaiementSerializer
+    HistoriquePaiementSerializer,
+    FactureSerializer, FactureCreateSerializer
 )
 from decimal import Decimal
 
@@ -272,23 +275,26 @@ class HistoriqueRevenusProprietaireView(APIView):
         tags=['Propriétaire', 'Revenus']
     )
     def get(self, request):
-        user = request.user
+        # ✅ Add protection for Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Response([])
         
-        # Récupérer tous les paiements liés aux biens du propriétaire
-        revenus = HistoriquePaiement.objects.filter(
-            utilisateur=user,
-            type_operation=TypeOperation.RESERVATION
-        ).select_related('paiement__reservation__bien').order_by('-created_at')
+        from .models import RevenuProprietaire
+        
+        # Récupérer les revenus du propriétaire connecté
+        revenus = RevenuProprietaire.objects.filter(
+            proprietaire=request.user,
+            status_paiement='verse'
+        ).select_related('reservation', 'reservation__bien')
         
         data = []
         for revenu in revenus:
-            reservation = revenu.paiement.reservation
+            reservation = revenu.reservation
             data.append({
                 'id': revenu.id,
-                'montant_revenu': revenu.montant,
                 'reservation_id': reservation.id,
                 'bien_nom': reservation.bien.nom,
-                'client': reservation.user.username,
+                'montant_revenu': float(revenu.revenu_net),
                 'date_paiement': revenu.created_at,
                 'montant_total_reservation': float(reservation.prix_total),
                 'commission_plateforme': float(reservation.commission_plateforme)
@@ -298,3 +304,198 @@ class HistoriqueRevenusProprietaireView(APIView):
             'revenus': data,
             'total_revenus': sum(item['montant_revenu'] for item in data)
         })
+
+class FactureListView(generics.ListAPIView):
+    """Liste des factures pour l'utilisateur connecté"""
+    serializer_class = FactureSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer la liste de mes factures",
+        responses={
+            200: FactureSerializer(many=True),
+            401: "Non authentifié"
+        },
+        tags=['Factures']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        # ✅ Add protection for Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Facture.objects.none()
+        
+        user = self.request.user
+        return Facture.objects.filter(
+            Q(reservation__user=user) | 
+            Q(reservation__bien__owner=user)
+        ).order_by('-date_emission')
+
+class FactureDetailView(generics.RetrieveAPIView):
+    """Détails d'une facture"""
+    serializer_class = FactureSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        # ✅ Add protection for Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Facture.objects.none()
+        
+        user = self.request.user
+        return Facture.objects.filter(
+            Q(reservation__user=user) | 
+            Q(reservation__bien__owner=user)
+        )
+    
+    @swagger_auto_schema(
+        operation_description="Détails d'une facture",
+        responses={
+            200: FactureSerializer,
+            401: "Non authentifié",
+            404: "Facture non trouvée"
+        },
+        tags=['Factures']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+class FactureCreateView(generics.CreateAPIView):
+    """Créer une facture manuellement"""
+    serializer_class = FactureCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Créer une facture",
+        request_body=FactureCreateSerializer,
+        responses={
+            201: FactureSerializer,
+            400: "Données invalides",
+            401: "Non authentifié"
+        },
+        tags=['Factures']
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+    
+    def perform_create(self, serializer):
+        facture = serializer.save()
+        # Envoyer automatiquement par email
+        facture.envoyer_par_email()
+
+class FactureDownloadView(APIView):
+    """Télécharger le PDF d'une facture"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Télécharger le PDF d'une facture",
+        responses={
+            200: "Fichier PDF",
+            401: "Non authentifié",
+            404: "Facture non trouvée"
+        },
+        tags=['Factures']
+    )
+    def get(self, request, pk):
+        try:
+            facture = Facture.objects.get(
+                pk=pk,
+                reservation__user=request.user
+            )
+        except Facture.DoesNotExist:
+            # Vérifier si l'utilisateur est le propriétaire
+            try:
+                facture = Facture.objects.get(
+                    pk=pk,
+                    reservation__bien__owner=request.user
+                )
+            except Facture.DoesNotExist:
+                raise Http404("Facture non trouvée")
+        
+        if not facture.fichier_pdf:
+            # Générer le PDF s'il n'existe pas
+            facture.generer_pdf()
+            facture.refresh_from_db()
+        
+        if facture.fichier_pdf:
+            response = HttpResponse(
+                facture.fichier_pdf.read(),
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = f'attachment; filename="facture_{facture.numero_facture}.pdf"'
+            return response
+        
+        return Response({'error': 'Fichier PDF non disponible'}, status=404)
+
+class FactureResendEmailView(APIView):
+    """Renvoyer une facture par email"""
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Renvoyer une facture par email",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_EMAIL,
+                    description="Email de destination (optionnel)"
+                )
+            }
+        ),
+        responses={
+            200: "Email envoyé",
+            400: "Erreur d'envoi",
+            401: "Non authentifié",
+            404: "Facture non trouvée"
+        },
+        tags=['Factures']
+    )
+    def post(self, request, pk):
+        try:
+            facture = Facture.objects.get(
+                pk=pk,
+                reservation__user=request.user
+            )
+        except Facture.DoesNotExist:
+            # Vérifier si l'utilisateur est le propriétaire
+            try:
+                facture = Facture.objects.get(
+                    pk=pk,
+                    reservation__bien__owner=request.user
+                )
+            except Facture.DoesNotExist:
+                return Response({'error': 'Facture non trouvée'}, status=404)
+        
+        email_destination = request.data.get('email')
+        
+        if facture.envoyer_par_email(destinataire_email=email_destination):
+            return Response({'message': 'Facture envoyée par email avec succès'})
+        else:
+            return Response({'error': 'Erreur lors de l\'envoi de l\'email'}, status=400)
+
+# Vue pour les hôtes - Factures reçues
+class FacturesHoteView(generics.ListAPIView):
+    """Liste des factures pour les biens de l'hôte"""
+    serializer_class = FactureSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer les factures de mes biens (hôte)",
+        responses={
+            200: FactureSerializer(many=True),
+            401: "Non authentifié"
+        },
+        tags=['Factures', 'Hôte']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        # ✅ Add protection for Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return Facture.objects.none()
+        
+        return Facture.objects.filter(
+            reservation__bien__owner=self.request.user
+        ).order_by('-date_emission')

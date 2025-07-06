@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document, Avis
+from .models import (
+    Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, 
+    Document, Avis, Facture, StatutPaiement  # ✅ Add StatutPaiement import
+)
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -94,10 +97,46 @@ class TypeBienSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DocumentSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+    file_type = serializers.SerializerMethodField()
+    file_extension = serializers.SerializerMethodField()
+    
     class Meta:
         model = Document
-        fields = ['id', 'nom', 'fichier', 'type']
+        fields = [
+            'id', 'nom', 'fichier', 'image', 'type', 
+            'file_url', 'file_type', 'file_extension', 'date_upload'
+        ]
         read_only_fields = ['date_upload']
+    
+    def get_file_url(self, obj):
+        """Retourne l'URL complète du fichier ou de l'image"""
+        request = self.context.get('request')
+        file_url = obj.get_file_url()
+        if request and file_url:
+            return request.build_absolute_uri(file_url)
+        return file_url
+    
+    def get_file_type(self, obj):
+        """Retourne le type de fichier"""
+        return obj.get_file_type()
+    
+    def get_file_extension(self, obj):
+        """Retourne l'extension du fichier"""
+        return obj.get_file_extension()
+    
+    def validate(self, attrs):
+        """Validation pour s'assurer qu'au moins un fichier ou une image est fourni"""
+        fichier = attrs.get('fichier')
+        image = attrs.get('image')
+        
+        if not fichier and not image:
+            raise serializers.ValidationError('Vous devez fournir soit un fichier soit une image.')
+        
+        if fichier and image:
+            raise serializers.ValidationError('Vous ne pouvez pas fournir à la fois un fichier et une image.')
+        
+        return attrs
 
 
 class BienSerializer(serializers.ModelSerializer):
@@ -106,16 +145,18 @@ class BienSerializer(serializers.ModelSerializer):
     type_bien = TypeBienSerializer(read_only=True)
     type_bien_id = serializers.IntegerField(write_only=True)
     owner = UserSerializer(read_only=True)
+    documents = DocumentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Bien
         fields = [
-            'id', 'nom', 'description', 'ville', 'noteGlobale', 'vues',
-            'owner', 'disponibility', 'type_bien', 'type_bien_id', 'created_at', 'updated_at',
+            'id', 'nom', 'description', 'ville', 
+            'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
+            'owner', 'is_favori', 'premiere_image', 'documents',
             'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', 
-            'has_piscine', 'est_verifie', 'is_favori', 'premiere_image'
+            'has_piscine', 'est_verifie', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues', 'is_favori', 'premiere_image']
+        read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
 
     def validate_type_bien_id(self, value):
         try:
@@ -407,3 +448,109 @@ class StatistiquesAvisSerializer(serializers.Serializer):
     repartition_notes = serializers.DictField()
     pourcentage_recommandation = serializers.FloatField()
     notes_moyennes_categories = serializers.DictField()
+
+class FactureSerializer(serializers.ModelSerializer):
+    """Serializer pour les factures"""
+    
+    numero_facture = serializers.CharField(read_only=True)
+    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
+    type_facture_display = serializers.CharField(source='get_type_facture_display', read_only=True)
+    fichier_pdf_url = serializers.SerializerMethodField()
+    
+    reservation_details = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Facture
+        fields = [
+            'id', 'numero_facture', 'type_facture', 'type_facture_display',
+            'client_nom', 'client_email', 'client_telephone',
+            'hote_nom', 'hote_email', 'hote_telephone',
+            'montant_ht', 'tva_taux', 'montant_tva', 'montant_ttc',
+            'commission_plateforme', 'montant_net_hote',
+            'statut', 'statut_display', 'date_emission', 'date_echeance',
+            'date_paiement', 'fichier_pdf_url', 'reservation_details',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'numero_facture', 'montant_ht', 'montant_tva', 'montant_ttc',
+            'commission_plateforme', 'montant_net_hote', 'date_emission',
+            'created_at', 'updated_at'
+        ]
+    
+    def get_fichier_pdf_url(self, obj):
+        """Retourne l'URL du fichier PDF"""
+        request = self.context.get('request')
+        if obj.fichier_pdf and request:
+            return request.build_absolute_uri(obj.fichier_pdf.url)
+        return None
+    
+    def get_reservation_details(self, obj):
+        """Retourne les détails de la réservation"""
+        if obj.reservation:
+            return {
+                'id': obj.reservation.id,
+                'bien_nom': obj.reservation.bien.nom,
+                'date_debut': obj.reservation.date_debut,
+                'date_fin': obj.reservation.date_fin,
+                'duree_jours': obj.reservation.duree_jours,
+                'prix_total': obj.reservation.prix_total
+            }
+        return None
+
+class FactureCreateSerializer(serializers.ModelSerializer):
+    """Serializer pour créer une facture"""
+    
+    class Meta:
+        model = Facture
+        fields = [
+            'reservation', 'paiement', 'client_nom', 'client_email',
+            'client_telephone', 'client_adresse', 'hote_nom', 'hote_email',
+            'hote_telephone', 'date_echeance', 'type_facture'
+        ]
+    
+    def validate_reservation(self, value):
+        """Valider que la réservation est payée"""
+        # Use the constant from the Paiement model
+        if not value.paiements.filter(statut_paiement=Paiement.STATUT_EFFECTUE).exists():
+            raise serializers.ValidationError("La réservation doit être payée pour générer une facture.")
+        return value
+    
+    def validate_paiement(self, value):
+        """Valider que le paiement est effectué"""
+        if value and value.statut_paiement != Paiement.STATUT_EFFECTUE:
+            raise serializers.ValidationError("Le paiement doit être effectué pour générer une facture.")
+        return value
+    
+    def validate(self, data):
+        """Validation globale"""
+        reservation = data.get('reservation')
+        paiement = data.get('paiement')
+        
+        # Si un paiement est fourni, vérifier qu'il correspond à la réservation
+        if paiement and reservation and paiement.reservation != reservation:
+            raise serializers.ValidationError("Le paiement ne correspond pas à la réservation.")
+        
+        return data
+    
+    def create(self, validated_data):
+        """Créer la facture avec les données calculées automatiquement"""
+        reservation = validated_data['reservation']
+        
+        # Compléter les données automatiquement si pas fournies
+        if not validated_data.get('client_nom'):
+            user = reservation.user
+            validated_data['client_nom'] = f"{user.first_name} {user.last_name}".strip() or user.username
+        
+        if not validated_data.get('client_email'):
+            validated_data['client_email'] = reservation.user.email
+        
+        if not validated_data.get('hote_nom'):
+            owner = reservation.bien.owner
+            validated_data['hote_nom'] = f"{owner.first_name} {owner.last_name}".strip() or owner.username
+        
+        if not validated_data.get('hote_email'):
+            validated_data['hote_email'] = reservation.bien.owner.email
+        
+        # Créer la facture
+        facture = super().create(validated_data)
+        return facture

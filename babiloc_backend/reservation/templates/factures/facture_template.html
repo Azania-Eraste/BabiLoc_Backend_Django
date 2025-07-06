@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture {{ facture.numero_facture }}</title>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">BabiLoc</div>
+        <p>Plateforme de location de biens</p>
+        <p>Email: contact@babiloc.com | Tél: +225 XX XX XX XX</p>
+    </div>
+
+    <div class="facture-info">
+        <div class="client-info">
+            <h3>Facturé à :</h3>
+            <p><strong>{{ facture.client_nom }}</strong></p>
+            <p>{{ facture.client_email }}</p>
+            {% if facture.client_telephone %}
+                <p>{{ facture.client_telephone }}</p>
+            {% endif %}
+            {% if facture.client_adresse %}
+                <p>{{ facture.client_adresse }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="hote-info">
+            <h3>Propriétaire :</h3>
+            <p><strong>{{ facture.hote_nom }}</strong></p>
+            <p>{{ facture.hote_email }}</p>
+            {% if facture.hote_telephone %}
+                <p>{{ facture.hote_telephone }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="facture-details">
+        <h2>Facture {{ facture.numero_facture }}</h2>
+        <p><strong>Date d'émission :</strong> {{ facture.date_emission|date:"d/m/Y" }}</p>
+        <p><strong>Date d'échéance :</strong> {{ facture.date_echeance|date:"d/m/Y" }}</p>
+        <p><strong>Statut :</strong> {{ facture.get_statut_display }}</p>
+        {% if facture.date_paiement %}
+            <p><strong>Date de paiement :</strong> {{ facture.date_paiement|date:"d/m/Y H:i" }}</p>
+        {% endif %}
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Période</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Montant HT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.periode }}</td>
+                <td>{{ item.quantite }} {{ item.unite }}</td>
+                <td>{{ item.prix_unitaire }} FCFA</td>
+                <td>{{ item.montant }} FCFA</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totaux">
+        <table class="table" style="width: 50%; margin-left: auto;">
+            <tr>
+                <td><strong>Montant HT :</strong></td>
+                <td class="total">{{ facture.montant_ht }} FCFA</td>
+            </tr>
+            <tr>
+                <td><strong>TVA ({{ facture.tva_taux }}%) :</strong></td>
+                <td class="total">{{ facture.montant_tva }} FCFA</td>
+            </tr>
+            <tr style="background-color: #f8f9fa;">
+                <td><strong>Total TTC :</strong></td>
+                <td class="total"><strong>{{ facture.montant_ttc }} FCFA</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    {% if facture.type_facture == 'reservation' %}
+    <div class="commission-details" style="margin-top: 30px;">
+        <h3>Répartition (Information hôte)</h3>
+        <table class="table" style="width: 60%; margin-left: auto;">
+            <tr>
+                <td>Montant total de la réservation :</td>
+                <td class="total">{{ facture.montant_ttc }} FCFA</td>
+            </tr>
+            <tr>
+                <td>Commission plateforme (15%) :</td>
+                <td class="total">{{ facture.commission_plateforme }} FCFA</td>
+            </tr>
+            <tr style="background-color: #e8f5e8;">
+                <td><strong>Montant net hôte (85%) :</strong></td>
+                <td class="total"><strong>{{ facture.montant_net_hote }} FCFA</strong></td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="conditions" style="margin-top: 40px;">
+        <h3>Conditions de paiement</h3>
+        <p>• Paiement effectué via la plateforme BabiLoc</p>
+        <p>• Paiement sécurisé par CinetPay</p>
+        <p>• En cas de litige, contactez notre service client</p>
+    </div>
+
+    <div class="footer">
+        <p>BabiLoc - Plateforme de location de biens</p>
+        <p>Cette facture est générée automatiquement et ne nécessite pas de signature</p>
+        <p>Merci de votre confiance !</p>
+    </div>
+</body>
+</html>

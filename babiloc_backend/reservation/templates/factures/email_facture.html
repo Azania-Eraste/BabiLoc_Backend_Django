@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture {{ facture.numero_facture }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .facture-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+            padding: 15px;
+            background-color: #e8f5e8;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BabiLoc</h1>
+        <p>Votre facture est prête !</p>
+    </div>
+
+    <div class="content">
+        <h2>Bonjour {{ facture.client_nom }},</h2>
+        
+        <p>Nous vous remercions pour votre réservation sur BabiLoc. Votre facture est maintenant disponible.</p>
+        
+        <div class="facture-details">
+            <h3>Détails de la facture</h3>
+            <p><strong>Numéro de facture :</strong> {{ facture.numero_facture }}</p>
+            <p><strong>Date d'émission :</strong> {{ facture.date_emission|date:"d/m/Y" }}</p>
+            <p><strong>Bien loué :</strong> {{ reservation.bien.nom }}</p>
+            <p><strong>Période :</strong> du {{ reservation.date_debut|date:"d/m/Y" }} au {{ reservation.date_fin|date:"d/m/Y" }}</p>
+            <p><strong>Durée :</strong> {{ reservation.duree_jours }} jour(s)</p>
+            
+            <div class="total">
+                Montant total : {{ facture.montant_ttc }} FCFA
+            </div>
+        </div>
+
+        <p>Vous trouverez votre facture en pièce jointe au format PDF.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="mailto:contact@babiloc.com" class="button">Nous contacter</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>BabiLoc - Plateforme de location de biens</p>
+        <p>Email: contact@babiloc.com | Tél: +225 XX XX XX XX</p>
+        <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+    </div>
+</body>
+</html>

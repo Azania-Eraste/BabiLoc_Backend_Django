@@ -2,7 +2,13 @@ from django.urls import path
 from .views import (
     RegisterView, ForgotPasswordView, ResetPasswordConfirmView, 
     MeView, MyTokenObtainPairView, ProfileUpdateView, welcome_view,
-    VerifyOTPView, ResendOTPView, ActivateAccountView
+    VerifyOTPView, ResendOTPView, ActivateAccountView,
+    DocumentUtilisateurCreateView,
+    MesDocumentsView,
+    DocumentUtilisateurUpdateView,
+    DocumentUtilisateurDeleteView,
+    DocumentsModerationView,
+    DocumentModerationView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -20,4 +26,14 @@ urlpatterns = [
     
     # Ancien endpoint pour compatibilité
     path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate'),
+
+    # Documents utilisateur
+    path('documents/upload/', DocumentUtilisateurCreateView.as_view(), name='document-upload'),
+    path('documents/mes-documents/', MesDocumentsView.as_view(), name='mes-documents'),
+    path('documents/<int:pk>/update/', DocumentUtilisateurUpdateView.as_view(), name='document-update'),
+    path('documents/<int:pk>/delete/', DocumentUtilisateurDeleteView.as_view(), name='document-delete'),
+    
+    # Modération
+    path('admin/documents/moderation/', DocumentsModerationView.as_view(), name='documents-moderation'),
+    path('admin/documents/<int:pk>/moderer/', DocumentModerationView.as_view(), name='document-moderer'),
 ]

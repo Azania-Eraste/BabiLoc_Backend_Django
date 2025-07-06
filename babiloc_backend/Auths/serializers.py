@@ -1,6 +1,6 @@
 import re
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, DocumentUtilisateur
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -85,3 +85,112 @@ class RegisterSerializer(serializers.ModelSerializer):
 class OTPVerificationSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
     otp_code = serializers.CharField(max_length=4, min_length=4)
+
+class DocumentUtilisateurSerializer(serializers.ModelSerializer):
+    """Serializer pour les documents utilisateur"""
+    file_url = serializers.SerializerMethodField()
+    file_type = serializers.SerializerMethodField()
+    file_extension = serializers.SerializerMethodField()
+    is_expired = serializers.SerializerMethodField()
+    type_document_display = serializers.CharField(source='get_type_document_display', read_only=True)
+    statut_verification_display = serializers.CharField(source='get_statut_verification_display', read_only=True)
+    
+    class Meta:
+        model = DocumentUtilisateur
+        fields = [
+            'id', 'nom', 'type_document', 'type_document_display',
+            'fichier', 'image', 'file_url', 'file_type', 'file_extension',
+            'statut_verification', 'statut_verification_display',
+            'date_expiration', 'is_expired', 'commentaire_moderateur',
+            'date_upload', 'date_verification'
+        ]
+        read_only_fields = [
+            'id', 'date_upload', 'date_verification', 'statut_verification',
+            'commentaire_moderateur', 'is_expired'
+        ]
+    
+    def get_file_url(self, obj):
+        """Retourne l'URL complète du fichier ou de l'image"""
+        request = self.context.get('request')
+        file_url = obj.get_file_url()
+        if request and file_url:
+            return request.build_absolute_uri(file_url)
+        return file_url
+    
+    def get_file_type(self, obj):
+        """Retourne le type de fichier"""
+        return obj.get_file_type()
+    
+    def get_file_extension(self, obj):
+        """Retourne l'extension du fichier"""
+        return obj.get_file_extension()
+    
+    def get_is_expired(self, obj):
+        """Vérifie si le document est expiré"""
+        return obj.is_expired()
+    
+    def validate(self, attrs):
+        """Validation personnalisée"""
+        fichier = attrs.get('fichier')
+        image = attrs.get('image')
+        
+        if not fichier and not image:
+            raise serializers.ValidationError('Vous devez fournir soit un fichier soit une image.')
+        
+        if fichier and image:
+            raise serializers.ValidationError('Vous ne pouvez pas fournir à la fois un fichier et une image.')
+        
+        return attrs
+
+class DocumentModerationSerializer(serializers.ModelSerializer):
+    """Serializer pour la modération des documents"""
+    
+    class Meta:
+        model = DocumentUtilisateur
+        fields = [
+            'id', 'statut_verification', 'commentaire_moderateur'
+        ]
+    
+    def validate_statut_verification(self, value):
+        """Validation du statut"""
+        if value not in ['approuve', 'refuse']:
+            raise serializers.ValidationError("Le statut doit être 'approuve' ou 'refuse'.")
+        return value
+    
+    def update(self, instance, validated_data):
+        """Mise à jour avec enregistrement de la date et du modérateur"""
+        from django.utils import timezone
+        
+        instance.statut_verification = validated_data.get('statut_verification', instance.statut_verification)
+        instance.commentaire_moderateur = validated_data.get('commentaire_moderateur', instance.commentaire_moderateur)
+        instance.date_verification = timezone.now()
+        instance.moderateur = self.context['request'].user
+        instance.save()
+        
+        return instance
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """Serializer pour le profil utilisateur avec documents"""
+    documents_verification = DocumentUtilisateurSerializer(many=True, read_only=True)
+    documents_approuves = serializers.SerializerMethodField()
+    est_completement_verifie = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'number', 'birthdate', 'is_vendor', 'est_verifie',
+            'documents_verification', 'documents_approuves', 'est_completement_verifie'
+        ]
+        read_only_fields = ['id', 'username', 'est_verifie']
+    
+    def get_documents_approuves(self, obj):
+        """Retourne les types de documents approuvés"""
+        return list(obj.documents_verification.filter(
+            statut_verification='approuve'
+        ).values_list('type_document', flat=True))
+    
+    def get_est_completement_verifie(self, obj):
+        """Vérifie si l'utilisateur a au moins CNI + permis approuvés"""
+        documents_approuves = self.get_documents_approuves(obj)
+        return 'carte_identite' in documents_approuves and 'permis_conduire' in documents_approuves

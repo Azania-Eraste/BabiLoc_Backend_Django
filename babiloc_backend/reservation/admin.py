@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .forms import BienForm
-from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, Avis
+from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
@@ -104,3 +104,66 @@ class AvisAdmin(admin.ModelAdmin):
         return bool(obj.reponse_proprietaire)
     has_response.boolean = True
     has_response.short_description = "A une réponse"
+
+@admin.register(Facture)
+class FactureAdmin(admin.ModelAdmin):
+    list_display = [
+        'numero_facture', 'client_nom', 'hote_nom', 'montant_ttc',
+        'statut', 'date_emission', 'date_paiement'
+    ]
+    list_filter = ['statut', 'type_facture', 'date_emission']
+    search_fields = [
+        'numero_facture', 'client_nom', 'client_email',
+        'hote_nom', 'hote_email'
+    ]
+    readonly_fields = [
+        'numero_facture', 'montant_ht', 'montant_tva', 'montant_ttc',
+        'commission_plateforme', 'montant_net_hote', 'created_at', 'updated_at'
+    ]
+    ordering = ['-date_emission']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('numero_facture', 'type_facture', 'reservation', 'paiement', 'statut')
+        }),
+        ('Client', {
+            'fields': ('client_nom', 'client_email', 'client_telephone', 'client_adresse')
+        }),
+        ('Hôte', {
+            'fields': ('hote_nom', 'hote_email', 'hote_telephone')
+        }),
+        ('Montants', {
+            'fields': (
+                'montant_ht', 'tva_taux', 'montant_tva', 'montant_ttc',
+                'commission_plateforme', 'montant_net_hote'
+            )
+        }),
+        ('Dates', {
+            'fields': ('date_emission', 'date_echeance', 'date_paiement')
+        }),
+        ('Fichier', {
+            'fields': ('fichier_pdf',)
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['regenerer_pdf', 'envoyer_email']
+    
+    def regenerer_pdf(self, request, queryset):
+        """Action pour régénérer les PDFs"""
+        for facture in queryset:
+            facture.generer_pdf()
+        self.message_user(request, f"{queryset.count()} facture(s) régénérée(s)")
+    regenerer_pdf.short_description = "Régénérer les PDFs"
+    
+    def envoyer_email(self, request, queryset):
+        """Action pour envoyer les factures par email"""
+        sent = 0
+        for facture in queryset:
+            if facture.envoyer_par_email():
+                sent += 1
+        self.message_user(request, f"{sent} facture(s) envoyée(s) par email")
+    envoyer_email.short_description = "Envoyer par email"

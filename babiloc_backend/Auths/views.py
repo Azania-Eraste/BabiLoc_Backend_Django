@@ -1,4 +1,4 @@
-from .models import CustomUser
+from .models import CustomUser, DocumentUtilisateur  # Ajouter DocumentUtilisateur
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer, OTPVerificationSerializer
+from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer, OTPVerificationSerializer, DocumentUtilisateurSerializer, DocumentModerationSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import EmailMultiAlternatives
 from rest_framework import permissions
@@ -417,6 +417,202 @@ class ProfileUpdateView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+class DocumentUtilisateurCreateView(generics.CreateAPIView):
+    """
+    Uploader un document de vérification
+    """
+    serializer_class = DocumentUtilisateurSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Uploader un document de vérification",
+        # ✅ Remove manual_parameters and use request_body instead
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['nom', 'type_document'],
+            properties={
+                'nom': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Nom du document"
+                ),
+                'type_document': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['carte_identite', 'permis_conduire', 'passeport', 'attestation_travail', 'justificatif_domicile', 'autre'],
+                    description="Type de document"
+                ),
+                'fichier': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_BINARY,
+                    description="Fichier document (PDF, DOC, etc.)"
+                ),
+                'image': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_BINARY,
+                    description="Image du document (JPG, PNG, etc.)"
+                ),
+                'date_expiration': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_DATE,
+                    description="Date d'expiration (YYYY-MM-DD)"
+                ),
+            }
+        ),
+        responses={
+            201: DocumentUtilisateurSerializer,
+            400: "Données invalides",
+            401: "Non authentifié"
+        },
+        tags=['Documents Utilisateur']
+    )
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['utilisateur'] = request.user.id
+        
+        serializer = self.get_serializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(utilisateur=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MesDocumentsView(generics.ListAPIView):
+    """
+    Liste des documents de l'utilisateur connecté
+    """
+    serializer_class = DocumentUtilisateurSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer mes documents de vérification",
+        responses={
+            200: DocumentUtilisateurSerializer(many=True),
+            401: "Non authentifié"
+        },
+        tags=['Documents Utilisateur']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        return DocumentUtilisateur.objects.filter(utilisateur=self.request.user)
+
+class DocumentUtilisateurUpdateView(generics.UpdateAPIView):
+    """
+    Mettre à jour un document utilisateur
+    """
+    serializer_class = DocumentUtilisateurSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return DocumentUtilisateur.objects.filter(utilisateur=self.request.user)
+    
+    @swagger_auto_schema(
+        operation_description="Mettre à jour un document",
+        consumes=['multipart/form-data'],
+        responses={
+            200: DocumentUtilisateurSerializer,
+            400: "Données invalides",
+            401: "Non authentifié",
+            404: "Document non trouvé"
+        },
+        tags=['Documents Utilisateur']
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+class DocumentUtilisateurDeleteView(generics.DestroyAPIView):
+    """
+    Supprimer un document utilisateur
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return DocumentUtilisateur.objects.filter(utilisateur=self.request.user)
+    
+    @swagger_auto_schema(
+        operation_description="Supprimer un document",
+        responses={
+            204: "Document supprimé",
+            401: "Non authentifié",
+            404: "Document non trouvé"
+        },
+        tags=['Documents Utilisateur']
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+# Vues pour la modération (admin/staff)
+class DocumentsModerationView(generics.ListAPIView):
+    """
+    Liste des documents en attente de modération
+    """
+    serializer_class = DocumentUtilisateurSerializer
+    permission_classes = [permissions.IsAdminUser]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer les documents en attente de modération",
+        manual_parameters=[
+            openapi.Parameter(
+                'statut',
+                openapi.IN_QUERY,
+                description="Filtrer par statut",
+                type=openapi.TYPE_STRING,
+                enum=['en_attente', 'approuve', 'refuse', 'expire']
+            ),
+            openapi.Parameter(
+                'type_document',
+                openapi.IN_QUERY,
+                description="Filtrer par type de document",
+                type=openapi.TYPE_STRING
+            ),
+        ],
+        responses={
+            200: DocumentUtilisateurSerializer(many=True),
+            401: "Non authentifié",
+            403: "Permission refusée"
+        },
+        tags=['Modération']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = DocumentUtilisateur.objects.all().select_related('utilisateur')
+        
+        # Filtres
+        statut = self.request.query_params.get('statut')
+        if statut:
+            queryset = queryset.filter(statut_verification=statut)
+        
+        type_document = self.request.query_params.get('type_document')
+        if type_document:
+            queryset = queryset.filter(type_document=type_document)
+        
+        return queryset.order_by('-date_upload')
+
+class DocumentModerationView(generics.UpdateAPIView):
+    """
+    Modérer un document (approuver/refuser)
+    """
+    serializer_class = DocumentModerationSerializer
+    permission_classes = [permissions.IsAdminUser]
+    queryset = DocumentUtilisateur.objects.all()
+    
+    @swagger_auto_schema(
+        operation_description="Modérer un document (approuver/refuser)",
+        request_body=DocumentModerationSerializer,
+        responses={
+            200: DocumentModerationSerializer,
+            400: "Données invalides",
+            401: "Non authentifié",
+            403: "Permission refusée",
+            404: "Document non trouvé"
+        },
+        tags=['Modération']
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
 
 # Garder pour compatibilité mais déprécié
 class ActivateAccountView(APIView):

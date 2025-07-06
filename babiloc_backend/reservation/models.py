@@ -10,6 +10,16 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.core.mail import EmailMessage
 from django.conf import settings
+from django.template.loader import render_to_string
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus.flowables import HRFlowable
+from django.core.files.base import ContentFile
+from io import BytesIO
+import os
 
 User = get_user_model()
 
@@ -123,7 +133,8 @@ class Bien(models.Model):
 class Document(models.Model):
     bien = models.ForeignKey("Bien", related_name="documents", on_delete=models.CASCADE)
     nom = models.CharField(max_length=255)  # Exemple: "Carte Grise", "Attestation de propriété"
-    fichier = models.FileField(upload_to='documents_biens/')
+    fichier = models.FileField(upload_to='documents_biens/', blank=True, null=True)
+    image = models.ImageField(upload_to='documents_biens/images/', blank=True, null=True)
     type = models.CharField(
         max_length=100,
         choices=[
@@ -134,6 +145,39 @@ class Document(models.Model):
         ]
     )
     date_upload = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        """Validation pour s'assurer qu'au moins un fichier ou une image est fourni"""
+        from django.core.exceptions import ValidationError
+        if not self.fichier and not self.image:
+            raise ValidationError('Vous devez fournir soit un fichier soit une image.')
+        
+        if self.fichier and self.image:
+            raise ValidationError('Vous ne pouvez pas fournir à la fois un fichier et une image.')
+
+    def get_file_url(self):
+        """Retourne l'URL du fichier ou de l'image"""
+        if self.fichier:
+            return self.fichier.url
+        elif self.image:
+            return self.image.url
+        return None
+
+    def get_file_type(self):
+        """Retourne le type de fichier (document ou image)"""
+        if self.fichier:
+            return 'document'
+        elif self.image:
+            return 'image'
+        return None
+
+    def get_file_extension(self):
+        """Retourne l'extension du fichier"""
+        if self.fichier:
+            return self.fichier.name.split('.')[-1].lower()
+        elif self.image:
+            return self.image.name.split('.')[-1].lower()
+        return None
 
     def __str__(self):
         return f"{self.nom} pour {self.bien.nom}"
@@ -345,16 +389,28 @@ class Mode(models.Model):
         verbose_name_plural = "Modes de paiement"
 
 class Paiement(models.Model):
-    montant = models.FloatField()
-    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    mode = models.ForeignKey(Mode, on_delete=models.CASCADE, related_name="ModePaiement", null=True, blank=True)  # ✅ Rendre optionnel
+    # Status choices
+    STATUT_PENDING = 'pending'
+    STATUT_EFFECTUE = 'effectue'
+    STATUT_ECHEC = 'echec'
+    STATUT_REMBOURSE = 'rembourse'
+    
+    STATUT_CHOICES = [
+        (STATUT_PENDING, 'En attente'),
+        (STATUT_EFFECTUE, 'Effectué'),
+        (STATUT_ECHEC, 'Échoué'),
+        (STATUT_REMBOURSE, 'Remboursé'),
+    ]
     
     statut_paiement = models.CharField(
         max_length=20,
-        choices=StatutPaiement.choices,
-        default=StatutPaiement.EN_ATTENTE,
-        verbose_name="Statut du paiement"
+        choices=STATUT_CHOICES,
+        default=STATUT_PENDING
     )
+
+    montant = models.FloatField()
+    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    mode = models.ForeignKey(Mode, on_delete=models.CASCADE, related_name="ModePaiement", null=True, blank=True)  # ✅ Rendre optionnel
 
     payment_intent_id = models.CharField(max_length=255, null=True, blank=True)
     statut = models.BooleanField(default=True)
@@ -658,11 +714,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 @receiver(post_save, sender=Reservation)
-def creer_revenu_proprietaire(sender, instance, **kwargs):
+def creer_revenu_proprietaire(sender, instance, created, **kwargs):
     """Créer un enregistrement de revenu quand une réservation est complétée"""
+    # Only create RevenuProprietaire when reservation status changes to 'completed'
     if instance.status == 'completed':
-        # Vérifier si un revenu n'existe pas déjà
-        if not hasattr(instance, 'revenu_proprietaire'):
+        # Check if RevenuProprietaire doesn't already exist
+        revenu_existant = RevenuProprietaire.objects.filter(reservation=instance).first()
+        if not revenu_existant:
             RevenuProprietaire.objects.create(
                 proprietaire=instance.bien.owner,
                 reservation=instance,
@@ -683,7 +741,7 @@ class RevenuProprietaire(models.Model):
     reservation = models.OneToOneField(
         Reservation,
         on_delete=models.CASCADE,
-        related_name='revenu_proprietaire'
+        related_name='revenu_proprietaire_record'  # ✅ Change the related_name
     )
     
     montant_brut = models.DecimalField(
@@ -721,3 +779,427 @@ class RevenuProprietaire(models.Model):
     
     def __str__(self):
         return f"Revenu {self.proprietaire.username} - Réservation #{self.reservation.id}"
+
+
+# ============================================================================
+# MODÈLE FACTURE
+# ============================================================================
+# Modèle pour les factures électroniques
+class Facture(models.Model):
+    """Modèle pour les factures électroniques"""
+    
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('payee', 'Payée'),
+        ('annulee', 'Annulée'),
+        ('remboursee', 'Remboursée'),
+    ]
+    
+    TYPE_FACTURE_CHOICES = [
+        ('reservation', 'Facture de réservation'),
+        ('commission', 'Facture de commission'),
+        ('avoir', 'Avoir (remboursement)'),
+    ]
+    
+    # Identifiants
+    numero_facture = models.CharField(max_length=50, unique=True, verbose_name="Numéro de facture")
+    type_facture = models.CharField(max_length=20, choices=TYPE_FACTURE_CHOICES, default='reservation')
+    
+    # Relations
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='factures')
+    paiement = models.ForeignKey(Paiement, on_delete=models.CASCADE, related_name='factures', null=True, blank=True)
+    
+    # Informations client
+    client_nom = models.CharField(max_length=255, verbose_name="Nom du client")
+    client_email = models.EmailField(verbose_name="Email du client")
+    client_telephone = models.CharField(max_length=20, blank=True, verbose_name="Téléphone du client")
+    client_adresse = models.TextField(blank=True, verbose_name="Adresse du client")
+    
+    # Informations hôte
+    hote_nom = models.CharField(max_length=255, verbose_name="Nom de l'hôte")
+    hote_email = models.EmailField(verbose_name="Email de l'hôte")
+    hote_telephone = models.CharField(max_length=20, blank=True, verbose_name="Téléphone de l'hôte")
+    
+    # Montants
+    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT")
+    tva_taux = models.DecimalField(max_digits=5, decimal_places=2, default=18.00, verbose_name="Taux TVA (%)")
+    montant_tva = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TVA")
+    montant_ttc = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TTC")
+    
+    # Commission (pour les hôtes)
+    commission_plateforme = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Commission plateforme")
+    montant_net_hote = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Montant net hôte")
+    
+    # Statut et dates
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    date_emission = models.DateTimeField(auto_now_add=True, verbose_name="Date d'émission")
+    date_echeance = models.DateField(verbose_name="Date d'échéance")
+    date_paiement = models.DateTimeField(null=True, blank=True, verbose_name="Date de paiement")
+    
+    # Fichier PDF
+    fichier_pdf = models.FileField(upload_to='factures/', null=True, blank=True, verbose_name="Fichier PDF")
+    
+    # Métadonnées
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-date_emission']
+        verbose_name = "Facture"
+        verbose_name_plural = "Factures"
+    
+    def __str__(self):
+        return f"Facture {self.numero_facture} - {self.client_nom}"
+    
+    def save(self, *args, **kwargs):
+        # Générer le numéro de facture si ce n'est pas déjà fait
+        if not self.numero_facture:
+            self.numero_facture = self.generer_numero_facture()
+        
+        # Calculer la TVA et le montant TTC
+        self.calculer_montants()
+        
+        super().save(*args, **kwargs)
+        
+        # Générer le PDF après la sauvegarde
+        if not self.fichier_pdf:
+            self.generer_pdf()
+    
+    def generer_numero_facture(self):
+        """Génère un numéro de facture unique"""
+        from datetime import datetime
+        annee = datetime.now().year
+        mois = datetime.now().month
+        
+        # Compter les factures du mois
+        nb_factures = Facture.objects.filter(
+            date_emission__year=annee,
+            date_emission__month=mois
+        ).count() + 1
+        
+        return f"FAC-{annee}{mois:02d}-{nb_factures:04d}"
+    
+    def calculer_montants(self):
+        """Calcule les montants TTC, TVA, etc."""
+        if self.reservation:
+            # Montant HT = Prix total de la réservation
+            self.montant_ht = self.reservation.prix_total
+            
+            # TVA - Convert tva_taux to Decimal and divide by 100
+            self.montant_tva = self.montant_ht * (Decimal(str(self.tva_taux)) / Decimal('100'))
+            
+            # TTC
+            self.montant_ttc = self.montant_ht + self.montant_tva
+            
+            # Commission et montant net pour l'hôte
+            if self.type_facture == 'reservation':
+                # Use the @property methods from the Reservation model
+                self.commission_plateforme = self.reservation.commission_plateforme
+                self.montant_net_hote = self.reservation.revenu_proprietaire  # This is now a @property
+
+    def generer_pdf(self):
+        """Génère le fichier PDF de la facture avec ReportLab"""
+        try:
+            # Créer un buffer pour le PDF
+            buffer = BytesIO()
+            
+            # Créer le document PDF
+            doc = SimpleDocTemplate(buffer, pagesize=A4)
+            story = []
+            
+            # Styles
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=24,
+                textColor=colors.HexColor('#2c3e50'),
+                alignment=1,  # Centre
+                spaceAfter=30,
+            )
+            
+            heading_style = ParagraphStyle(
+                'CustomHeading',
+                parent=styles['Heading2'],
+                fontSize=16,
+                textColor=colors.HexColor('#34495e'),
+                spaceAfter=12,
+            )
+            
+            normal_style = ParagraphStyle(
+                'CustomNormal',
+                parent=styles['Normal'],
+                fontSize=11,
+                spaceAfter=6,
+            )
+            
+            # En-tête
+            story.append(Paragraph("BabiLoc", title_style))
+            story.append(Paragraph("Plateforme de location de biens", normal_style))
+            story.append(Paragraph("Email: contact@babiloc.com | Tél: +225 XX XX XX XX", normal_style))
+            story.append(Spacer(1, 20))
+            story.append(HRFlowable(width="100%", thickness=1, color=colors.grey))
+            story.append(Spacer(1, 20))
+            
+            # Informations facture
+            story.append(Paragraph(f"Facture {self.numero_facture}", heading_style))
+            story.append(Paragraph(f"Date d'émission: {self.date_emission.strftime('%d/%m/%Y')}", normal_style))
+            story.append(Paragraph(f"Date d'échéance: {self.date_echeance.strftime('%d/%m/%Y')}", normal_style))
+            story.append(Paragraph(f"Statut: {self.get_statut_display()}", normal_style))
+            if self.date_paiement:
+                story.append(Paragraph(f"Date de paiement: {self.date_paiement.strftime('%d/%m/%Y %H:%M')}", normal_style))
+            story.append(Spacer(1, 20))
+            
+            # Informations client et hôte
+            client_hote_data = [
+                ['Facturé à:', 'Propriétaire:'],
+                [self.client_nom, self.hote_nom],
+                [self.client_email, self.hote_email],
+            ]
+            
+            if self.client_telephone:
+                client_hote_data.append([self.client_telephone, self.hote_telephone or ''])
+            
+            client_hote_table = Table(client_hote_data, colWidths=[3*inch, 3*inch])
+            client_hote_table.setStyle(TableStyle([
+                ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONT', (0, 1), (-1, 1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 11),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            
+            story.append(client_hote_table)
+            story.append(Spacer(1, 30))
+            
+            # Détails de la réservation
+            story.append(Paragraph("Détails de la réservation", heading_style))
+            
+            reservation_data = [
+                ['Description', 'Période', 'Quantité', 'Prix unitaire', 'Montant HT'],
+                [
+                    f"Location {self.reservation.bien.nom}",
+                    f"Du {self.reservation.date_debut.strftime('%d/%m/%Y')} au {self.reservation.date_fin.strftime('%d/%m/%Y')}",
+                    f"{self.reservation.duree_jours} jour(s)",
+                    f"{float(self.reservation.prix_total / self.reservation.duree_jours):.0f} FCFA",
+                    f"{float(self.montant_ht):.0f} FCFA"
+                ]
+            ]
+            
+            reservation_table = Table(reservation_data, colWidths=[2*inch, 1.5*inch, 1*inch, 1*inch, 1*inch])
+            reservation_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f8f9fa')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ]))
+            
+            story.append(reservation_table)
+            story.append(Spacer(1, 20))
+            
+            # Totaux
+            totaux_data = [
+                ['Montant HT:', f"{float(self.montant_ht):.0f} FCFA"],
+                [f'TVA ({self.tva_taux}%):', f"{float(self.montant_tva):.0f} FCFA"],
+                ['Total TTC:', f"{float(self.montant_ttc):.0f} FCFA"],
+            ]
+            
+            totaux_table = Table(totaux_data, colWidths=[2*inch, 1.5*inch])
+            totaux_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 12),
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#f8f9fa')),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            
+            story.append(totaux_table)
+            story.append(Spacer(1, 30))
+            
+            # Répartition pour l'hôte
+            if self.type_facture == 'reservation':
+                story.append(Paragraph("Répartition (Information hôte)", heading_style))
+                
+                repartition_data = [
+                    ['Montant total de la réservation:', f"{float(self.montant_ttc):.0f} FCFA"],
+                    ['Commission plateforme (15%):', f"{float(self.commission_plateforme):.0f} FCFA"],
+                    ['Montant net hôte (85%):', f"{float(self.montant_net_hote):.0f} FCFA"],
+                ]
+                
+                repartition_table = Table(repartition_data, colWidths=[2.5*inch, 1.5*inch])
+                repartition_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                    ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 11),
+                    ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f5e8')),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ('TOPPADDING', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ]))
+                
+                story.append(repartition_table)
+                story.append(Spacer(1, 30))
+            
+            # Conditions
+            story.append(Paragraph("Conditions de paiement", heading_style))
+            story.append(Paragraph("• Paiement effectué via la plateforme BabiLoc", normal_style))
+            story.append(Paragraph("• Paiement sécurisé par CinetPay", normal_style))
+            story.append(Paragraph("• En cas de litige, contactez notre service client", normal_style))
+            story.append(Spacer(1, 40))
+            
+            # Pied de page
+            story.append(HRFlowable(width="100%", thickness=1, color=colors.grey))
+            story.append(Spacer(1, 10))
+            footer_style = ParagraphStyle(
+                'Footer',
+                parent=styles['Normal'],
+                fontSize=10,
+                textColor=colors.grey,
+                alignment=1,  # Centre
+            )
+            story.append(Paragraph("BabiLoc - Plateforme de location de biens", footer_style))
+            story.append(Paragraph("Cette facture est générée automatiquement et ne nécessite pas de signature", footer_style))
+            story.append(Paragraph("Merci de votre confiance !", footer_style))
+            
+            # Construire le PDF
+            doc.build(story)
+            
+            # Sauvegarder le fichier
+            buffer.seek(0)
+            filename = f"facture_{self.numero_facture}.pdf"
+            self.fichier_pdf.save(
+                filename,
+                ContentFile(buffer.read()),
+                save=False
+            )
+            
+            # Mettre à jour sans déclencher save() à nouveau
+            Facture.objects.filter(pk=self.pk).update(fichier_pdf=self.fichier_pdf)
+            
+            buffer.close()
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur génération PDF facture {self.numero_facture}: {str(e)}")
+    
+    def get_lignes_facture(self):
+        """Retourne les lignes de la facture"""
+        lines = []
+        
+        if self.type_facture == 'reservation':
+            lines.append({
+                'description': f"Location {self.reservation.bien.nom}",
+                'periode': f"Du {self.reservation.date_debut.strftime('%d/%m/%Y')} au {self.reservation.date_fin.strftime('%d/%m/%Y')}",
+                'quantite': self.reservation.duree_jours,
+                'unite': 'jour(s)',
+                'prix_unitaire': float(self.reservation.prix_total / self.reservation.duree_jours),
+                'montant': float(self.montant_ht)
+            })
+        
+        return lines
+    
+    def envoyer_par_email(self, destinataire_email=None, copie_hote=True):
+        """Envoie la facture par email"""
+        from django.core.mail import EmailMessage
+        from django.conf import settings
+        
+        if not destinataire_email:
+            destinataire_email = self.client_email
+        
+        # Préparer l'email
+        sujet = f"Facture {self.numero_facture} - BabiLoc"
+        
+        message_text = f"""
+Bonjour {self.client_nom},
+
+Nous vous remercions pour votre réservation sur BabiLoc. Votre facture est maintenant disponible.
+
+Détails de la facture :
+- Numéro de facture : {self.numero_facture}
+- Date d'émission : {self.date_emission.strftime('%d/%m/%Y')}
+- Bien loué : {self.reservation.bien.nom}
+- Période : du {self.reservation.date_debut.strftime('%d/%m/%Y')} au {self.reservation.date_fin.strftime('%d/%m/%Y')}
+- Durée : {self.reservation.duree_jours} jour(s)
+- Montant total : {self.montant_ttc} FCFA
+
+Vous trouverez votre facture en pièce jointe au format PDF.
+
+Cordialement,
+L'équipe BabiLoc
+
+---
+BabiLoc - Plateforme de location de biens
+Email: contact@babiloc.com | Tél: +225 XX XX XX XX
+        """
+        
+        # Destinataires
+        destinataires = [destinataire_email]
+        if copie_hote and self.hote_email:
+            destinataires.append(self.hote_email)
+        
+        # Créer l'email
+        email = EmailMessage(
+            subject=sujet,
+            body=message_text,
+            from_email=settings.EMAIL_HOST_USER,
+            to=destinataires,
+        )
+        
+        # Attacher le PDF
+        if self.fichier_pdf:
+            try:
+                email.attach_file(self.fichier_pdf.path)
+            except:
+                # Si le fichier n'existe pas, le régénérer
+                self.generer_pdf()
+                if self.fichier_pdf:
+                    email.attach_file(self.fichier_pdf.path)
+        
+        # Envoyer
+        try:
+            email.send()
+            return True
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur envoi email facture {self.numero_facture}: {str(e)}")
+            return False
+
+# Signal pour créer automatiquement une facture lors du paiement
+@receiver(post_save, sender=Paiement)
+def creer_facture_automatique(sender, instance, created, **kwargs):
+    """Crée automatiquement une facture quand un paiement est effectué"""
+    if instance.statut_paiement == StatutPaiement.EFFECTUE and instance.reservation:
+        # Vérifier si une facture n'existe pas déjà
+        facture_existante = Facture.objects.filter(
+            reservation=instance.reservation,
+            paiement=instance
+        ).first()
+        
+        if not facture_existante:
+            # Créer la facture
+            facture = Facture.objects.create(
+                reservation=instance.reservation,
+                paiement=instance,
+                client_nom=f"{instance.utilisateur.first_name} {instance.utilisateur.last_name}".strip() or instance.utilisateur.username,
+                client_email=instance.utilisateur.email,
+                client_telephone=getattr(instance.utilisateur, 'number', ''),
+                hote_nom=f"{instance.reservation.bien.owner.first_name} {instance.reservation.bien.owner.last_name}".strip() or instance.reservation.bien.owner.username,
+                hote_email=instance.reservation.bien.owner.email,
+                hote_telephone=getattr(instance.reservation.bien.owner, 'number', ''),
+                date_echeance=timezone.now().date(),
+                date_paiement=instance.date_paiement or timezone.now(),
+                statut='payee'
+            )
+            
+            # Envoyer par email
+            facture.envoyer_par_email()
