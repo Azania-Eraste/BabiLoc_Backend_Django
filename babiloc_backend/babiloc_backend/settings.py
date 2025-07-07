@@ -4,6 +4,7 @@ Django settings for babiloc_backend project.
 
 from pathlib import Path
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -160,14 +161,14 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-# Email Configuration
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')  # Change from os.getenv to config
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # Change from os.getenv to config
+DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER', default='noreply@babiloc.com')
 
 # Internationalization
 LANGUAGE_CODE = 'fr-FR'

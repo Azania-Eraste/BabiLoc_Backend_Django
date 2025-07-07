@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from Auths import permission
 from rest_framework import serializers
 from django.db.models import Count, Avg
-from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document
+from .models import Reservation,TagBien, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,

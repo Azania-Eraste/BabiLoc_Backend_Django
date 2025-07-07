@@ -259,41 +259,56 @@ class RegisterView(APIView):
             # Générer le code OTP
             otp_code = user.generate_otp()
 
-            # Sujet du mail
-            subject = "Code d'activation de votre compte"
+            try:
+                # Sujet du mail
+                subject = "Code d'activation de votre compte"
 
-            # Version HTML du mail
-            html_message = render_to_string('emails/activation_otp_email.html', {
-                'user': user,
-                'otp_code': otp_code,
-            })
+                # Version HTML du mail
+                html_message = render_to_string('emails/activation_otp_email.html', {
+                    'user': user,
+                    'otp_code': otp_code,
+                })
 
-            # Version texte simple
-            plain_message = (
-                f"Bonjour {user.username},\n\n"
-                f"Merci de vous être inscrit sur Babiloc.\n"
-                f"Votre code d'activation est : {otp_code}\n\n"
-                f"Ce code expire dans 5 minutes.\n\n"
-                f"L'équipe Babiloc."
-            )
+                # Version texte simple
+                plain_message = (
+                    f"Bonjour {user.username},\n\n"
+                    f"Merci de vous être inscrit sur Babiloc.\n"
+                    f"Votre code d'activation est : {otp_code}\n\n"
+                    f"Ce code expire dans 5 minutes.\n\n"
+                    f"L'équipe Babiloc."
+                )
 
-            # Création et envoi de l'e-mail
-            email_message = EmailMultiAlternatives(
-                subject=subject,
-                body=plain_message,
-                from_email=settings.EMAIL_HOST_USER,
-                to=[user.email]
-            )
-            email_message.attach_alternative(html_message, "text/html")
-            email_message.send(fail_silently=False)
+                # Création et envoi de l'e-mail
+                email_message = EmailMultiAlternatives(
+                    subject=subject,
+                    body=plain_message,
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=[user.email]
+                )
+                email_message.attach_alternative(html_message, "text/html")
+                email_message.send(fail_silently=False)
 
-            # Réponse de succès
-            return Response({
-                'message': 'Compte créé avec succès. Un code d\'activation a été envoyé à votre email.',
-                'user_id': user.id,
-                'email': user.email,
-            }, status=status.HTTP_201_CREATED)
-
+                # Réponse de succès
+                return Response({
+                    'message': 'Compte créé avec succès. Un code d\'activation a été envoyé à votre email.',
+                    'user_id': user.id,
+                    'email': user.email,
+                }, status=status.HTTP_201_CREATED)
+                
+            except Exception as e:
+                # Log the error but don't fail the registration
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to send activation email to {user.email}: {str(e)}")
+                
+                # Return success but inform about email issue
+                return Response({
+                    'message': 'Compte créé avec succès. Cependant, l\'email d\'activation n\'a pas pu être envoyé. Veuillez demander un nouveau code OTP.',
+                    'user_id': user.id,
+                    'email': user.email,
+                    'email_error': True
+                }, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyOTPView(APIView):

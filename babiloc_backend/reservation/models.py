@@ -893,7 +893,7 @@ class Facture(models.Model):
     hote_telephone = models.CharField(max_length=20, blank=True, verbose_name="Téléphone de l'hôte")
     
     # Montants
-    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT")
+    montant_ht = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant HT", default=0.00)
     tva_taux = models.DecimalField(max_digits=5, decimal_places=2, default=18.00, verbose_name="Taux TVA (%)")
     montant_tva = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TVA")
     montant_ttc = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant TTC")
