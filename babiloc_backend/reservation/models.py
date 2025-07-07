@@ -42,10 +42,12 @@ class StatutPaiement(TextChoices):
 
 
 class TypeOperation(TextChoices):
-    RESERVATION = 'reservation', 'Réservation confirmée'
-    EN_ATTENTE = 'en_attente', 'Paiement en attente'
-    FRAIS = 'frais', 'Frais de service'
-    RETRAIT = 'retrait', 'Retrait'
+    RESERVATION = "reservation", "Réservation"
+    REMBOURSEMENT = "remboursement", "Remboursement"
+    COMMISSION = "commission", "Commission"
+    EN_ATTENTE = "en_attente", "En attente"
+    INITIALISATION = "initialisation", "Initialisation"
+    ANNULATION = "annulation", "Annulation"
 
 
 class TagBien(models.Model):
@@ -376,7 +378,7 @@ class Mode(models.Model):
 class Paiement(models.Model):
     montant = models.FloatField()
     utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    mode = models.ForeignKey(Mode, on_delete=models.CASCADE, related_name="ModePaiement")
+    mode = models.ForeignKey(Mode, on_delete=models.CASCADE, related_name="ModePaiement", null=True, blank=True)  # ✅ Rendre optionnel
     
     statut_paiement = models.CharField(
         max_length=20,
@@ -394,7 +396,7 @@ class Paiement(models.Model):
     type_operation = models.CharField(
         max_length=50,
         choices=TypeOperation.choices,
-        verbose_name="Type d’opération"
+        verbose_name="Type d'opération"
     )
     
     reservation = models.ForeignKey(
@@ -403,6 +405,18 @@ class Paiement(models.Model):
         related_name="paiements", 
         null=True
     )
+
+    # Nouveaux champs pour CinetPay
+    transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    payment_token = models.CharField(max_length=255, null=True, blank=True)
+    payment_url = models.URLField(null=True, blank=True)
+    cinetpay_transaction_id = models.CharField(max_length=100, null=True, blank=True)
+    date_paiement = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'reservation_paiement'
+        verbose_name = "Paiement"
+        verbose_name_plural = "Paiements"
 
     def enregistrer_historique(self, type_op, montant=None, description=None):
         HistoriquePaiement.objects.create(
@@ -413,15 +427,11 @@ class Paiement(models.Model):
             description=description
         )
 
-
     def effectuer_paiement(self):
-        if self.mode.type_paiement == "Liquide":
-            print(f"Avant mise à jour statut_paiement : {self.statut_paiement}")
+        if self.mode and self.mode.type_paiement == "Liquide":  # ✅ Vérifier que mode existe
             self.statut_paiement = StatutPaiement.EFFECTUE
             self.save()
-            print(f"Après sauvegarde : {self.statut_paiement}")
             return True
-        print(f"Mode de paiement non éligible pour effectuer_paiement : {self.mode.type_paiement}")
         return False
 
     def __str__(self):

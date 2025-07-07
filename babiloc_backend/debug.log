@@ -2977,6 +2977,60 @@ Watching for file changes with StatReloader
 C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\Auths\views.py changed, reloading.
 Watching for file changes with StatReloader
 "GET /api/ HTTP/1.1" 200 2207
+"GET /api/?format=openapi HTTP/1.1" 200 38243
+Internal Server Error: /api/auth/register/
+Traceback (most recent call last):
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\Auths\views.py", line 266, in post
+    html_message = render_to_string('emails/activation_otp_email.html', {
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\Desktop\yohann\BabiLoc_Backend_Django\babiloc_backend\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: emails/activation_otp_email.html
+"POST /api/auth/register/ HTTP/1.1" 500 26198
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 58
+"POST /api/auth/register/ HTTP/1.1" 201 140
+Unauthorized: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 401 79
+Bad Request: /api/auth/verify-otp/
+"POST /api/auth/verify-otp/ HTTP/1.1" 400 40
+Bad Request: /api/auth/verify-otp/
+"POST /api/auth/verify-otp/ HTTP/1.1" 400 40
+"POST /api/auth/verify-otp/ HTTP/1.1" 200 661
+"POST /api/auth/login/ HTTP/1.1" 200 778
+"POST /api/auth/register/ HTTP/1.1" 201 140
+"POST /api/auth/resend-otp/ HTTP/1.1" 200 38
+Unauthorized: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 401 79
+Bad Request: /api/auth/verify-otp/
+"POST /api/auth/verify-otp/ HTTP/1.1" 400 40
+"POST /api/auth/verify-otp/ HTTP/1.1" 200 661
+"POST /api/auth/login/ HTTP/1.1" 200 778
 Watching for file changes with StatReloader
 "POST /api/auth/login/ HTTP/1.1" 200 745
 "GET /api/location/biens/ HTTP/1.1" 200 2689
