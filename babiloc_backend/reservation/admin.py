@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .forms import BienForm
-from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture
+from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture, DisponibiliteHebdo
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
