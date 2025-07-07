@@ -72,5 +72,5 @@ urlpatterns = [
     path('avis/<int:pk>/repondre/', ReponseProprietaireView.as_view(), name='avis-repondre'),
     path('biens/<int:bien_id>/avis/statistiques/', statistiques_avis_bien, name='statistiques-avis-bien'),
     path('mes-avis/', mes_avis, name='mes-avis'),
-    path('avis-recus/', avis_recus, name='avis-recus'),
+    path('Dashboard/avis-recus/', avis_recus, name='avis-recus'),
 ]

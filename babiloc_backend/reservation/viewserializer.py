@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from Auths import permission
 from rest_framework import serializers
 from django.db.models import Count
-from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis
+from .models import Reservation, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, TagBien
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -97,11 +97,11 @@ class MesReservationsHostView(generics.ListAPIView):
         if getattr(self, 'swagger_fake_view', False):
             return Reservation.objects.none()
         
-        if not self.request.user.is_authenticated and self.request.user.is_vendor:
+        if not self.request.user.is_authenticated and not self.request.user.is_vendor:
             return Reservation.objects.none()
-            
-        queryset = Reservation.objects.filter(annonce_id__owner = self.request.user)
-        
+
+        queryset = Reservation.objects.filter(annonce_id__owner=self.request.user)
+
         return queryset
 
 
@@ -369,6 +369,23 @@ def historique_statuts_reservations_bien(request, bien_id):
     result = {item['nouveau_statut']: item['compte'] for item in stats}
     return Response(result)
 
+class TagListView(generics.ListAPIView):
+    """
+    Liste des tags disponibles pour les biens
+    """
+    serializer_class = serializers.ModelSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return TagBien.objects.all()
+
+    @swagger_auto_schema(
+        operation_description="Lister tous les tags",
+        responses={200: serializers.ModelSerializer(many=True)},
+        tags=["Tags"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 class BienPagination(PageNumberPagination):
     page_size = 10

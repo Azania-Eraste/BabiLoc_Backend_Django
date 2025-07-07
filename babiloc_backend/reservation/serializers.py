@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document, CodePromo, DisponibiliteHebdo, Avis
+from .models import Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, Document, CodePromo, DisponibiliteHebdo, Avis, TagBien
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
@@ -107,6 +107,11 @@ class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
         model = DisponibiliteHebdo  # Ce modèle doit exister
         fields = ['jours']
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagBien  # Assurez-vous que le modèle Tag existe
+        fields = ['id', 'nom']
+        read_only_fields = ['id']
 
 class BienSerializer(serializers.ModelSerializer):
     tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
@@ -400,14 +405,13 @@ class HistoriquePaiementSerializer(serializers.ModelSerializer):
 class AvisSerializer(serializers.ModelSerializer):
     """Serializer pour les avis"""
     user = UserSerializer(read_only=True)
-    bien_nom = serializers.CharField(source='bien.nom', read_only=True)
     note_moyenne_detaillee = serializers.ReadOnlyField()
     peut_repondre = serializers.SerializerMethodField()
     
     class Meta:
         model = Avis
         fields = [
-            'id', 'user', 'bien', 'bien_nom', 'reservation', 'note',
+            'id', 'user', 'bien', 'reservation', 'note',
             'commentaire', 'note_proprete', 'note_communication',
             'note_emplacement', 'note_rapport_qualite_prix', 'recommande',
             'note_moyenne_detaillee', 'reponse_proprietaire', 'date_reponse',
@@ -495,3 +499,6 @@ class StatistiquesAvisSerializer(serializers.Serializer):
     repartition_notes = serializers.DictField()
     pourcentage_recommandation = serializers.FloatField()
     notes_moyennes_categories = serializers.DictField()
+
+    def create(self, validated_data):
+        return Avis(**validated_data)
