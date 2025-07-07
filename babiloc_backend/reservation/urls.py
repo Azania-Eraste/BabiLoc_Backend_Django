@@ -46,6 +46,7 @@ from .viewserializer import (
     DocumentListView,
     DocumentUpdateView,
     DocumentDeleteView,
+    MesReservationsHostView,  # ✅ Ajouter cette ligne
 )
 
 urlpatterns = [
