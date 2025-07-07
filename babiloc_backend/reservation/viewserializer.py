@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
+from django.db.models import Q, Avg
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from Auths import permission
@@ -43,7 +43,7 @@ class CreateReservationView(generics.CreateAPIView):
     """
     serializer_class = ReservationCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     @swagger_auto_schema(
         operation_description="Créer une nouvelle réservation",
         responses={
@@ -55,9 +55,9 @@ class CreateReservationView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-    
+
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(user=self.request.user)
     
     def validate(self, data):
         bien = data.get('bien')
@@ -82,15 +82,29 @@ class CreateReservationView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        
-        # Retourner la réservation complète
+
         reservation = serializer.instance
         response_serializer = ReservationSerializer(reservation)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+class MesReservationsHostView(generics.ListAPIView):
+
+    serializer_class = ReservationListSerializer
+    permission_classes = [permission.IsVendor]
+    pagination_class = ReservationPagination
+
+    def get_queryset(self):
+
+        # Protection contre les appels Swagger sans utilisateur authentifié
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
         
-        return Response(
-            response_serializer.data,
-            status=status.HTTP_201_CREATED
-        )
+        if not self.request.user.is_authenticated and not self.request.user.is_vendor:
+            return Reservation.objects.none()
+
+        queryset = Reservation.objects.filter(annonce_id__owner=self.request.user)
+
+        return queryset
 
 
 class MesReservationsView(generics.ListAPIView):
@@ -358,6 +372,23 @@ def historique_statuts_reservations_bien(request, bien_id):
     result = {item['nouveau_statut']: item['compte'] for item in stats}
     return Response(result)
 
+class TagListView(generics.ListAPIView):
+    """
+    Liste des tags disponibles pour les biens
+    """
+    serializer_class = serializers.ModelSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return TagBien.objects.all()
+
+    @swagger_auto_schema(
+        operation_description="Lister tous les tags",
+        responses={200: serializers.ModelSerializer(many=True)},
+        tags=["Tags"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 class BienPagination(PageNumberPagination):
     page_size = 10

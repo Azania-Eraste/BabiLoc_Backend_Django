@@ -60,6 +60,16 @@ class TypeOperation(TextChoices):
     ANNULATION = "annulation", "Annulation"
 
 
+class TagBien(models.Model):
+    nom = models.CharField(max_length=100, unique=True)  # Ex: "Vue mer", "Proche transport"
+    description = models.TextField(blank=True, null=True)  # Description optionnelle du tag
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    def __str__(self):
+        return self.nom
+
+
 # ============================================================================
 # MODÈLE TYPE_BIEN
 # ============================================================================
@@ -70,11 +80,13 @@ class Type_Bien(models.Model):
     
     nom = models.CharField(max_length=250)  # Ex: "Appartement", "Villa"
     description = models.TextField()  # Description détaillée du type
+    tags = models.ManyToManyField(TagBien, related_name="types_bien", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
     def __str__(self):
         return self.nom
+
 
 
 # ============================================================================
@@ -130,6 +142,31 @@ class Bien(models.Model):
         return self.nom
 
 
+
+class DisponibiliteHebdo(models.Model):
+    JOUR_CHOICES = [
+        ('lundi', 'Lundi'),
+        ('mardi', 'Mardi'),
+        ('mercredi', 'Mercredi'),
+        ('jeudi', 'Jeudi'),
+        ('vendredi', 'Vendredi'),
+        ('samedi', 'Samedi'),
+        ('dimanche', 'Dimanche'),
+    ]
+
+    bien = models.OneToOneField('Bien', related_name='disponibilite_hebdo', on_delete=models.CASCADE)
+    jours = models.JSONField(default=list, help_text="Ex: ['lundi', 'mardi', 'jeudi']")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    class Meta:
+        verbose_name = "Disponibilité Hebdomadaire"
+        verbose_name_plural = "Disponibilités Hebdomadaires"
+
+    def __str__(self):
+        return f"{self.bien.nom} disponible les {', '.join(self.jours)}"
+
+
 class Document(models.Model):
     bien = models.ForeignKey("Bien", related_name="documents", on_delete=models.CASCADE)
     nom = models.CharField(max_length=255)  # Exemple: "Carte Grise", "Attestation de propriété"
@@ -144,6 +181,8 @@ class Document(models.Model):
             ('autre', 'Autre'),
         ]
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
     date_upload = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
@@ -195,6 +234,7 @@ class Tarif(models.Model):
     bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Tarifs_Biens_id')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé  le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+    
 
     def __str__(self):
         return f"{self.type_tarif} - {self.bien.nom}"
@@ -209,6 +249,9 @@ class Tarif(models.Model):
 class Media(models.Model):
     bien = models.ForeignKey('Bien', on_delete=models.CASCADE, related_name='medias')
     image = models.ImageField(upload_to='biens/')  # Images stockées dans media/biens/
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
     def __str__(self):
         return f"Image pour {self.bien.nom}"  # Correction: utiliser 'nom' au lieu de 'titre'
@@ -353,11 +396,38 @@ class Reservation(models.Model):
         super().save(*args, **kwargs)
 
 
+class CodePromo(models.Model):
+    nom = models.CharField(unique=True)
+    reduction = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(Decimal('0.0')),
+            MaxValueValidator(Decimal('0.5'))
+        ]
+    )
+    reservations = models.ManyToManyField(
+        "Reservation",
+        related_name="codes_promos",
+        blank=True,
+        help_text="Réservations qui ont utilisé ce code promo"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    def __str__(self):
+        return f"{self.nom} - {int(self.reduction * 100)}%"
+
+
 class HistoriqueStatutReservation(models.Model):
     reservation = models.ForeignKey('Reservation', on_delete=models.CASCADE, related_name='historiques_statut')
     ancien_statut = models.CharField(max_length=50, choices=StatutReservation.choices)
     nouveau_statut = models.CharField(max_length=50, choices=StatutReservation.choices)
     date_changement = models.DateTimeField(auto_now_add=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
     def __str__(self):
         return f"Reservation {self.reservation.id} : {self.ancien_statut} → {self.nouveau_statut}"
@@ -475,7 +545,8 @@ class HistoriquePaiement(models.Model):
     montant = models.FloatField(validators=[MinValueValidator(0.0)])
     description = models.TextField(null=True, blank=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
     def __str__(self):
         return f"{self.get_type_operation_display()} - {self.montant} F - {self.utilisateur.username}"
@@ -516,7 +587,8 @@ class Favori(models.Model):
         related_name='favoris',
         verbose_name="Bien"
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ajouté le")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
     
     class Meta:
         # Un utilisateur ne peut pas ajouter le même bien deux fois

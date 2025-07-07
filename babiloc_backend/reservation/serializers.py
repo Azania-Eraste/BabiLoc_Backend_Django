@@ -7,6 +7,9 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
 from Auths.serializers import RegisterSerializer as AuthUserSerializer
+from decimal import Decimal
+from datetime import timedelta
+
 
 User = get_user_model()
 
@@ -140,10 +143,11 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class BienSerializer(serializers.ModelSerializer):
+    tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
+    media = MediaSerializer(source='medias', many=True, read_only=True)
     is_favori = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
-    type_bien_id = serializers.IntegerField(write_only=True)
     owner = UserSerializer(read_only=True)
     documents = DocumentSerializer(many=True, read_only=True)
 
@@ -181,6 +185,16 @@ class BienSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         image_url = obj.get_first_image()
         return request.build_absolute_uri(image_url) if request and image_url else None
+
+    def create(self, validated_data):
+        dispo_data = validated_data.pop('disponibilite_hebdo', None)
+        bien = Bien.objects.create(**validated_data)
+
+        if dispo_data:
+            DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
+
+        return bien
+
 
 
 
@@ -243,6 +257,31 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Ce bien est déjà réservé pour cette période.")
         
         return data
+
+    def create(self, validated_data):
+        promo_obj = validated_data.pop('code_promo_obj', None)
+        reservation = Reservation(**validated_data)
+
+        tarif = reservation.get_tarif_bien()
+        if not tarif:
+            raise serializers.ValidationError("Aucun tarif défini pour ce bien.")
+
+        nb_jours = (reservation.date_fin - reservation.date_debut).days or 1
+        prix_total = Decimal(tarif.prix) * Decimal(nb_jours)
+
+        # Applique la réduction si un code promo est utilisé
+        if promo_obj:
+            reduction = prix_total * promo_obj.reduction
+            prix_total -= reduction
+
+        reservation.prix_total = prix_total
+        reservation.save()
+
+        # Ajout dans la promo si applicable
+        if promo_obj:
+            promo_obj.reservations.add(reservation)
+
+        return reservation
 
 class ReservationUpdateSerializer(serializers.ModelSerializer):
     """Serializer pour mettre à jour le statut d'une réservation"""
@@ -353,14 +392,13 @@ class HistoriquePaiementSerializer(serializers.ModelSerializer):
 class AvisSerializer(serializers.ModelSerializer):
     """Serializer pour les avis"""
     user = UserSerializer(read_only=True)
-    bien_nom = serializers.CharField(source='bien.nom', read_only=True)
     note_moyenne_detaillee = serializers.ReadOnlyField()
     peut_repondre = serializers.SerializerMethodField()
     
     class Meta:
         model = Avis
         fields = [
-            'id', 'user', 'bien', 'bien_nom', 'reservation', 'note',
+            'id', 'user', 'bien', 'reservation', 'note',
             'commentaire', 'note_proprete', 'note_communication',
             'note_emplacement', 'note_rapport_qualite_prix', 'recommande',
             'note_moyenne_detaillee', 'reponse_proprietaire', 'date_reponse',

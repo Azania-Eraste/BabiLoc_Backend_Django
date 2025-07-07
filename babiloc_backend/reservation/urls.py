@@ -80,6 +80,7 @@ urlpatterns = [
     
     #Hote
     path('Dashboard/solde/', SoldeHoteView.as_view(), name='hote-solde'),
+    path('Dashboard/mes-reservations/', MesReservationsHostView.as_view(), name='hote-mes-reservations'),
 
     #historique
     path('Dashboard/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
@@ -88,7 +89,7 @@ urlpatterns = [
     path('Dashboard/revenus/', HistoriqueRevenusProprietaireView.as_view(), name='historique-revenus'),
 
     # Statistiques
-    path('admin/reservation-stats/', reservations_stats, name='reservation-stats'),
+    path('Dashboard/reservation-stats/', reservations_stats, name='reservation-stats'),
     path('Dashboard/biens/<int:bien_id>/reservations/historiques-statuts/', historique_statuts_reservations_bien, name='historiques_statuts_reservations_bien'),
     path('Dashboard/biens/<int:bien_id>/likes', likes_de_mon_bien, name='likes_de_mon_bien'),
 
@@ -98,7 +99,7 @@ urlpatterns = [
     path('avis/<int:pk>/repondre/', ReponseProprietaireView.as_view(), name='avis-repondre'),
     path('biens/<int:bien_id>/avis/statistiques/', statistiques_avis_bien, name='statistiques-avis-bien'),
     path('mes-avis/', mes_avis, name='mes-avis'),
-    path('avis-recus/', avis_recus, name='avis-recus'),
+    path('Dashboard/avis-recus/', avis_recus, name='avis-recus'),
 
     # Paiements CinetPay
     path('payments/create/', CreatePaymentView.as_view(), name='create-payment'),

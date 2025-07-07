@@ -38,6 +38,12 @@ class FavoriAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at']
 
 # Add missing model registrations
+
+@admin.register(DisponibiliteHebdo)
+class DisponibiliteHebdoAdmin(admin.ModelAdmin):
+    list_display = ('bien', 'jours', )
+    list_filter = ('bien',)
+
 @admin.register(Bien)
 class BienAdmin(admin.ModelAdmin):
     form = BienForm
