@@ -156,7 +156,7 @@ class BienSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'nom', 'description', 'ville', 
             'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
-            'owner', 'is_favori', 'premiere_image', 'documents',
+            'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',  # ✅ Ajouter 'tarifs' et 'media'
             'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', 
             'has_piscine', 'est_verifie', 'created_at', 'updated_at'
         ]

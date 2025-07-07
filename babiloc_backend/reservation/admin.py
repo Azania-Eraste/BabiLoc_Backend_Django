@@ -163,6 +163,7 @@ class FactureAdmin(admin.ModelAdmin):
         for facture in queryset:
             facture.generer_pdf()
         self.message_user(request, f"{queryset.count()} facture(s) régénérée(s)")
+    
     regenerer_pdf.short_description = "Régénérer les PDFs"
     
     def envoyer_email(self, request, queryset):
@@ -172,4 +173,5 @@ class FactureAdmin(admin.ModelAdmin):
             if facture.envoyer_par_email():
                 sent += 1
         self.message_user(request, f"{sent} facture(s) envoyée(s) par email")
+    
     envoyer_email.short_description = "Envoyer par email"
