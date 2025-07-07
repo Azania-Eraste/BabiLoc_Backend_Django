@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, 
-    Document, Avis, Facture, StatutPaiement  # ✅ Add StatutPaiement import
+    Document, Avis, Facture, StatutPaiement, DisponibiliteHebdo  # ✅ Add StatutPaiement import
 )
 from django.contrib.auth import get_user_model
 from django.utils import timezone
