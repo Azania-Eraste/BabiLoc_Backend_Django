@@ -3,26 +3,68 @@ from rest_framework import serializers
 from .models import CustomUser, DocumentUtilisateur
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from django.contrib.auth import authenticate
+from rest_framework import serializers
+from .models import CustomUser
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # Remplacer le champ username par email
+    username_field = 'email'
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Supprimer le champ username et le remplacer par email
+        self.fields.pop('username', None)
+        self.fields['email'] = serializers.EmailField()
+    
     def validate(self, attrs):
-        data = super().validate(attrs)
-
-        data['user'] = {
-            "username": self.user.username,
-            "email": self.user.email,
-            "is_vendor": self.user.is_vendor, 
-        }
-
-        return data
-
+        email = attrs.get('email')
+        password = attrs.get('password')
+        
+        if email and password:
+            try:
+                # Trouver l'utilisateur par email
+                user = CustomUser.objects.get(email=email)
+                
+                # Vérifier si le compte est actif
+                if not user.is_active:
+                    raise serializers.ValidationError({
+                        'detail': 'Compte non activé. Veuillez vérifier votre email et saisir le code OTP.',
+                        'user_id': user.id,
+                        'requires_activation': True
+                    })
+                
+                # ✅ Authentifier l'utilisateur directement
+                from django.contrib.auth import authenticate
+                authenticated_user = authenticate(username=user.username, password=password)
+                
+                if authenticated_user is None:
+                    raise serializers.ValidationError('Mot de passe incorrect.')
+                
+                # ✅ Préparer les données pour la génération du token
+                # Ne pas appeler super().validate() car nous gérons nous-mêmes l'authentification
+                refresh = self.get_token(authenticated_user)
+                
+                return {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'email': authenticated_user.email,
+                    'username': authenticated_user.username,
+                    'is_vendor': authenticated_user.is_vendor,
+                }
+                
+            except CustomUser.DoesNotExist:
+                raise serializers.ValidationError('Aucun compte avec cet email.')
+        
+        raise serializers.ValidationError('Email et mot de passe requis.')
+    
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token['is_vendor'] = user.is_vendor
+        # Ajouter des données personnalisées au token
         token['email'] = user.email
         token['username'] = user.username
+        token['is_vendor'] = user.is_vendor
         return token
 
 
