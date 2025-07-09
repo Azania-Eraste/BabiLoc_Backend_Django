@@ -146,6 +146,7 @@ class BienSerializer(serializers.ModelSerializer):
     tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
     media = MediaSerializer(source='medias', many=True, read_only=True)
     is_favori = serializers.SerializerMethodField()
+    nombre_likes = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
     owner = UserSerializer(read_only=True)
@@ -158,7 +159,7 @@ class BienSerializer(serializers.ModelSerializer):
             'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
             'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',  # ✅ Ajouter 'tarifs' et 'media'
             'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', 
-            'has_piscine', 'est_verifie', 'created_at', 'updated_at'
+            'has_piscine', 'est_verifie', 'created_at', 'updated_at','nombre_likes','disponibilite_hebdo'
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
 
@@ -174,6 +175,9 @@ class BienSerializer(serializers.ModelSerializer):
         type_bien = Type_Bien.objects.get(id=type_bien_id)
         validated_data['type_bien'] = type_bien
         return super().create(validated_data)
+    
+    def get_nombre_likes(self, obj):
+        return Favori.objects.filter(bien=obj).count()
 
     def get_is_favori(self, obj):
         user = self.context.get('request').user

@@ -102,7 +102,7 @@ class MesReservationsHostView(generics.ListAPIView):
         if not self.request.user.is_authenticated and not self.request.user.is_vendor:
             return Reservation.objects.none()
 
-        queryset = Reservation.objects.filter(annonce_id__owner=self.request.user)
+        queryset = Reservation.objects.filter(bien__owner=self.request.user)
 
         return queryset
 
