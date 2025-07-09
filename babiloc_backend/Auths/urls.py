@@ -9,6 +9,7 @@ from .views import (
     DocumentUtilisateurDeleteView,
     DocumentsModerationView,
     DocumentModerationView,
+    DebugUserStatusView,  # Importation de la vue DebugUserStatusView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -36,4 +37,7 @@ urlpatterns = [
     # Modération
     path('admin/documents/moderation/', DocumentsModerationView.as_view(), name='documents-moderation'),
     path('admin/documents/<int:pk>/moderer/', DocumentModerationView.as_view(), name='document-moderer'),
+
+    # Debug
+    path('debug-user-status/', DebugUserStatusView.as_view(), name='debug-user-status'),  # Temporaire
 ]

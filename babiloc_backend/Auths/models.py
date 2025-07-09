@@ -49,7 +49,8 @@ class CustomUser(AbstractUser):
     
     def verify_otp(self, otp_code):
         """Vérifie le code OTP"""
-        if self.otp_code == otp_code and self.is_otp_valid():
+        # Convertir les deux codes en string pour éviter les problèmes de type
+        if str(self.otp_code) == str(otp_code) and self.is_otp_valid():
             self.otp_verified = True
             self.is_active = True
             self.otp_code = None  # Nettoyer le code après utilisation

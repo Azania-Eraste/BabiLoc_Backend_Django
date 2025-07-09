@@ -28,9 +28,10 @@ INSTALLED_APPS = [
 
     'django_filters',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # Add this line
     'rest_framework',
     'drf_yasg',
-    'corsheaders',  # Ajouter cette ligne
+    'corsheaders',
     'reservation.apps.ReservationConfig',
 ]
 

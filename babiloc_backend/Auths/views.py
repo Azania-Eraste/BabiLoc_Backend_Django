@@ -28,14 +28,24 @@ def welcome_view(request):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+    
     @swagger_auto_schema(
         operation_description="Authentification pour obtenir le JWT",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=["username", "password"],
+            required=["email", "password"],
             properties={
-                'username': openapi.Schema(type=openapi.TYPE_STRING),
-                'password': openapi.Schema(type=openapi.TYPE_STRING),
+                'email': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_EMAIL,
+                    description="Adresse email",
+                    example="yohannvessime@gmail.com"
+                ),
+                'password': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Mot de passe",
+                    example="votre_mot_de_passe"
+                ),
             }
         ),
         responses={
@@ -52,12 +62,35 @@ class MyTokenObtainPairView(TokenObtainPairView):
                     }
                 )
             ),
+            400: "Compte non activé",
             401: "Identifiants invalides"
         },
         tags=['Authentification']
     )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        try:
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur de connexion: {str(e)}")
+            
+            email = request.data.get('email')
+            if email:
+                try:
+                    user = CustomUser.objects.get(email=email)
+                    if not user.is_active:
+                        return Response({
+                            'error': 'Compte non activé. Veuillez utiliser le code OTP reçu par email.',
+                            'user_id': user.id,
+                            'requires_activation': True
+                        }, status=400)
+                except CustomUser.DoesNotExist:
+                    pass
+            
+            return Response({
+                'error': 'Identifiants invalides.'
+            }, status=401)
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -633,5 +666,60 @@ class DocumentModerationView(generics.UpdateAPIView):
 class ActivateAccountView(APIView):
     def get(self, request, uidb64, token):
         return Response({'error': 'Cette méthode d\'activation n\'est plus supportée. Utilisez le code OTP.'}, status=400)
+
+class DebugUserStatusView(APIView):
+    """Vue temporaire pour déboguer le statut utilisateur"""
+    permission_classes = [permissions.AllowAny]
+    
+    @swagger_auto_schema(
+        operation_description="Déboguer le statut d'un utilisateur",
+        manual_parameters=[
+            openapi.Parameter(
+                'email',
+                openapi.IN_QUERY,
+                description="Adresse email de l'utilisateur à déboguer",
+                type=openapi.TYPE_STRING,
+                required=True,
+                format=openapi.FORMAT_EMAIL
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Informations de debug de l'utilisateur",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'username': openapi.Schema(type=openapi.TYPE_STRING),
+                        'email': openapi.Schema(type=openapi.TYPE_STRING),
+                        'is_active': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'otp_verified': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'otp_code': openapi.Schema(type=openapi.TYPE_STRING),
+                        'otp_created_at': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            ),
+            400: "Email requis",
+            404: "Utilisateur non trouvé"
+        },
+        tags=['Debug']
+    )
+    def get(self, request):
+        email = request.query_params.get('email')
+        if email:
+            try:
+                user = CustomUser.objects.get(email=email)
+                return Response({
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'is_active': user.is_active,
+                    'otp_verified': user.otp_verified,
+                    'otp_code': user.otp_code,
+                    'otp_created_at': str(user.otp_created_at) if user.otp_created_at else None,
+                })
+            except CustomUser.DoesNotExist:
+                return Response({'error': 'Utilisateur non trouvé'}, status=404)
+        return Response({'error': 'Email requis'}, status=400)
 
 
