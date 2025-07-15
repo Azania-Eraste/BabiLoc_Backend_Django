@@ -1,4 +1,4 @@
-from .models import CustomUser, DocumentUtilisateur  # Ajouter DocumentUtilisateur
+from .models import CustomUser, DocumentUtilisateur,HistoriqueParrainage,CodePromoParrainage  # Ajouter DocumentUtilisateur
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -6,7 +6,14 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer, OTPVerificationSerializer, DocumentUtilisateurSerializer, DocumentModerationSerializer
+from .serializers import (
+    RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer, 
+    OTPVerificationSerializer, DocumentUtilisateurSerializer, 
+    DocumentModerationSerializer, FilleulSerializer, 
+    HistoriqueParrainageSerializer, ParrainageSerializer, 
+    CodePromotionParrainageSerializer, StatistiquesParrainageSerializer,
+    ValidationCodeParrainageSerializer, GenerationCodePromoSerializer
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import EmailMultiAlternatives
 from rest_framework import permissions
@@ -20,6 +27,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.http import HttpResponse
+import random
+import string
+from django.utils import timezone
+from django.db.models import Sum, Count, Q
+from datetime import timedelta
+from rest_framework.decorators import api_view, permission_classes
 
 User = get_user_model()
 
@@ -737,4 +750,617 @@ class DebugUserStatusView(APIView):
                 return Response({'error': 'Utilisateur non trouvé'}, status=404)
         return Response({'error': 'Email requis'}, status=400)
 
+# ==================== VUES PARRAINAGE ====================
 
+class ParrainageStatsView(generics.RetrieveAPIView):
+    """Statistiques de parrainage pour l'utilisateur connecté"""
+    serializer_class = StatistiquesParrainageSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        return self.request.user
+
+
+class FilleulsListView(generics.ListAPIView):
+    """Liste des filleuls de l'utilisateur connecté"""
+    serializer_class = FilleulSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return self.request.user.filleuls.all()
+
+
+class HistoriqueParrainageView(generics.ListAPIView):
+    """Historique des actions de parrainage"""
+    serializer_class = HistoriqueParrainageSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return HistoriqueParrainage.objects.filter(
+            parrain=self.request.user
+        ).order_by('-created_at')
+
+
+class ValidationCodeParrainageView(APIView):
+    """Valider un code de parrainage"""
+    permission_classes = [IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Valider un code de parrainage",
+        request_body=ValidationCodeParrainageSerializer,
+        responses={
+            200: openapi.Response(
+                description="Code validé avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'valid': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'parrain': openapi.Schema(type=openapi.TYPE_STRING),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            )
+        }
+    )
+    def post(self, request):
+        serializer = ValidationCodeParrainageSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                parrain = CustomUser.objects.get(
+                    code_parrainage=serializer.validated_data['code_parrainage']
+                )
+                return Response({
+                    'valid': True,
+                    'parrain': f"{parrain.first_name} {parrain.last_name}",
+                    'message': 'Code de parrainage valide'
+                })
+            except CustomUser.DoesNotExist:
+                return Response({
+                    'valid': False,
+                    'message': 'Code de parrainage invalide'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GenerationCodePromoView(APIView):
+    """Générer un code promo de parrainage"""
+    permission_classes = [IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Générer un code promo de parrainage",
+        request_body=GenerationCodePromoSerializer,
+        responses={
+            201: openapi.Response(
+                description="Code promo généré avec succès",
+                schema=CodePromotionParrainageSerializer
+            )
+        }
+    )
+    def post(self, request):
+        # Vérifier si l'utilisateur a au moins 1 filleul
+        if request.user.nb_parrainages < 1:
+            return Response({
+                'error': 'Vous devez avoir au moins 1 filleul pour générer un code promo'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = GenerationCodePromoSerializer(data=request.data)
+        if serializer.is_valid():
+            # Générer un code unique
+            while True:
+                code = 'PROMO' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+                if not CodePromoParrainage.objects.filter(code=code).exists():
+                    break
+            
+            # Calculer la date d'expiration
+            date_expiration = timezone.now() + timedelta(days=serializer.validated_data['duree_jours'])
+            
+            # Créer le code promo
+            code_promo = CodePromoParrainage.objects.create(
+                code=code,
+                utilisateur=request.user,
+                reduction_percent=serializer.validated_data['reduction_percent'],
+                montant_min=serializer.validated_data['montant_min'],
+                date_expiration=date_expiration
+            )
+            
+            return Response(
+                CodePromotionParrainageSerializer(code_promo).data,
+                status=status.HTTP_201_CREATED
+            )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CodesPromoListView(generics.ListAPIView):
+    """Liste des codes promo générés par l'utilisateur"""
+    serializer_class = CodePromotionParrainageSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return CodePromoParrainage.objects.filter(
+            utilisateur=self.request.user
+        ).order_by('-created_at')
+
+
+class UtilisationCodePromoView(APIView):
+    """Utiliser un code promo"""
+    permission_classes = [IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Utiliser un code promo",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['code'],
+            properties={
+                'code': openapi.Schema(type=openapi.TYPE_STRING, description="Code promo à utiliser"),
+                'montant_commande': openapi.Schema(type=openapi.TYPE_NUMBER, description="Montant de la commande"),
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Code promo utilisé avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'reduction_percent': openapi.Schema(type=openapi.TYPE_NUMBER),
+                        'montant_reduction': openapi.Schema(type=openapi.TYPE_NUMBER),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            )
+        }
+    )
+    def post(self, request):
+        code = request.data.get('code')
+        montant_commande = request.data.get('montant_commande', 0)
+        
+        if not code:
+            return Response({
+                'error': 'Code promo requis'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            code_promo = CodePromoParrainage.objects.get(code=code)
+            
+            if not code_promo.is_valid():
+                return Response({
+                    'error': 'Code promo expiré ou déjà utilisé'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if montant_commande < code_promo.montant_min:
+                return Response({
+                    'error': f'Montant minimum requis: {code_promo.montant_min} F'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Calculer la réduction
+            montant_reduction = (montant_commande * code_promo.reduction_percent) / 100
+            
+            # Utiliser le code promo
+            code_promo.utiliser(request.user)
+            
+            return Response({
+                'success': True,
+                'reduction_percent': code_promo.reduction_percent,
+                'montant_reduction': montant_reduction,
+                'message': 'Code promo appliqué avec succès'
+            })
+            
+        except CodePromoParrainage.DoesNotExist:
+            return Response({
+                'error': 'Code promo invalide'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def parrainage_dashboard(request):
+    """Dashboard du parrainage avec toutes les informations"""
+    user = request.user
+    
+    # Statistiques générales
+    stats = {
+        'code_parrainage': user.code_parrainage,
+        'nb_parrainages': user.nb_parrainages,
+        'recompense_parrainage': user.recompense_parrainage,
+        'recompenses_totales': user.get_recompenses_parrainage(),
+    }
+    
+    # Filleuls
+    filleuls = FilleulSerializer(user.filleuls.all(), many=True).data
+    
+    # Historique récent
+    historique = HistoriqueParrainageSerializer(
+        user.historique_parrainage.all()[:10], 
+        many=True
+    ).data
+    
+    # Codes promo actifs
+    codes_promo = CodePromotionParrainageSerializer(
+        user.codes_promo_parrainage.filter(
+            utilise=False,
+            date_expiration__gt=timezone.now()
+        ),
+        many=True
+    ).data
+    
+    return Response({
+        'stats': stats,
+        'filleuls': filleuls,
+        'historique': historique,
+        'codes_promo_actifs': codes_promo
+    })
+
+
+class MonParrainageView(generics.RetrieveAPIView):
+    """Vue pour récupérer les informations de parrainage de l'utilisateur"""
+    
+    serializer_class = ParrainageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer mes informations de parrainage",
+        responses={
+            200: ParrainageSerializer,
+            401: "Non authentifié"
+        },
+        tags=['Parrainage']
+    )
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
+
+class MesFilleulsView(generics.ListAPIView):
+    """Vue pour lister mes filleuls"""
+    
+    serializer_class = FilleulSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Lister mes filleuls",
+        responses={
+            200: FilleulSerializer(many=True),
+            401: "Non authentifié"
+        },
+        tags=['Parrainage']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        return self.request.user.filleuls.all().order_by('-date_parrainage')
+
+
+class HistoriqueParrainageView(generics.ListAPIView):
+    """Vue pour l'historique de parrainage"""
+    
+    serializer_class = HistoriqueParrainageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Historique de mes gains de parrainage",
+        manual_parameters=[
+            openapi.Parameter(
+                'type_action',
+                openapi.IN_QUERY,
+                description="Filtrer par type d'action",
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                'statut',
+                openapi.IN_QUERY,
+                description="Filtrer par statut",
+                type=openapi.TYPE_STRING
+            ),
+        ],
+        responses={
+            200: HistoriqueParrainageSerializer(many=True),
+            401: "Non authentifié"
+        },
+        tags=['Parrainage']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = HistoriqueParrainage.objects.filter(
+            parrain=self.request.user
+        ).order_by('-date_action')
+        
+        # Filtres
+        type_action = self.request.query_params.get('type_action')
+        if type_action:
+            queryset = queryset.filter(type_action=type_action)
+        
+        statut = self.request.query_params.get('statut')
+        if statut:
+            queryset = queryset.filter(statut_recompense=statut)
+        
+        return queryset
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+@swagger_auto_schema(
+    operation_description="Générer un code promo de parrainage",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'pourcentage_reduction': openapi.Schema(type=openapi.TYPE_INTEGER, default=10),
+            'duree_jours': openapi.Schema(type=openapi.TYPE_INTEGER, default=30),
+        }
+    ),
+    responses={
+        201: CodePromotionParrainageSerializer,
+        400: "Données invalides"
+    },
+    tags=['Parrainage']
+)
+def generer_code_promo(request):
+    """Générer un code promo de parrainage pour l'utilisateur"""
+    
+    user = request.user
+    pourcentage = request.data.get('pourcentage_reduction', 10)
+    duree_jours = request.data.get('duree_jours', 30)
+    
+    # Vérifier si l'utilisateur peut générer un code
+    if user.points_parrainage < 100:  # Minimum 100 points requis
+        return Response({
+            'error': 'Vous devez avoir au moins 100 points de parrainage'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Générer le code
+    import random
+    import string
+    code = f"PARRAIN{user.id}{random.randint(100, 999)}"
+    
+    # Créer le code promo
+    code_promo = CodePromoParrainage.objects.create(
+        code=code,
+        parrain=user,
+        pourcentage_reduction=pourcentage,
+        date_expiration=timezone.now() + timedelta(days=duree_jours)
+    )
+    
+    # Déduire les points
+    user.points_parrainage -= 100
+    user.save()
+    
+    serializer = CodePromotionParrainageSerializer(code_promo)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+@swagger_auto_schema(
+    operation_description="Statistiques de parrainage",
+    responses={
+        200: StatistiquesParrainageSerializer,
+        401: "Non authentifié"
+    },
+    tags=['Parrainage']
+)
+def statistiques_parrainage(request):
+    """Statistiques détaillées de parrainage"""
+    
+    user = request.user
+    
+    # Statistiques de base
+    filleuls_total = user.filleuls.count()
+    filleuls_actifs = user.filleuls.filter(parrainage_actif=True).count()
+    
+    # Revenus
+    revenus_total = user.historiques_parrainage.aggregate(
+        total=Sum('montant_recompense')
+    )['total'] or 0
+    
+    points_total = user.points_parrainage
+    
+    # Ce mois
+    debut_mois = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    revenus_ce_mois = user.historiques_parrainage.filter(
+        date_action__gte=debut_mois
+    ).aggregate(total=Sum('montant_recompense'))['total'] or 0
+    
+    filleuls_ce_mois = user.filleuls.filter(
+        date_parrainage__gte=debut_mois
+    ).count()
+    
+    # Évolution mensuelle (6 derniers mois)
+    evolution_mensuelle = []
+    for i in range(6):
+        date_debut = (timezone.now() - timedelta(days=30*i)).replace(day=1)
+        date_fin = (date_debut + timedelta(days=32)).replace(day=1)
+        
+        revenus_mois = user.historiques_parrainage.filter(
+            date_action__gte=date_debut,
+            date_action__lt=date_fin
+        ).aggregate(total=Sum('montant_recompense'))['total'] or 0
+        
+        filleuls_mois = user.filleuls.filter(
+            date_parrainage__gte=date_debut,
+            date_parrainage__lt=date_fin
+        ).count()
+        
+        evolution_mensuelle.append({
+            'mois': date_debut.strftime('%Y-%m'),
+            'revenus': revenus_mois,
+            'nouveaux_filleuls': filleuls_mois
+        })
+    
+    # Top actions
+    top_actions = user.historiques_parrainage.values('type_action').annotate(
+        count=Count('id'),
+        total_revenus=Sum('montant_recompense')
+    ).order_by('-total_revenus')[:5]
+    
+    data = {
+        'nombre_filleuls_total': filleuls_total,
+        'nombre_filleuls_actifs': filleuls_actifs,
+        'revenus_total': revenus_total,
+        'points_total': points_total,
+        'revenus_ce_mois': revenus_ce_mois,
+        'filleuls_ce_mois': filleuls_ce_mois,
+        'evolution_mensuelle': evolution_mensuelle,
+        'top_actions': list(top_actions)
+    }
+    
+    return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+@swagger_auto_schema(
+    operation_description="Vérifier un code de parrainage",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['code_parrainage'],
+        properties={
+            'code_parrainage': openapi.Schema(type=openapi.TYPE_STRING)
+        }
+    ),
+    responses={
+        200: openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'valid': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                'parrain_info': openapi.Schema(type=openapi.TYPE_OBJECT),
+                'bonus_inscription': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        ),
+        400: "Code invalide"
+    },
+    tags=['Parrainage']
+)
+def verifier_code_parrainage(request):
+    """Vérifier la validité d'un code de parrainage"""
+    
+    code = request.data.get('code_parrainage')
+    if not code:
+        return Response({
+            'error': 'Code de parrainage requis'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        parrain = CustomUser.objects.get(code_parrainage=code)
+        return Response({
+            'valid': True,
+            'parrain_info': {
+                'id': parrain.id,
+                'username': parrain.username,
+                'first_name': parrain.first_name,
+                'last_name': parrain.last_name
+            },
+            'bonus_inscription': 5000  # Bonus pour le nouveau utilisateur
+        })
+    except CustomUser.DoesNotExist:
+        return Response({
+            'valid': False,
+            'error': 'Code de parrainage invalide'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+@swagger_auto_schema(
+    operation_description="Demander le retrait des gains de parrainage",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['montant'],
+        properties={
+            'montant': openapi.Schema(type=openapi.TYPE_NUMBER),
+            'mode_paiement': openapi.Schema(type=openapi.TYPE_STRING)
+        }
+    ),
+    responses={
+        200: "Demande de retrait enregistrée",
+        400: "Données invalides"
+    },
+    tags=['Parrainage']
+)
+def demander_retrait(request):
+    """Demander le retrait des gains de parrainage"""
+    
+    user = request.user
+    montant = request.data.get('montant')
+    mode_paiement = request.data.get('mode_paiement', 'mobile_money')
+    
+    if not montant or montant <= 0:
+        return Response({
+            'error': 'Montant invalide'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Vérifier le solde disponible
+    solde_disponible = user.get_revenus_parrainage()
+    if montant > solde_disponible:
+        return Response({
+            'error': f'Solde insuffisant. Disponible: {solde_disponible} FCFA'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Créer la demande de retrait (vous devrez implémenter le modèle)
+    # DemandeRetrait.objects.create(
+    #     user=user,
+    #     montant=montant,
+    #     mode_paiement=mode_paiement,
+    #     statut='en_attente'
+    # )
+    
+    return Response({
+        'message': 'Demande de retrait enregistrée',
+        'montant': montant,
+        'mode_paiement': mode_paiement
+    })
+
+
+# ==================== VUES POUR LES CODES PROMO ====================
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+@swagger_auto_schema(
+    operation_description="Valider un code promo de parrainage",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['code'],
+        properties={
+            'code': openapi.Schema(type=openapi.TYPE_STRING),
+            'montant_reservation': openapi.Schema(type=openapi.TYPE_NUMBER)
+        }
+    ),
+    tags=['Parrainage']
+)
+def valider_code_promo(request):
+    """Valider un code promo de parrainage"""
+    
+    code = request.data.get('code')
+    montant_reservation = request.data.get('montant_reservation', 0)
+    
+    try:
+        code_promo = CodePromoParrainage.objects.get(code=code)
+        
+        if not code_promo.is_valid():
+            return Response({
+                'valid': False,
+                'error': 'Code expiré ou déjà utilisé'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Calculer la réduction
+        if code_promo.pourcentage_reduction:
+            reduction = (montant_reservation * code_promo.pourcentage_reduction) / 100
+        else:
+            reduction = code_promo.montant_reduction or 0
+        
+        return Response({
+            'valid': True,
+            'reduction': reduction,
+            'pourcentage': code_promo.pourcentage_reduction,
+            'parrain': code_promo.parrain.username
+        })
+        
+    except CodePromoParrainage.DoesNotExist:
+        return Response({
+            'valid': False,
+            'error': 'Code promo invalide'
+        }, status=status.HTTP_400_BAD_REQUEST)

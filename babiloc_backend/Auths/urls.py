@@ -11,6 +11,9 @@ from .views import (
     DocumentModerationView,
     DebugUserStatusView,  # Importation de la vue DebugUserStatusView
     GetUserByIdView,
+    MonParrainageView, MesFilleulsView, HistoriqueParrainageView,
+    generer_code_promo, statistiques_parrainage, verifier_code_parrainage,
+    demander_retrait, valider_code_promo
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -26,6 +29,22 @@ urlpatterns = [
     path('update/', ProfileUpdateView.as_view(), name='update-user'),
     path('welcome/', welcome_view, name='welcome'),
     path('user/<int:user_id>/', GetUserByIdView.as_view(), name='get-user-by-id'),
+
+        # Informations de parrainage
+    path('parrainage/mon-parrainage/', MonParrainageView.as_view(), name='mon-parrainage'),
+    path('parrainage/mes-filleuls/', MesFilleulsView.as_view(), name='mes-filleuls'),
+    path('parrainage/historique/', HistoriqueParrainageView.as_view(), name='historique-parrainage'),
+    path('parrainage/statistiques/', statistiques_parrainage, name='statistiques-parrainage'),
+    
+    # Codes de parrainage
+    path('parrainage/verifier-code/', verifier_code_parrainage, name='verifier-code-parrainage'),
+    
+    # Codes promo
+    path('parrainage/generer-code-promo/', generer_code_promo, name='generer-code-promo'),
+    path('parrainage/valider-code-promo/', valider_code_promo, name='valider-code-promo'),
+    
+    # Retraits
+    path('parrainage/demander-retrait/', demander_retrait, name='demander-retrait'),
 
 
     # Ancien endpoint pour compatibilité

@@ -1,11 +1,12 @@
 import re
 from rest_framework import serializers
-from .models import CustomUser, DocumentUtilisateur
+from .models import CustomUser, DocumentUtilisateur, HistoriqueParrainage, CodePromoParrainage
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import CustomUser
+from django.utils import timezone
 from reservation.serializers import BienSerializer
 
 
@@ -65,7 +66,22 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer pour l'utilisateur avec les biens associés"""
-    Propriétaire_bien = BienSerializer(many=True, read_only=True)
+    
+    def to_representation(self, instance):
+        # Import dynamique pour éviter les imports circulaires
+        from reservation.serializers import BienSerializer
+        
+        representation = super().to_representation(instance)
+        
+        # Serializer les biens du propriétaire
+        biens = instance.Propriétaire_bien.all()
+        representation['Propriétaire_bien'] = BienSerializer(
+            biens, 
+            many=True, 
+            context=self.context
+        ).data
+        
+        return representation
     
     class Meta:
         model = CustomUser
@@ -74,7 +90,8 @@ class UserSerializer(serializers.ModelSerializer):
             'number', 'birthdate', 'password','reservations',
             'carte_identite','permis_conduire','est_verifie',
             'is_vendor','date_joined','photo_profil','image_banniere',
-            'Propriétaire_bien'
+            'Propriétaire_bien', 'code_parrainage', 'nb_parrainages',
+            'recompense_parrainage'
         )
         ref_name = 'AuthUser'
 
@@ -82,13 +99,14 @@ class UserSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
+    code_parrainage_utilise = serializers.CharField(max_length=20, required=False, write_only=True)
 
     class Meta:
         model = CustomUser
         fields = (
             'username', 'email', 'first_name', 'last_name',
             'number', 'birthdate', 'password', 'password2', 'is_vendor',
-            'est_verifie'
+            'est_verifie', 'code_parrainage_utilise'
         )
 
     def validate_number(self, value):
@@ -105,6 +123,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password2')
+        code_parrainage_utilise = validated_data.pop('code_parrainage_utilise', None)
+        
         user = CustomUser.objects.create(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -119,6 +139,18 @@ class RegisterSerializer(serializers.ModelSerializer):
             is_active=False  # ✅ important
         )
         user.set_password(validated_data['password'])
+        
+        # Générer le code de parrainage personnel
+        user.generate_referral_code()
+        
+        # Traiter le code de parrainage utilisé
+        if code_parrainage_utilise:
+            try:
+                parrain = CustomUser.objects.get(code_parrainage=code_parrainage_utilise)
+                parrain.parrainer(user)
+            except CustomUser.DoesNotExist:
+                pass  # Code invalide, on continue sans erreur
+        
         user.save()
         return user
 
@@ -222,6 +254,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'number', 'birthdate', 'is_vendor', 'est_verifie',
             'documents_verification', 'documents_approuves', 'est_completement_verifie'
         ]
+        ref_name = 'UserProfile'
         read_only_fields = ['id', 'username', 'est_verifie']
     
     def get_documents_approuves(self, obj):
@@ -234,3 +267,204 @@ class UserProfileSerializer(serializers.ModelSerializer):
         """Vérifie si l'utilisateur a au moins CNI + permis approuvés"""
         documents_approuves = self.get_documents_approuves(obj)
         return 'carte_identite' in documents_approuves and 'permis_conduire' in documents_approuves
+
+class ParrainageSerializer(serializers.ModelSerializer):
+    """Serializer pour les informations de parrainage"""
+    
+    parrain_info = serializers.SerializerMethodField()
+    nombre_filleuls = serializers.SerializerMethodField()
+    revenus_parrainage = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            'code_parrainage', 'parrain_info', 'date_parrainage',
+            'parrainage_actif', 'points_parrainage', 'nombre_filleuls',
+            'revenus_parrainage'
+        ]
+    
+    def get_parrain_info(self, obj):
+        """Retourne les infos du parrain"""
+        if obj.parrain:
+            return {
+                'id': obj.parrain.id,
+                'username': obj.parrain.username,
+                'first_name': obj.parrain.first_name,
+                'last_name': obj.parrain.last_name,
+                'code_parrainage': obj.parrain.code_parrainage
+            }
+        return None
+    
+    def get_nombre_filleuls(self, obj):
+        """Retourne le nombre de filleuls"""
+        return obj.get_nombre_filleuls()
+    
+    def get_revenus_parrainage(self, obj):
+        """Retourne les revenus du parrainage"""
+        return obj.get_revenus_parrainage()
+
+
+class FilleulSerializer(serializers.ModelSerializer):
+    """Serializer pour les filleuls"""
+    
+    revenus_generes = serializers.SerializerMethodField()
+    premiere_reservation = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'username', 'first_name', 'last_name',
+            'date_parrainage', 'parrainage_actif', 'revenus_generes',
+            'premiere_reservation'
+        ]
+    
+    def get_revenus_generes(self, obj):
+        """Calcule les revenus générés par ce filleul"""
+        from django.db.models import Sum
+        return obj.historique_filleul.aggregate(
+            total=Sum('montant_recompense')
+        )['total'] or 0
+    
+    def get_premiere_reservation(self, obj):
+        """Vérifie si le filleul a fait sa première réservation"""
+        return obj.reservations.exists()
+
+
+class HistoriqueParrainageSerializer(serializers.ModelSerializer):
+    """Serializer pour l'historique de parrainage"""
+    
+    parrain_info = serializers.SerializerMethodField()
+    filleul_info = serializers.SerializerMethodField()
+    type_action_display = serializers.CharField(source='get_type_action_display', read_only=True)
+    statut_recompense_display = serializers.CharField(source='get_statut_recompense_display', read_only=True)
+    
+    class Meta:
+        model = HistoriqueParrainage
+        fields = [
+            'id', 'parrain_info', 'filleul_info', 'type_action', 'type_action_display',
+            'montant_recompense', 'points_recompense', 'description',
+            'statut_recompense', 'statut_recompense_display',
+            'date_action', 'date_recompense'
+        ]
+    
+    def get_parrain_info(self, obj):
+        return {
+            'id': obj.parrain.id,
+            'username': obj.parrain.username,
+            'first_name': obj.parrain.first_name,
+            'last_name': obj.parrain.last_name
+        }
+    
+    def get_filleul_info(self, obj):
+        return {
+            'id': obj.filleul.id,
+            'username': obj.filleul.username,
+            'first_name': obj.filleul.first_name,
+            'last_name': obj.filleul.last_name
+        }
+
+
+class CodePromotionParrainageSerializer(serializers.ModelSerializer):
+    """Serializer pour les codes promo de parrainage"""
+    
+    parrain_info = serializers.SerializerMethodField()
+    is_valid = serializers.SerializerMethodField()
+    utilisations_restantes = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CodePromoParrainage
+        fields = [
+            'id', 'code', 'parrain_info', 'pourcentage_reduction',
+            'montant_reduction', 'nombre_utilisations_max',
+            'nombre_utilisations', 'utilisations_restantes',
+            'date_expiration', 'est_actif', 'is_valid', 'date_creation'
+        ]
+    
+    def get_parrain_info(self, obj):
+        return {
+            'id': obj.parrain.id,
+            'username': obj.parrain.username,
+            'code_parrainage': obj.parrain.code_parrainage
+        }
+    
+    def get_is_valid(self, obj):
+        return obj.is_valid()
+    
+    def get_utilisations_restantes(self, obj):
+        return obj.nombre_utilisations_max - obj.nombre_utilisations
+
+
+class UtiliserCodeParrainageSerializer(serializers.Serializer):
+    """Serializer pour utiliser un code de parrainage lors de l'inscription"""
+    
+    code_parrainage = serializers.CharField(max_length=10)
+    
+    def validate_code_parrainage(self, value):
+        """Valider que le code de parrainage existe"""
+        try:
+            parrain = CustomUser.objects.get(code_parrainage=value)
+            return value
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("Code de parrainage invalide")
+    
+    def save(self, user):
+        """Associer l'utilisateur au parrain"""
+        code = self.validated_data['code_parrainage']
+        parrain = CustomUser.objects.get(code_parrainage=code)
+        
+        user.parrain = parrain
+        user.date_parrainage = timezone.now()
+        user.save()
+        
+        return user
+
+
+class StatistiquesParrainageSerializer(serializers.Serializer):
+    """Serializer pour les statistiques de parrainage"""
+    
+    nombre_filleuls_total = serializers.IntegerField()
+    nombre_filleuls_actifs = serializers.IntegerField()
+    revenus_total = serializers.DecimalField(max_digits=10, decimal_places=2)
+    points_total = serializers.IntegerField()
+    revenus_ce_mois = serializers.DecimalField(max_digits=10, decimal_places=2)
+    filleuls_ce_mois = serializers.IntegerField()
+    
+    # Évolution mensuelle
+    evolution_mensuelle = serializers.ListField(
+        child=serializers.DictField()
+    )
+    
+    # Top actions
+    top_actions = serializers.ListField(
+        child=serializers.DictField()
+    )
+
+
+class ValidationCodeParrainageSerializer(serializers.Serializer):
+    """Serializer pour valider un code de parrainage"""
+    code_parrainage = serializers.CharField(max_length=20)
+    
+    def validate_code_parrainage(self, value):
+        try:
+            user = CustomUser.objects.get(code_parrainage=value)
+            return value
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("Code de parrainage invalide")
+
+
+class GenerationCodePromoSerializer(serializers.Serializer):
+    """Serializer pour générer un code promo"""
+    reduction_percent = serializers.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        min_value=5.00, 
+        max_value=50.00,
+        default=10.00
+    )
+    montant_min = serializers.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        min_value=10000.00,
+        default=50000.00
+    )
+    duree_jours = serializers.IntegerField(min_value=1, max_value=365, default=30)
