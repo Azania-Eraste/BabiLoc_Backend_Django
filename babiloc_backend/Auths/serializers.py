@@ -47,6 +47,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     'email': authenticated_user.email,
                     'username': authenticated_user.username,
                     'is_vendor': authenticated_user.is_vendor,
+                    'code_parrainage': authenticated_user.code_parrainage,
                 }
                 
             except CustomUser.DoesNotExist:
@@ -61,6 +62,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['username'] = user.username
         token['is_vendor'] = user.is_vendor
+        token['code_parrainage'] = user.code_parrainage
         return token
 
 

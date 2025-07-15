@@ -124,16 +124,11 @@ class CustomUser(AbstractUser):
                 self.save()
                 return code
     
-    def generate_referral_code(self):
-        """Génère un code de parrainage unique"""
+    def save(self, *args, **kwargs):
+        # Générer automatiquement un code de parrainage si pas présent
         if not self.code_parrainage:
-            while True:
-                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-                if not CustomUser.objects.filter(code_parrainage=code).exists():
-                    self.code_parrainage = code
-                    self.save()
-                    break
-        return self.code_parrainage
+            self.generate_code_parrainage()
+        super().save(*args, **kwargs)
     
     def parrainer(self, filleul):
         """Parrainer un utilisateur"""

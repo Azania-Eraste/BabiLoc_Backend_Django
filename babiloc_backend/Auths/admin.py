@@ -3,7 +3,7 @@ from .models import CustomUser, DocumentUtilisateur
 # Register your models here.
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'first_name', 'last_name', 'email', 'number', 'birthdate', 'is_vendor', 'is_active']
+    list_display = ['id', 'first_name', 'last_name', 'email', 'number', 'birthdate','code_parrainage', 'is_vendor', 'is_active']
     list_filter = ['is_vendor', 'birthdate',]
     search_fields = ['first_name','last_name', ]
     ordering = ['-date_joined']

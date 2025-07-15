@@ -81,6 +81,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
+                        'code_parrainage': openapi.Schema(type=openapi.TYPE_STRING),
                         'refresh': openapi.Schema(type=openapi.TYPE_STRING),
                         'access': openapi.Schema(type=openapi.TYPE_STRING),
                         'email': openapi.Schema(type=openapi.TYPE_STRING),
