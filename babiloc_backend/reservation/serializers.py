@@ -6,7 +6,6 @@ from .models import (
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import datetime
-from Auths.serializers import RegisterSerializer as AuthUserSerializer
 from decimal import Decimal
 from datetime import timedelta
 
@@ -18,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'number', 'date_joined']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'number', 'date_joined', 'photo_profil', 'Propriétaire_bien','image_banniere']
         read_only_fields = ['id', 'username', 'date_joined']
         ref_name = 'ReservationUser'
 
@@ -180,15 +179,17 @@ class BienSerializer(serializers.ModelSerializer):
         return Favori.objects.filter(bien=obj).count()
 
     def get_is_favori(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            return Favori.objects.filter(user=user, bien=obj).exists()
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Favori.objects.filter(user=request.user, bien=obj).exists()
         return False
 
     def get_premiere_image(self, obj):
         request = self.context.get('request')
         image_url = obj.get_first_image()
-        return request.build_absolute_uri(image_url) if request and image_url else None
+        if request and image_url:
+            return request.build_absolute_uri(image_url)
+        return image_url
 
     def create(self, validated_data):
         dispo_data = validated_data.pop('disponibilite_hebdo', None)

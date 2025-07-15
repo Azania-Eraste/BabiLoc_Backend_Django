@@ -10,6 +10,7 @@ from .views import (
     DocumentsModerationView,
     DocumentModerationView,
     DebugUserStatusView,  # Importation de la vue DebugUserStatusView
+    GetUserByIdView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -24,7 +25,9 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='me'),
     path('update/', ProfileUpdateView.as_view(), name='update-user'),
     path('welcome/', welcome_view, name='welcome'),
-    
+    path('user/<int:user_id>/', GetUserByIdView.as_view(), name='get-user-by-id'),
+
+
     # Ancien endpoint pour compatibilité
     path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate'),
 

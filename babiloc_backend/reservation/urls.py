@@ -17,6 +17,7 @@ from .views import (
     FactureDownloadView,
     FactureResendEmailView,
     FacturesHoteView,
+
 )
 
 # ✅ Garder les imports depuis viewserializer.py pour les autres vues
@@ -47,6 +48,7 @@ from .viewserializer import (
     DocumentUpdateView,
     DocumentDeleteView,
     MesReservationsHostView,
+    
 )
 
 urlpatterns = [

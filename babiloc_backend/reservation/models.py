@@ -63,6 +63,7 @@ class TypeOperation(TextChoices):
 class TagBien(models.Model):
     nom = models.CharField(max_length=100, unique=True)  # Ex: "Vue mer", "Proche transport"
     description = models.TextField(blank=True, null=True)  # Description optionnelle du tag
+    iconName = models.CharField(max_length=100, blank=True, null=True)  # Nom de l'icône associée (optionnel)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 

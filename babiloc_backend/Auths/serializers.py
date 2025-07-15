@@ -6,26 +6,21 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import CustomUser
+from reservation.serializers import BienSerializer
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    # Remplacer le champ username par email
-    username_field = 'email'
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Supprimer le champ username et le remplacer par email
-        self.fields.pop('username', None)
-        self.fields['email'] = serializers.EmailField()
+    # Garder le champ username par défaut pour la connexion
     
     def validate(self, attrs):
-        email = attrs.get('email')
+        username = attrs.get('username')
         password = attrs.get('password')
-        
-        if email and password:
+
+        if username and password:
             try:
-                # Trouver l'utilisateur par email
-                user = CustomUser.objects.get(email=email)
-                
+                # Trouver l'utilisateur par username
+                user = CustomUser.objects.get(username=username)
+
                 # Vérifier si le compte est actif
                 if not user.is_active:
                     raise serializers.ValidationError({
@@ -54,9 +49,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 }
                 
             except CustomUser.DoesNotExist:
-                raise serializers.ValidationError('Aucun compte avec cet email.')
+                raise serializers.ValidationError('Aucun compte avec ce nom d\'utilisateur.')
         
-        raise serializers.ValidationError('Email et mot de passe requis.')
+        raise serializers.ValidationError('Nom d\'utilisateur et mot de passe requis.')
     
     @classmethod
     def get_token(cls, user):
@@ -69,6 +64,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Serializer pour l'utilisateur avec les biens associés"""
+    Propriétaire_bien = BienSerializer(many=True, read_only=True)
     
     class Meta:
         model = CustomUser
@@ -76,7 +73,8 @@ class UserSerializer(serializers.ModelSerializer):
             'id','username', 'email', 'first_name', 'last_name',
             'number', 'birthdate', 'password','reservations',
             'carte_identite','permis_conduire','est_verifie',
-            'is_vendor','date_joined','photo_profil','image_banniere'
+            'is_vendor','date_joined','photo_profil','image_banniere',
+            'Propriétaire_bien'
         )
         ref_name = 'AuthUser'
 

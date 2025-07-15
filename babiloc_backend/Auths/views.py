@@ -26,6 +26,21 @@ User = get_user_model()
 def welcome_view(request):
     return HttpResponse("<h1>Bienvenue sur Babiloc !</h1><p>Votre plateforme de location.</p>")
 
+class GetUserByIdView(APIView):
+    """
+    Récupérer les infos d'un utilisateur à partir de son id (pas l'utilisateur connecté)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, user_id, *args, **kwargs):
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'Utilisateur non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = UserSerializer(user, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     
@@ -33,13 +48,12 @@ class MyTokenObtainPairView(TokenObtainPairView):
         operation_description="Authentification pour obtenir le JWT",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=["email", "password"],
+            required=["username", "password"],
             properties={
-                'email': openapi.Schema(
+                'username': openapi.Schema(
                     type=openapi.TYPE_STRING,
-                    format=openapi.FORMAT_EMAIL,
-                    description="Adresse email",
-                    example="yohannvessime@gmail.com"
+                    description="Nom d'utilisateur",
+                    example="yohannvessime"
                 ),
                 'password': openapi.Schema(
                     type=openapi.TYPE_STRING,
@@ -74,11 +88,12 @@ class MyTokenObtainPairView(TokenObtainPairView):
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Erreur de connexion: {str(e)}")
-            
-            email = request.data.get('email')
-            if email:
+
+            username = request.data.get('username')
+            print(f"Username: {username}")  # Debugging line
+            if username:
                 try:
-                    user = CustomUser.objects.get(email=email)
+                    user = CustomUser.objects.get(username=username)
                     if not user.is_active:
                         return Response({
                             'error': 'Compte non activé. Veuillez utiliser le code OTP reçu par email.',
