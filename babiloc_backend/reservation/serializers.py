@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, 
+    Reservation, Bien, Media, Favori, Paiement, TagBien, Tarif, Type_Bien, 
     Document, Avis, Facture, StatutPaiement, DisponibiliteHebdo  # ✅ Add StatutPaiement import
 )
 from django.contrib.auth import get_user_model
@@ -93,10 +93,19 @@ class MediaSerializer(serializers.ModelSerializer):
         bien = Bien.objects.get(id=bien_id)
         return Media.objects.create(bien=bien, **validated_data)
 
+
+class TagBienSerializer(serializers.ModelSerializer):
+    """Serializer pour les tags de bien"""
+    class Meta:
+        model = TagBien
+        fields = ['id', 'nom', 'iconName']
+
 class TypeBienSerializer(serializers.ModelSerializer):
+    """Serializer pour les types de bien"""
+    tags = TagBienSerializer(many=True, read_only=True) 
     class Meta:
         model = Type_Bien
-        fields = '__all__'
+        fields = ['id','nom', 'description', "tags"]
 
 class DocumentSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
@@ -142,14 +151,14 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class BienSerializer(serializers.ModelSerializer):
-    tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)
-    media = MediaSerializer(source='medias', many=True, read_only=True)
+    tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True,)
+    media = MediaSerializer(source='medias', many=True, )
     is_favori = serializers.SerializerMethodField()
     nombre_likes = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
     owner = UserSerializer(read_only=True)
-    documents = DocumentSerializer(many=True, read_only=True)
+    documents = DocumentSerializer(many=True,)
 
     class Meta:
         model = Bien
@@ -157,7 +166,7 @@ class BienSerializer(serializers.ModelSerializer):
             'id', 'nom', 'description', 'ville', 
             'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
             'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',  # ✅ Ajouter 'tarifs' et 'media'
-            'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', 
+            'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres',"chauffeur",'prix_chauffeur',
             'has_piscine', 'est_verifie', 'created_at', 'updated_at','nombre_likes','disponibilite_hebdo'
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
@@ -170,10 +179,30 @@ class BienSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        type_bien_id = validated_data.pop('type_bien_id')
-        type_bien = Type_Bien.objects.get(id=type_bien_id)
-        validated_data['type_bien'] = type_bien
-        return super().create(validated_data)
+        tarifs_data = validated_data.pop('tarifs', [])
+        media_data = validated_data.pop('media', [])
+        documents_data = validated_data.pop('documents', [])
+        dispo_data = validated_data.pop('disponibilite_hebdo', None)
+
+        bien = Bien.objects.create(**validated_data)
+
+        # Création des tarifs liés
+        for tarif in tarifs_data:
+            Tarif.objects.create(bien=bien, **tarif)
+
+        # Création des médias liés
+        for media in media_data:
+            Media.objects.create(bien=bien, **media)
+
+        # Création des documents liés
+        for doc in documents_data:
+            Document.objects.create(bien=bien, **doc)
+
+        # Création de la disponibilité hebdo si présente
+        if dispo_data:
+            DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
+
+        return bien
     
     def get_nombre_likes(self, obj):
         return Favori.objects.filter(bien=obj).count()

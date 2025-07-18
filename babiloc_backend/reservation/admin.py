@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .forms import BienForm
-from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture, DisponibiliteHebdo
+from .models import Reservation, Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture, DisponibiliteHebdo, TagBien
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
@@ -26,6 +26,19 @@ class ReservationAdmin(admin.ModelAdmin):
         ('Métadonnées', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(TagBien)
+class TagBienAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nom', 'iconName','created_at']
+    search_fields = ['nom']
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('nom', 'iconName')
         }),
     )
 

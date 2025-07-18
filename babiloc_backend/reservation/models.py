@@ -98,6 +98,17 @@ class Type_Bien(models.Model):
 # Chaque bien appartient à un propriétaire et a un type spécifique
 class Bien(models.Model):
     
+    class TypeCarburant(models.TextChoices):
+        ESSENCE = 'essence', 'Essence'
+        DIESEL = 'diesel', 'Diesel'
+        ELECTRIQUE = 'electrique', 'Électrique'
+        HYBRIDE = 'hybride', 'Hybride'
+
+    class TypeTransmission(models.TextChoices):
+        MANUELLE = 'manuelle', 'Manuelle'
+        AUTOMATIQUE = 'automatique', 'Automatique'
+        SEMI_AUTOMATIQUE = 'semi_automatique', 'Semi-automatique'
+    
     nom = models.CharField(max_length=250)  # Ex: "Villa moderne 4 chambres"
     description = models.TextField()  # Description complète du bien
     ville = models.CharField(max_length=100, verbose_name="Ville", default="Abidjan")
@@ -120,11 +131,35 @@ class Bien(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
+    chauffeur = models.BooleanField(default=False, verbose_name="Chauffeur inclus", help_text="Indique si un chauffeur est inclus avec le bien")
+    prix_chauffeur = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))],
+        verbose_name="Prix du chauffeur",
+        help_text="Prix supplémentaire pour le service de chauffeur"
+    )
+
     # Exemple de champ spécifique à un véhicule
     marque = models.CharField(max_length=100, null=True, blank=True)
     modele = models.CharField(max_length=100, null=True, blank=True)
     plaque = models.CharField(max_length=20, null=True, blank=True)
     nb_places = models.IntegerField(null=True, blank=True)
+    carburant = models.CharField(
+        max_length=20,
+        choices=TypeCarburant.choices,
+        null=True,
+        blank=True,
+        verbose_name="Type de carburant"
+    )
+    transmission = models.CharField(
+        max_length=20,
+        choices=TypeTransmission.choices,
+        null=True,
+        blank=True,
+        verbose_name="Type de transmission"
+    )
 
     # Exemple pour une maison
     nb_chambres = models.IntegerField(null=True, blank=True)
@@ -141,8 +176,6 @@ class Bien(models.Model):
 
     def __str__(self):
         return self.nom
-
-
 
 class DisponibiliteHebdo(models.Model):
     JOUR_CHOICES = [
