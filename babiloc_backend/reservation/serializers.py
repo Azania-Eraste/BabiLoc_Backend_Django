@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Reservation, Bien, Media, Favori, Paiement, Tarif, Type_Bien, 
-    Document, Avis, Facture, StatutPaiement, DisponibiliteHebdo  # ✅ Add StatutPaiement import
+    Document, Avis, Facture, StatutPaiement, DisponibiliteHebdo, TagBien  # ✅ Add StatutPaiement import
 )
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -597,3 +597,9 @@ class FactureCreateSerializer(serializers.ModelSerializer):
         # Créer la facture
         facture = super().create(validated_data)
         return facture
+
+class TagBienSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagBien
+        fields = ['id', 'nom', 'description', 'iconName', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']

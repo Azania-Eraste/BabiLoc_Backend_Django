@@ -1,4 +1,5 @@
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     SoldeHoteView, 
     HistoriquePaiementsView,
@@ -17,6 +18,7 @@ from .views import (
     FactureDownloadView,
     FactureResendEmailView,
     FacturesHoteView,
+    TagBienViewSet  # ✅ Ajouter cette ligne
 
 )
 
@@ -50,6 +52,9 @@ from .viewserializer import (
     MesReservationsHostView,
     
 )
+
+router = DefaultRouter()
+router.register(r'tags', TagBienViewSet, basename='tagbien')
 
 urlpatterns = [
     # Endpoints principaux
@@ -125,4 +130,6 @@ urlpatterns = [
     path('factures/<int:pk>/download/', FactureDownloadView.as_view(), name='facture-download'),
     path('factures/<int:pk>/resend-email/', FactureResendEmailView.as_view(), name='facture-resend-email'),
     path('hote/factures/', FacturesHoteView.as_view(), name='factures-hote'),
+
+    path('api/', include(router.urls)),
 ]

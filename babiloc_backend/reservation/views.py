@@ -13,11 +13,14 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db import models  # ✅ Add this import
 from django.http import HttpResponse, Http404
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
-from .models import Reservation, Paiement, HistoriquePaiement, TypeOperation, Facture
+from .models import Reservation, Paiement, HistoriquePaiement, TypeOperation, Facture, TagBien
 from rest_framework.views import APIView
-from django.db.models import Sum, F, Q  # ✅ Add Q import
+from django.db.models import Sum, F, Q, Count  # ✅ Add Q import
 from Auths import permission
 from .serializers import (
     ReservationSerializer, 
@@ -25,9 +28,11 @@ from .serializers import (
     ReservationUpdateSerializer,
     ReservationListSerializer,
     HistoriquePaiementSerializer,
-    FactureSerializer, FactureCreateSerializer
+    FactureSerializer, FactureCreateSerializer,
+    TagBienSerializer
 )
 from decimal import Decimal
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 logger = logging.getLogger(__name__)
 
@@ -499,3 +504,35 @@ class FacturesHoteView(generics.ListAPIView):
         return Facture.objects.filter(
             reservation__bien__owner=self.request.user
         ).order_by('-date_emission')
+
+class TagBienViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour gérer les tags des biens
+    """
+    queryset = TagBien.objects.all()
+    serializer_class = TagBienSerializer
+    
+    def get_permissions(self):
+        """
+        Permissions personnalisées pour les tags
+        """
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            # Seuls les utilisateurs authentifiés peuvent ajouter/modifier/supprimer des tags
+            permission_classes = [IsAuthenticated]
+        else:
+            # Tout le monde peut voir les tags
+            permission_classes = [AllowAny]
+        
+        return [permission() for permission in permission_classes]
+    
+    @action(detail=False, methods=['get'])
+    def populaires(self, request):
+        """
+        Retourne les tags les plus utilisés
+        """
+        tags_populaires = TagBien.objects.annotate(
+            nb_utilisations=Count('types_bien') + Count('bien_set')
+        ).order_by('-nb_utilisations')[:10]
+        
+        serializer = self.get_serializer(tags_populaires, many=True)
+        return Response(serializer.data)
