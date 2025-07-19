@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from Auths import permission
 from rest_framework import serializers
 from django.db.models import Count, Avg
-from .models import Reservation,TagBien, Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document
+from .models import Reservation,TagBien, Ville,Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -23,7 +23,8 @@ from .serializers import (
     AvisSerializer, AvisCreateSerializer, 
     ReponseProprietaireSerializer, StatistiquesAvisSerializer,
     TypeBienSerializer,
-    DocumentSerializer
+    DocumentSerializer,
+    VilleSerializer
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -126,7 +127,7 @@ class MesReservationsView(generics.ListAPIView):
                 enum=['pending', 'confirmed', 'cancelled', 'completed']
             ),
             openapi.Parameter(
-                'bien_id',  # Changer annonce_id en bien_id
+                'bien',  # Changer annonce_id en bien_id
                 openapi.IN_QUERY,
                 description="Filtrer par ID du bien",
                 type=openapi.TYPE_INTEGER
@@ -159,7 +160,7 @@ class MesReservationsView(generics.ListAPIView):
         # Changer annonce_id en bien_id
         bien_id = self.request.query_params.get('bien_id')
         if bien_id:
-            queryset = queryset.filter(bien_id=bien_id)
+            queryset = queryset.filter(bien=bien_id)
         
         return queryset
 
@@ -1276,3 +1277,21 @@ class DocumentDeleteView(generics.DestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
+    
+class VilleListView(generics.ListAPIView):
+    """
+    Liste des villes disponibles pour les biens
+    """
+    serializer_class = VilleSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return Ville.objects.all()
+
+    @swagger_auto_schema(
+        operation_description="Lister toutes les villes",
+        responses={200: VilleSerializer(many=True)},
+        tags=["Villes"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

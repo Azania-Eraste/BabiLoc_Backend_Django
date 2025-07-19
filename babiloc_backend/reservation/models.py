@@ -96,6 +96,20 @@ class Type_Bien(models.Model):
 # Représente un bien immobilier mis en location sur la plateforme
 # Exemple : "Appartement 2 pièces à Cocody" avec propriétaire, note, disponibilité
 # Chaque bien appartient à un propriétaire et a un type spécifique
+class Ville(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+    pays = models.CharField(max_length=100, default="Côte d'Ivoire")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
+
+    class Meta:
+        verbose_name = "Ville"
+        verbose_name_plural = "Villes"
+        ordering = ['nom']
+
+    def __str__(self):
+        return self.nom
+
 class Bien(models.Model):
     
     class TypeCarburant(models.TextChoices):
@@ -111,7 +125,7 @@ class Bien(models.Model):
     
     nom = models.CharField(max_length=250)  # Ex: "Villa moderne 4 chambres"
     description = models.TextField()  # Description complète du bien
-    ville = models.CharField(max_length=100, verbose_name="Ville", default="Abidjan")
+    ville = models.ForeignKey(Ville, on_delete=models.SET_NULL, null=True, blank=True, related_name="biens", verbose_name="Ville")
     
     noteGlobale = models.FloatField(  # Note moyenne sur 5 étoiles
         validators=[
@@ -169,8 +183,8 @@ class Bien(models.Model):
 
     def get_first_image(self):
         """Récupère la première image du bien pour l'affichage en liste"""
-        return self.medias.first().image.url if self.medias.exists() else None
-    
+        return self.media.first().image.url if self.media.exists() else None
+
     def nombre_likes(self):
         return self.favoris.count()
 
@@ -265,7 +279,7 @@ class Tarif(models.Model):
 
     prix = models.FloatField(validators=[MinValueValidator(0.0)])
     type_tarif = models.CharField(max_length=50, choices=[(tag.name, tag.value) for tag in Typetarif], null=True)
-    bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Tarifs_Biens_id')
+    bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='tarifs')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé  le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
     
@@ -281,7 +295,7 @@ class Tarif(models.Model):
 # Exemple : Photos de la façade, salon, chambres, cuisine, etc.
 # Un bien peut avoir plusieurs images pour le présenter aux locataires
 class Media(models.Model):
-    bien = models.ForeignKey('Bien', on_delete=models.CASCADE, related_name='medias')
+    bien = models.ForeignKey('Bien', on_delete=models.CASCADE, related_name='media')
     image = models.ImageField(upload_to='biens/')  # Images stockées dans media/biens/
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")

@@ -48,6 +48,7 @@ from .viewserializer import (
     DocumentUpdateView,
     DocumentDeleteView,
     MesReservationsHostView,
+    VilleListView
     
 )
 
@@ -69,6 +70,9 @@ urlpatterns = [
     path('biens/<int:pk>/', BienDetailView.as_view(), name='biens-detail'),
     path('medias/', MediaCreateView.as_view(), name='media-create'),
     
+    # Villes
+    path('villes/', VilleListView.as_view(), name='villes-list'),
+
     #Tarifs
     path('tarifs/create/', TarifCreateView.as_view(), name='tarif-create'),
     path('tarifs/<int:pk>/update/', TarifUpdateView.as_view(), name='tarif-update'),

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Reservation, Bien, Media, Favori, Paiement, TagBien, Tarif, Type_Bien, 
-    Document, Avis, Facture, StatutPaiement, DisponibiliteHebdo  # ✅ Add StatutPaiement import
+    Document, Avis, Facture, StatutPaiement, DisponibiliteHebdo, Ville  # ✅ Add StatutPaiement import
 )
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -47,7 +47,7 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 
 class TarifSerializer(serializers.ModelSerializer):
-    bien_id = serializers.IntegerField(write_only=True)
+    bien_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Tarif
@@ -149,61 +149,55 @@ class DocumentSerializer(serializers.ModelSerializer):
         
         return attrs
 
+class VilleSerializer(serializers.ModelSerializer):
+    """Serializer pour les villes"""
+    
+    class Meta:
+        model = Ville
+        fields = ['id', 'nom', 'pays']
+        read_only_fields = ['id']
+    
+    def validate_nom(self, value):
+        """Validation pour s'assurer que le nom de la ville n'est pas vide"""
+        if not value:
+            raise serializers.ValidationError("Le nom de la ville ne peut pas être vide.")
+        return value
+
+class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DisponibiliteHebdo
+        fields = ['jours']  # ou ce que tu utilises
+
 
 class BienSerializer(serializers.ModelSerializer):
-    tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True,)
-    media = MediaSerializer(source='medias', many=True, )
+    disponibilite_hebdo = DisponibiliteHebdoSerializer(required=False)
+    tarifs = TarifSerializer(many=True)  # OK selon ton modèle
+    media = MediaSerializer(many=True)           # à adapter si nécessaire
     is_favori = serializers.SerializerMethodField()
     nombre_likes = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
     owner = UserSerializer(read_only=True)
-    documents = DocumentSerializer(many=True,)
+    documents = DocumentSerializer(many=True)
+    ville = VilleSerializer(read_only=True)
+    type_bien_id = serializers.IntegerField(write_only=True, required=True)
 
     class Meta:
         model = Bien
         fields = [
             'id', 'nom', 'description', 'ville', 
             'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
-            'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',  # ✅ Ajouter 'tarifs' et 'media'
-            'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres',"chauffeur",'prix_chauffeur',
-            'has_piscine', 'est_verifie', 'created_at', 'updated_at','nombre_likes','disponibilite_hebdo'
+            'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',
+            'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', "chauffeur", 'prix_chauffeur',
+            'has_piscine', 'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo',
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
 
     def validate_type_bien_id(self, value):
-        try:
-            Type_Bien.objects.get(id=value)
-        except Type_Bien.DoesNotExist:
+        if not Type_Bien.objects.filter(id=value).exists():
             raise serializers.ValidationError("Ce type de bien n'existe pas.")
         return value
 
-    def create(self, validated_data):
-        tarifs_data = validated_data.pop('tarifs', [])
-        media_data = validated_data.pop('media', [])
-        documents_data = validated_data.pop('documents', [])
-        dispo_data = validated_data.pop('disponibilite_hebdo', None)
-
-        bien = Bien.objects.create(**validated_data)
-
-        # Création des tarifs liés
-        for tarif in tarifs_data:
-            Tarif.objects.create(bien=bien, **tarif)
-
-        # Création des médias liés
-        for media in media_data:
-            Media.objects.create(bien=bien, **media)
-
-        # Création des documents liés
-        for doc in documents_data:
-            Document.objects.create(bien=bien, **doc)
-
-        # Création de la disponibilité hebdo si présente
-        if dispo_data:
-            DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
-
-        return bien
-    
     def get_nombre_likes(self, obj):
         return Favori.objects.filter(bien=obj).count()
 
@@ -221,13 +215,32 @@ class BienSerializer(serializers.ModelSerializer):
         return image_url
 
     def create(self, validated_data):
+        tarifs_data = validated_data.pop('tarifs', [])
         dispo_data = validated_data.pop('disponibilite_hebdo', None)
+        media_data = validated_data.pop('media', [])
+        document_data = validated_data.pop('documents', [])
+
+        type_bien_id = validated_data.pop('type_bien_id')
+        type_bien = Type_Bien.objects.get(id=type_bien_id)
+        validated_data['type_bien'] = type_bien
+
         bien = Bien.objects.create(**validated_data)
+
+        for tarif in tarifs_data:
+            Tarif.objects.create(bien=bien, **tarif)
+
+        for media in media_data:
+            Media.objects.create(bien=bien, **media)
+
+        for doc in document_data:
+            Document.objects.create(bien=bien, **doc)
 
         if dispo_data:
             DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
 
         return bien
+
+
 
 
 
@@ -271,9 +284,9 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("La date de fin doit être postérieure à la date de début.")
         
         # Vérifier qu'un tarif existe pour ce bien et ce type
-        tarif_exists = bien.Tarifs_Biens_id.filter(type_tarif=type_tarif).exists()
+        tarif_exists = bien.tarifs.filter(type_tarif=type_tarif).exists()
         if not tarif_exists:
-            available_tarifs = list(bien.Tarifs_Biens_id.values_list('type_tarif', flat=True))
+            available_tarifs = list(bien.tarifs.values_list('type_tarif', flat=True))
             raise serializers.ValidationError(
                 f"Aucun tarif '{type_tarif}' disponible pour ce bien. "
                 f"Tarifs disponibles: {available_tarifs}"
