@@ -155,6 +155,9 @@ class Bien(models.Model):
         help_text="Prix supplémentaire pour le service de chauffeur"
     )
 
+    # Relation Many-to-Many avec les tags
+    tags = models.ManyToManyField(TagBien, related_name="biens", blank=True)
+
     # Exemple de champ spécifique à un véhicule
     marque = models.CharField(max_length=100, null=True, blank=True)
     modele = models.CharField(max_length=100, null=True, blank=True)
@@ -405,7 +408,7 @@ class Reservation(models.Model):
 
     def get_tarif_bien(self):
         """Récupère le tarif du bien selon le type choisi"""
-        return self.bien.Tarifs_Biens_id.filter(type_tarif=self.type_tarif).first()
+        return self.bien.tarifs.filter(type_tarif=self.type_tarif).first()
     
     def save(self, *args, **kwargs):
         # Only calculate price for new reservations

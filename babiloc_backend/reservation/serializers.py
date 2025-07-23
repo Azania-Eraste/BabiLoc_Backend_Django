@@ -168,27 +168,42 @@ class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
         model = DisponibiliteHebdo
         fields = ['jours']  # ou ce que tu utilises
 
+class TypeCarburantSerializer(serializers.Serializer):
+    """Serializer pour les choix de type de carburant"""
+    value = serializers.CharField()
+    label = serializers.CharField()
+
+class TypeTransmissionSerializer(serializers.Serializer):
+    """Serializer pour les choix de type de transmission"""
+    value = serializers.CharField()
+    label = serializers.CharField()
+
 
 class BienSerializer(serializers.ModelSerializer):
     disponibilite_hebdo = DisponibiliteHebdoSerializer(required=False)
-    tarifs = TarifSerializer(many=True)  # OK selon ton modèle
-    media = MediaSerializer(many=True)           # à adapter si nécessaire
+    tarifs = TarifSerializer( many=True, read_only=True)  # OK selon ton modèle
+    media = MediaSerializer(source='medias', many=True, read_only=True)           # à adapter si nécessaire
     is_favori = serializers.SerializerMethodField()
     nombre_likes = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
     owner = UserSerializer(read_only=True)
-    documents = DocumentSerializer(many=True)
+    documents = DocumentSerializer(many=True, read_only=True)
     ville = VilleSerializer(read_only=True)
+    ville_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     type_bien_id = serializers.IntegerField(write_only=True, required=True)
+    tags = TagBienSerializer(many=True, read_only=True)  # Tags associés au bien
+    tag_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
+    carburant_display = serializers.CharField(source='get_carburant_display', read_only=True)
+    transmission_display = serializers.CharField(source='get_transmission_display', read_only=True)
 
     class Meta:
         model = Bien
         fields = [
-            'id', 'nom', 'description', 'ville', 
+            'id', 'nom', 'description', 'ville', 'ville_id',
             'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
-            'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',
-            'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', "chauffeur", 'prix_chauffeur',
+            'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media','tags', 'tag_ids',
+            'marque', 'modele', 'plaque', 'nb_places', 'carburant', 'carburant_display', 'transmission', 'transmission_display', 'nb_chambres', "chauffeur", 'prix_chauffeur',
             'has_piscine', 'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo',
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
@@ -196,6 +211,18 @@ class BienSerializer(serializers.ModelSerializer):
     def validate_type_bien_id(self, value):
         if not Type_Bien.objects.filter(id=value).exists():
             raise serializers.ValidationError("Ce type de bien n'existe pas.")
+        return value
+    
+    def validate_ville_id(self, value):
+        if value and not Ville.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Cette ville n'existe pas.")
+        return value
+    
+    def validate_tag_ids(self, value):
+        if value:
+            existing_tags = TagBien.objects.filter(id__in=value).count()
+            if existing_tags != len(value):
+                raise serializers.ValidationError("Un ou plusieurs tags n'existent pas.")
         return value
 
     def get_nombre_likes(self, obj):
@@ -219,13 +246,27 @@ class BienSerializer(serializers.ModelSerializer):
         dispo_data = validated_data.pop('disponibilite_hebdo', None)
         media_data = validated_data.pop('media', [])
         document_data = validated_data.pop('documents', [])
+        tag_ids = validated_data.pop('tag_ids', [])
 
+        # Gestion du type de bien
         type_bien_id = validated_data.pop('type_bien_id')
         type_bien = Type_Bien.objects.get(id=type_bien_id)
         validated_data['type_bien'] = type_bien
 
+        # Gestion de la ville
+        ville_id = validated_data.pop('ville_id', None)
+        if ville_id:
+            ville = Ville.objects.get(id=ville_id)
+            validated_data['ville'] = ville
+
         bien = Bien.objects.create(**validated_data)
 
+        # Ajout des tags
+        if tag_ids:
+            tags = TagBien.objects.filter(id__in=tag_ids)
+            bien.tags.set(tags)
+
+        # Création des objets liés
         for tarif in tarifs_data:
             Tarif.objects.create(bien=bien, **tarif)
 
@@ -239,6 +280,34 @@ class BienSerializer(serializers.ModelSerializer):
             DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
 
         return bien
+
+    def update(self, instance, validated_data):
+        tag_ids = validated_data.pop('tag_ids', None)
+        ville_id = validated_data.pop('ville_id', None)
+        type_bien_id = validated_data.pop('type_bien_id', None)
+
+        # Mise à jour des champs de base
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Gestion du type de bien
+        if type_bien_id:
+            type_bien = Type_Bien.objects.get(id=type_bien_id)
+            instance.type_bien = type_bien
+
+        # Gestion de la ville
+        if ville_id:
+            ville = Ville.objects.get(id=ville_id)
+            instance.ville = ville
+
+        instance.save()
+
+        # Mise à jour des tags
+        if tag_ids is not None:
+            tags = TagBien.objects.filter(id__in=tag_ids)
+            instance.tags.set(tags)
+
+        return instance
 
 
 
@@ -284,9 +353,9 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("La date de fin doit être postérieure à la date de début.")
         
         # Vérifier qu'un tarif existe pour ce bien et ce type
-        tarif_exists = bien.tarifs.filter(type_tarif=type_tarif).exists()
+        tarif_exists = bien.Tarifs_Biens_id.filter(type_tarif=type_tarif).exists()
         if not tarif_exists:
-            available_tarifs = list(bien.tarifs.values_list('type_tarif', flat=True))
+            available_tarifs = list(bien.Tarifs_Biens_id.values_list('type_tarif', flat=True))
             raise serializers.ValidationError(
                 f"Aucun tarif '{type_tarif}' disponible pour ce bien. "
                 f"Tarifs disponibles: {available_tarifs}"
@@ -639,3 +708,23 @@ class FactureCreateSerializer(serializers.ModelSerializer):
         # Créer la facture
         facture = super().create(validated_data)
         return facture
+
+class ChoicesSerializer(serializers.Serializer):
+    """Serializer pour récupérer tous les choix disponibles"""
+    
+    @staticmethod
+    def get_carburant_choices():
+        from .models import Bien
+        return [{'value': choice[0], 'label': choice[1]} for choice in Bien.TypeCarburant.choices]
+    
+    @staticmethod
+    def get_transmission_choices():
+        from .models import Bien
+        return [{'value': choice[0], 'label': choice[1]} for choice in Bien.TypeTransmission.choices]
+    
+    @staticmethod
+    def get_all_choices():
+        return {
+            'carburant': ChoicesSerializer.get_carburant_choices(),
+            'transmission': ChoicesSerializer.get_transmission_choices(),
+        }

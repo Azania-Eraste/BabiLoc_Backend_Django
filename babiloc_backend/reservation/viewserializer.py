@@ -403,7 +403,7 @@ class BienListCreateView(generics.ListCreateAPIView):
     pagination_class = BienPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = BienFilter
-    search_fields = ['nom', 'ville', 'description', 'type_bien__nom']  
+    search_fields = ['nom', 'ville__nom', 'description', 'type_bien__nom']  
 
     def get_permissions(self):
         if self.request.method == 'POST':
