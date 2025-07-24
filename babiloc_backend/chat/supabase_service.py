@@ -145,6 +145,63 @@ class ChatSupabaseService:
         except Exception as e:
             logger.error(f"Erreur récupération messages: {str(e)}")
             return {'success': False, 'error': str(e)}
+    
+    def mark_messages_as_read(self, chat_room_id, user_id):
+        """
+        Marque tous les messages non lus d'une conversation comme lus pour un utilisateur
+        """
+        try:
+            result = self.supabase.table('chat_messages').update({
+                'is_read': True
+            }).eq('chat_room_id', chat_room_id).neq('sender_id', user_id).eq('is_read', False).execute()
+            
+            if result.data:
+                logger.info(f"Messages marqués comme lus: {len(result.data)} messages")
+                return {
+                    'success': True,
+                    'messages_updated': len(result.data)
+                }
+            return {
+                'success': True,
+                'messages_updated': 0
+            }
+            
+        except Exception as e:
+            logger.error(f"Erreur marquage messages lus: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def get_unread_count(self, user_id):
+        """
+        Récupère le nombre de messages non lus pour un utilisateur
+        """
+        try:
+            # Récupérer toutes les rooms de l'utilisateur
+            user_rooms = self.get_chat_rooms_for_user(user_id)
+            if not user_rooms['success']:
+                return {'success': False, 'error': 'Erreur récupération rooms'}
+            
+            total_unread = 0
+            room_unread = {}
+            
+            for room in user_rooms['data']:
+                # Compter les messages non lus dans chaque room (pas envoyés par l'utilisateur)
+                result = self.supabase.table('chat_messages').select('id').eq(
+                    'chat_room_id', room['id']
+                ).neq('sender_id', user_id).eq('is_read', False).execute()
+                
+                unread_count = len(result.data) if result.data else 0
+                room_unread[room['id']] = unread_count
+                total_unread += unread_count
+            
+            return {
+                'success': True,
+                'total_unread': total_unread,
+                'room_unread': room_unread
+            }
+            
+        except Exception as e:
+            logger.error(f"Erreur comptage messages non lus: {str(e)}")
+            return {'success': False, 'error': str(e)}
 
 # Instance globale
 chat_supabase_service = ChatSupabaseService()

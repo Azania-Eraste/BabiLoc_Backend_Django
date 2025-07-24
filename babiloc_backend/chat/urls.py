@@ -3,7 +3,11 @@ from .views import (
     UserChatRoomsView,
     ChatMessagesView,
     SendMessageView,
-    ChatByReservationView
+    ChatByReservationView,
+    MarkMessagesAsReadView,
+    ChatNotificationsView,
+    RealtimeStatusView,
+    TestRealtimeMessageView,
 )
 
 app_name = 'chat'
@@ -18,6 +22,16 @@ urlpatterns = [
     # Envoyer un message
     path('rooms/<str:chat_room_id>/send/', SendMessageView.as_view(), name='send-message'),
     
+    # Marquer comme lu
+    path('rooms/<str:chat_room_id>/mark-read/', MarkMessagesAsReadView.as_view(), name='mark-messages-read'),
+    
     # Chat par réservation
-    path('reservations/<int:reservation_id>/', ChatByReservationView.as_view(), name='chat-by-reservation'),
+    path('reservations/<int:reservation_id>/chat/', ChatByReservationView.as_view(), name='chat-by-reservation'),
+    
+    # Notifications
+    path('notifications/', ChatNotificationsView.as_view(), name='chat-notifications'),
+    
+    # ✅ NOUVEAUX ENDPOINTS TEMPS RÉEL
+    path('realtime/status/', RealtimeStatusView.as_view(), name='realtime-status'),
+    path('test-realtime/', TestRealtimeMessageView.as_view(), name='test-realtime'),
 ]
