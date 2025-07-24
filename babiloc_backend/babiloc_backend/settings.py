@@ -28,11 +28,12 @@ INSTALLED_APPS = [
 
     'django_filters',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',  # Add this line
+    'rest_framework_simplejwt.token_blacklist',
     'rest_framework',
     'drf_yasg',
     'corsheaders',
     'reservation.apps.ReservationConfig',
+    'chat.apps.ChatConfig',  # Ajouter l'app chat
 ]
 
 MIDDLEWARE = [
@@ -239,8 +240,14 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-# CinetPay Configuration
-CINETPAY_API_KEY = config('CINETPAY_API_KEY', default='136374542367d0c397639a18.35212918')
-CINETPAY_SITE_ID = config('CINETPAY_SITE_ID', default='105899348')
-CINETPAY_SECRET_KEY = config('CINETPAY_SECRET_KEY', default='89221587685942e4ae2573.09390795')
-BASE_URL = config('BASE_URL', default='http://127.0.0.1:8000')
+# ❌ SUPPRIMER CETTE SECTION CINETPAY
+# CinetPay Configuration - À SUPPRIMER
+# CINETPAY_API_KEY = config('CINETPAY_API_KEY', default='136374542367d0c397639a18.35212918')
+# CINETPAY_SITE_ID = config('CINETPAY_SITE_ID', default='105899348')
+# CINETPAY_SECRET_KEY = config('CINETPAY_SECRET_KEY', default='89221587685942e4ae2573.09390795')
+# BASE_URL = config('BASE_URL', default='http://127.0.0.1:8000')
+
+# Supabase Configuration
+SUPABASE_URL = config('SUPABASE_URL', default='')
+SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
+SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')

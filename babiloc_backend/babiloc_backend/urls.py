@@ -26,6 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('Auths.urls')),
     path('api/location/', include('reservation.urls')),
+    path('api/chat/', include('chat.urls')),  # 🎯 Nouvelle ligne pour l'app chat
     
     # Documentation Swagger
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
