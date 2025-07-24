@@ -1,26 +1,10 @@
 from django.urls import path, include
 from .views import (
     SoldeHoteView, 
-    HistoriquePaiementsView,
-    CreateReservationView,
-    MesReservationsView,
-    AllReservationsView,
     ReservationDetailView,
-    CreatePaymentView,
-    PaymentStatusView,
-    CinetPayWebhookView,
-    cancel_payment,
-    HistoriqueRevenusProprietaireView,  # ✅ Ajouter cette import
-    FactureListView,
-    FactureDetailView,
-    FactureCreateView,
-    FactureDownloadView,
-    FactureResendEmailView,
-    FacturesHoteView,
-
+    HistoriqueRevenusProprietaireView,
 )
 
-# ✅ Garder les imports depuis viewserializer.py pour les autres vues
 from .viewserializer import (
     reservations_stats,
     historique_statuts_reservations_bien,
@@ -48,8 +32,10 @@ from .viewserializer import (
     DocumentUpdateView,
     DocumentDeleteView,
     MesReservationsHostView,
-    VilleListView
-    
+    VilleListView,
+    CreateReservationView,
+    MesReservationsView,
+    AllReservationsView
 )
 
 urlpatterns = [
@@ -73,7 +59,7 @@ urlpatterns = [
     # Villes
     path('villes/', VilleListView.as_view(), name='villes-list'),
 
-    #Tarifs
+    # Tarifs
     path('tarifs/create/', TarifCreateView.as_view(), name='tarif-create'),
     path('tarifs/<int:pk>/update/', TarifUpdateView.as_view(), name='tarif-update'),
     path('tarifs/<int:pk>/delete/', TarifDeleteView.as_view(), name='tarif-delete'),
@@ -84,13 +70,9 @@ urlpatterns = [
     path('favoris/<int:pk>/', RetirerFavoriView.as_view(), name='retirer-favori'),
     path('favoris/toggle/', toggle_favori, name='toggle-favori'),
     
-    
-    #Hote
+    # Hote
     path('Dashboard/solde/', SoldeHoteView.as_view(), name='hote-solde'),
     path('Dashboard/mes-reservations/', MesReservationsHostView.as_view(), name='hote-mes-reservations'),
-
-    #historique
-    path('Dashboard/historique-paiements/', HistoriquePaiementsView.as_view(), name='historique-paiements'),
 
     # Revenus propriétaire
     path('Dashboard/revenus/', HistoriqueRevenusProprietaireView.as_view(), name='historique-revenus'),
@@ -108,25 +90,9 @@ urlpatterns = [
     path('mes-avis/', mes_avis, name='mes-avis'),
     path('Dashboard/avis-recus/', avis_recus, name='avis-recus'),
 
-    # Paiements CinetPay
-    path('payments/create/', CreatePaymentView.as_view(), name='create-payment'),
-    path('payments/status/', PaymentStatusView.as_view(), name='payment-status'),
-    path('payments/cancel/', cancel_payment, name='cancel-payment'),
-    
-    # Webhooks
-    path('webhooks/cinetpay/', CinetPayWebhookView.as_view(), name='cinetpay-webhook'),
-
     # Documents
     path('documents/create/', DocumentCreateView.as_view(), name='document-create'),
     path('biens/<int:bien_id>/documents/', DocumentListView.as_view(), name='document-list'),
     path('documents/<int:pk>/update/', DocumentUpdateView.as_view(), name='document-update'),
     path('documents/<int:pk>/delete/', DocumentDeleteView.as_view(), name='document-delete'),
-
-    # Factures
-    path('factures/', FactureListView.as_view(), name='factures-list'),
-    path('factures/<int:pk>/', FactureDetailView.as_view(), name='facture-detail'),
-    path('factures/create/', FactureCreateView.as_view(), name='facture-create'),
-    path('factures/<int:pk>/download/', FactureDownloadView.as_view(), name='facture-download'),
-    path('factures/<int:pk>/resend-email/', FactureResendEmailView.as_view(), name='facture-resend-email'),
-    path('hote/factures/', FacturesHoteView.as_view(), name='factures-hote'),
 ]

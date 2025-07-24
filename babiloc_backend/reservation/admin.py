@@ -1,11 +1,15 @@
 from django.contrib import admin
 from .forms import BienForm
-from .models import Reservation, Ville,Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture, DisponibiliteHebdo, TagBien
+from .models import (
+    Reservation, Ville, Favori, Bien, Type_Bien, Tarif, Media, 
+    Avis, DisponibiliteHebdo, TagBien, CodePromo, HistoriqueStatutReservation,
+    RevenuProprietaire, Document
+)
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
     list_display = [
-        'id', 'user', 'bien', 'status',  # Changer annonce_id en bien
+        'id', 'user', 'bien', 'status',
         'date_debut', 'date_fin', 'prix_total', 'created_at'
     ]
     list_filter = ['status', 'created_at', 'date_debut']
@@ -15,7 +19,7 @@ class ReservationAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Informations générales', {
-            'fields': ('user', 'bien', 'status')  # Changer annonce_id en bien
+            'fields': ('user', 'bien', 'status')
         }),
         ('Dates', {
             'fields': ('date_debut', 'date_fin')
@@ -28,7 +32,6 @@ class ReservationAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-
 
 @admin.register(TagBien)
 class TagBienAdmin(admin.ModelAdmin):
@@ -52,7 +55,6 @@ class VilleAdmin(admin.ModelAdmin):
         ('Informations générales', {
             'fields': ('nom', 'pays')
         }),
-        
     )
 
 @admin.register(Favori)
@@ -62,8 +64,6 @@ class FavoriAdmin(admin.ModelAdmin):
     search_fields = ['user__username', 'user__email', 'bien__nom']
     ordering = ['-created_at']
     readonly_fields = ['created_at']
-
-# Add missing model registrations
 
 @admin.register(DisponibiliteHebdo)
 class DisponibiliteHebdoAdmin(admin.ModelAdmin):
@@ -75,7 +75,7 @@ class BienAdmin(admin.ModelAdmin):
     form = BienForm
     list_display = ['id', 'nom', 'ville', 'owner', 'disponibility', 'type_bien']
     list_filter = ['disponibility', 'type_bien', 'ville', 'created_at']
-    search_fields = ['nom', 'description', 'ville', 'owner__username']
+    search_fields = ['nom', 'description', 'ville__nom', 'owner__username']
     ordering = ['-created_at']
 
 @admin.register(Type_Bien)
@@ -93,6 +93,35 @@ class TarifAdmin(admin.ModelAdmin):
 class MediaAdmin(admin.ModelAdmin):
     list_display = ['id', 'bien', 'image']
     list_filter = ['bien']
+
+@admin.register(Document)
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nom', 'bien', 'type', 'created_at']
+    list_filter = ['type', 'created_at']
+    search_fields = ['nom', 'bien__nom']
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(CodePromo)
+class CodePromoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nom', 'reduction', 'created_at']
+    search_fields = ['nom']
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(HistoriqueStatutReservation)
+class HistoriqueStatutReservationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'reservation', 'ancien_statut', 'nouveau_statut', 'date_changement']
+    list_filter = ['ancien_statut', 'nouveau_statut', 'date_changement']
+    readonly_fields = ['date_changement', 'created_at', 'updated_at']
+
+@admin.register(RevenuProprietaire)
+class RevenuProprietaireAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'proprietaire', 'reservation', 'montant_brut', 
+        'revenu_net', 'status_paiement', 'date_creation'
+    ]
+    list_filter = ['status_paiement', 'date_creation']
+    search_fields = ['proprietaire__username', 'reservation__id']
+    readonly_fields = ['date_creation']
 
 @admin.register(Avis)
 class AvisAdmin(admin.ModelAdmin):
@@ -134,70 +163,6 @@ class AvisAdmin(admin.ModelAdmin):
     
     def has_response(self, obj):
         return bool(obj.reponse_proprietaire)
+    
     has_response.boolean = True
     has_response.short_description = "A une réponse"
-
-@admin.register(Facture)
-class FactureAdmin(admin.ModelAdmin):
-    list_display = [
-        'numero_facture', 'client_nom', 'hote_nom', 'montant_ttc',
-        'statut', 'date_emission', 'date_paiement'
-    ]
-    list_filter = ['statut', 'type_facture', 'date_emission']
-    search_fields = [
-        'numero_facture', 'client_nom', 'client_email',
-        'hote_nom', 'hote_email'
-    ]
-    readonly_fields = [
-        'numero_facture', 'montant_ht', 'montant_tva', 'montant_ttc',
-        'commission_plateforme', 'montant_net_hote', 'created_at', 'updated_at'
-    ]
-    ordering = ['-date_emission']
-    
-    fieldsets = (
-        ('Informations générales', {
-            'fields': ('numero_facture', 'type_facture', 'reservation', 'paiement', 'statut')
-        }),
-        ('Client', {
-            'fields': ('client_nom', 'client_email', 'client_telephone', 'client_adresse')
-        }),
-        ('Hôte', {
-            'fields': ('hote_nom', 'hote_email', 'hote_telephone')
-        }),
-        ('Montants', {
-            'fields': (
-                'montant_ht', 'tva_taux', 'montant_tva', 'montant_ttc',
-                'commission_plateforme', 'montant_net_hote'
-            )
-        }),
-        ('Dates', {
-            'fields': ('date_emission', 'date_echeance', 'date_paiement')
-        }),
-        ('Fichier', {
-            'fields': ('fichier_pdf',)
-        }),
-        ('Métadonnées', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    actions = ['regenerer_pdf', 'envoyer_email']
-    
-    def regenerer_pdf(self, request, queryset):
-        """Action pour régénérer les PDFs"""
-        for facture in queryset:
-            facture.generer_pdf()
-        self.message_user(request, f"{queryset.count()} facture(s) régénérée(s)")
-    
-    regenerer_pdf.short_description = "Régénérer les PDFs"
-    
-    def envoyer_email(self, request, queryset):
-        """Action pour envoyer les factures par email"""
-        sent = 0
-        for facture in queryset:
-            if facture.envoyer_par_email():
-                sent += 1
-        self.message_user(request, f"{sent} facture(s) envoyée(s) par email")
-    
-    envoyer_email.short_description = "Envoyer par email"
