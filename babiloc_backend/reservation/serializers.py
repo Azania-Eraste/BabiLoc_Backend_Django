@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Reservation, Bien, Media, Favori, TagBien, Tarif, Type_Bien, 
     Document, Avis, DisponibiliteHebdo, Ville, CodePromo,
-    HistoriqueStatutReservation, RevenuProprietaire
+    HistoriqueStatutReservation, RevenuProprietaire, Fa
 )
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -214,8 +214,14 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        # Extraction des champs nécessaires
+        bien = data.get('bien')
+        type_tarif = data.get('type_tarif')
+        date_debut = data.get('date_debut')
+        date_fin = data.get('date_fin')
+
         # Validation des dates
-        if data['date_debut'] >= data['date_fin']:
+        if date_debut >= date_fin:
             raise serializers.ValidationError("La date de fin doit être après la date de début")
         
         # Vérifier qu'un tarif existe pour ce bien et ce type
