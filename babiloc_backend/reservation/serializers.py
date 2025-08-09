@@ -83,19 +83,12 @@ class DocumentSerializer(serializers.ModelSerializer):
 class VilleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ville
-        fields = ['id', 'nom', 'pays']
-        read_only_fields = ['id']
-    
-    def validate_nom(self, value):
-        """Validation pour s'assurer que le nom de la ville n'est pas vide"""
-        if not value:
-            raise serializers.ValidationError("Le nom de la ville ne peut pas être vide.")
-        return value
+        fields = ['id', 'nom', 'pays', 'created_at']
 
 class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DisponibiliteHebdo
-        fields = ['jours']  # ou ce que tu utilises
+        fields = ['jours']
 
 class TypeCarburantSerializer(serializers.Serializer):
     """Serializer pour les choix de type de carburant"""
@@ -107,11 +100,10 @@ class TypeTransmissionSerializer(serializers.Serializer):
     value = serializers.CharField()
     label = serializers.CharField()
 
-
 class BienSerializer(serializers.ModelSerializer):
     disponibilite_hebdo = DisponibiliteHebdoSerializer(required=False)
-    tarifs = TarifSerializer( many=True, read_only=True)  # OK selon ton modèle
-    media = MediaSerializer(source='medias', many=True, read_only=True)           # à adapter si nécessaire
+    tarifs = TarifSerializer(many=True, read_only=True)
+    media = MediaSerializer(many=True, read_only=True)
     is_favori = serializers.SerializerMethodField()
     nombre_likes = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
@@ -121,7 +113,7 @@ class BienSerializer(serializers.ModelSerializer):
     ville = VilleSerializer(read_only=True)
     ville_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     type_bien_id = serializers.IntegerField(write_only=True, required=True)
-    tags = TagBienSerializer(many=True, read_only=True)  # Tags associés au bien
+    tags = TagBienSerializer(many=True, read_only=True)
     tag_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     carburant_display = serializers.CharField(source='get_carburant_display', read_only=True)
     transmission_display = serializers.CharField(source='get_transmission_display', read_only=True)
@@ -134,6 +126,7 @@ class BienSerializer(serializers.ModelSerializer):
             'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',
             'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', "chauffeur", 'prix_chauffeur',
             'has_piscine', 'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo',
+            'tags', 'tag_ids', 'carburant', 'carburant_display', 'transmission', 'transmission_display'
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
 
@@ -163,12 +156,23 @@ class BienSerializer(serializers.ModelSerializer):
         dispo_data = validated_data.pop('disponibilite_hebdo', None)
         media_data = validated_data.pop('media', [])
         document_data = validated_data.pop('documents', [])
+        tag_ids = validated_data.pop('tag_ids', [])
 
         type_bien_id = validated_data.pop('type_bien_id')
+        ville_id = validated_data.pop('ville_id', None)
+        
         type_bien = Type_Bien.objects.get(id=type_bien_id)
         validated_data['type_bien'] = type_bien
+        
+        if ville_id:
+            ville = Ville.objects.get(id=ville_id)
+            validated_data['ville'] = ville
 
         bien = Bien.objects.create(**validated_data)
+
+        # Ajouter les tags
+        if tag_ids:
+            bien.tags.set(tag_ids)
 
         for tarif in tarifs_data:
             Tarif.objects.create(bien=bien, **tarif)
@@ -184,11 +188,6 @@ class BienSerializer(serializers.ModelSerializer):
 
         return bien
 
-
-
-
-
-
 class BienReservationSerializer(serializers.ModelSerializer):
     premiere_image = serializers.SerializerMethodField()
     type_bien = TypeBienSerializer(read_only=True)
@@ -203,7 +202,7 @@ class BienReservationSerializer(serializers.ModelSerializer):
             "premiere_image",
         ]
 
-    def get_first_image(self, obj):
+    def get_premiere_image(self, obj):
         return obj.get_first_image()
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
@@ -223,6 +222,15 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
         # Validation des dates
         if date_debut >= date_fin:
             raise serializers.ValidationError("La date de fin doit être après la date de début")
+        
+        # Validation que la date de début n'est pas dans le passé
+        if data['date_debut'] < timezone.now():
+            raise serializers.ValidationError("La date de début ne peut pas être dans le passé")
+        
+        bien = data['bien']
+        type_tarif = data['type_tarif']
+        date_debut = data['date_debut']
+        date_fin = data['date_fin']
         
         # Vérifier qu'un tarif existe pour ce bien et ce type
         tarif_exists = bien.tarifs.filter(type_tarif=type_tarif).exists()
@@ -324,109 +332,3 @@ class StatistiquesAvisSerializer(serializers.Serializer):
     repartition_notes = serializers.DictField()
     pourcentage_recommandation = serializers.FloatField()
     notes_moyennes_categories = serializers.DictField()
-
-class FactureSerializer(serializers.ModelSerializer):
-    """Serializer pour les factures"""
-    
-    numero_facture = serializers.CharField(read_only=True)
-    statut_display = serializers.CharField(source='get_statut_display', read_only=True)
-    type_facture_display = serializers.CharField(source='get_type_facture_display', read_only=True)
-    fichier_pdf_url = serializers.SerializerMethodField()
-    
-    reservation_details = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Facture
-        fields = [
-            'id', 'numero_facture', 'type_facture', 'type_facture_display',
-            'client_nom', 'client_email', 'client_telephone',
-            'hote_nom', 'hote_email', 'hote_telephone',
-            'montant_ht', 'tva_taux', 'montant_tva', 'montant_ttc',
-            'commission_plateforme', 'montant_net_hote',
-            'statut', 'statut_display', 'date_emission', 'date_echeance',
-            'date_paiement', 'fichier_pdf_url', 'reservation_details',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = [
-            'id', 'numero_facture', 'montant_ht', 'montant_tva', 'montant_ttc',
-            'commission_plateforme', 'montant_net_hote', 'date_emission',
-            'created_at', 'updated_at'
-        ]
-    
-    def get_fichier_pdf_url(self, obj):
-        """Retourne l'URL du fichier PDF"""
-        request = self.context.get('request')
-        if obj.fichier_pdf and request:
-            return request.build_absolute_uri(obj.fichier_pdf.url)
-        return None
-    
-    def get_reservation_details(self, obj):
-        """Retourne les détails de la réservation"""
-        if obj.reservation:
-            return {
-                'id': obj.reservation.id,
-                'bien_nom': obj.reservation.bien.nom,
-                'date_debut': obj.reservation.date_debut,
-                'date_fin': obj.reservation.date_fin,
-                'duree_jours': obj.reservation.duree_jours,
-                'prix_total': obj.reservation.prix_total
-            }
-        return None
-
-class FactureCreateSerializer(serializers.ModelSerializer):
-    """Serializer pour créer une facture"""
-    
-    class Meta:
-        model = Facture
-        fields = [
-            'reservation', 'paiement', 'client_nom', 'client_email',
-            'client_telephone', 'client_adresse', 'hote_nom', 'hote_email',
-            'hote_telephone', 'date_echeance', 'type_facture'
-        ]
-    
-    def validate_reservation(self, value):
-        """Valider que la réservation est payée"""
-        # Use the constant from the Paiement model
-        if not value.paiements.filter(statut_paiement=Paiement.STATUT_EFFECTUE).exists():
-            raise serializers.ValidationError("La réservation doit être payée pour générer une facture.")
-        return value
-    
-    def validate_paiement(self, value):
-        """Valider que le paiement est effectué"""
-        if value and value.statut_paiement != Paiement.STATUT_EFFECTUE:
-            raise serializers.ValidationError("Le paiement doit être effectué pour générer une facture.")
-        return value
-    
-    def validate(self, data):
-        """Validation globale"""
-        reservation = data.get('reservation')
-        paiement = data.get('paiement')
-        
-        # Si un paiement est fourni, vérifier qu'il correspond à la réservation
-        if paiement and reservation and paiement.reservation != reservation:
-            raise serializers.ValidationError("Le paiement ne correspond pas à la réservation.")
-        
-        return data
-    
-    def create(self, validated_data):
-        """Créer la facture avec les données calculées automatiquement"""
-        reservation = validated_data['reservation']
-        
-        # Compléter les données automatiquement si pas fournies
-        if not validated_data.get('client_nom'):
-            user = reservation.user
-            validated_data['client_nom'] = f"{user.first_name} {user.last_name}".strip() or user.username
-        
-        if not validated_data.get('client_email'):
-            validated_data['client_email'] = reservation.user.email
-        
-        if not validated_data.get('hote_nom'):
-            owner = reservation.bien.owner
-            validated_data['hote_nom'] = f"{owner.first_name} {owner.last_name}".strip() or owner.username
-        
-        if not validated_data.get('hote_email'):
-            validated_data['hote_email'] = reservation.bien.owner.email
-        
-        # Créer la facture
-        facture = super().create(validated_data)
-        return facture

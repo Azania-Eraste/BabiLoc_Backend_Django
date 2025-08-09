@@ -582,6 +582,9 @@ class DocumentUtilisateurUpdateView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
+        # ✅ Fix: Vérifier si c'est un appel Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return DocumentUtilisateur.objects.none()
         return DocumentUtilisateur.objects.filter(utilisateur=self.request.user)
     
     @swagger_auto_schema(
@@ -605,6 +608,9 @@ class DocumentUtilisateurDeleteView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
+        # ✅ Fix: Vérifier si c'est un appel Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return DocumentUtilisateur.objects.none()
         return DocumentUtilisateur.objects.filter(utilisateur=self.request.user)
     
     @swagger_auto_schema(

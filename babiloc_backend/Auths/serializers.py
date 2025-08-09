@@ -1,13 +1,17 @@
 import re
 from rest_framework import serializers
-from .models import CustomUser, DocumentUtilisateur, HistoriqueParrainage, CodePromoParrainage
+from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import authenticate
-from rest_framework import serializers
-from .models import CustomUser
-from django.utils import timezone
-from reservation.serializers import BienSerializer
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
+from django.utils import timezone  # ✅ Add this import
+from .models import CustomUser, DocumentUtilisateur, HistoriqueParrainage, CodePromoParrainage
+from reservation.models import Bien  # ✅ Changé de BienSerializer vers le modèle
+from django.db.models import Sum, Count
+from decimal import Decimal
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -127,7 +131,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')
         code_parrainage_utilise = validated_data.pop('code_parrainage_utilise', None)
         
-        user = CustomUser.objects.create(
+        # ✅ Fix: Créer l'utilisateur sans appeler save() immédiatement
+        password = validated_data.pop('password')
+        
+        # ✅ Créer l'instance sans la sauvegarder
+        user = CustomUser(
             username=validated_data['username'],
             email=validated_data['email'],
             first_name=validated_data['first_name'],
@@ -138,21 +146,22 @@ class RegisterSerializer(serializers.ModelSerializer):
             carte_identite=validated_data.get('carte_identite', None),
             permis_conduire=validated_data.get('permis_conduire', None),
             est_verifie=validated_data.get('est_verifie', False),
-            is_active=False  # ✅ important
+            is_active=False
         )
-        user.set_password(validated_data['password'])
         
-        # Générer le code de parrainage personnel
-        user.generate_referral_code()
+        # ✅ Définir le mot de passe
+        user.set_password(password)
         
-        # Traiter le code de parrainage utilisé
+        # ✅ Traiter le code de parrainage AVANT la sauvegarde
         if code_parrainage_utilise:
             try:
                 parrain = CustomUser.objects.get(code_parrainage=code_parrainage_utilise)
-                parrain.parrainer(user)
+                user.parrain = parrain
+                user.date_parrainage = timezone.now()
             except CustomUser.DoesNotExist:
-                pass  # Code invalide, on continue sans erreur
+                pass
         
+        # ✅ Maintenant sauvegarder
         user.save()
         return user
 
