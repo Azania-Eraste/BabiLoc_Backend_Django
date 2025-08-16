@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from Auths import permission
 from rest_framework import serializers
 from django.db.models import Count, Avg
-from .models import Reservation,TagBien, Ville,Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document
+from .models import Reservation,TagBien, Ville,Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document, Typetarif
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -24,7 +24,8 @@ from .serializers import (
     ReponseProprietaireSerializer, StatistiquesAvisSerializer,
     TypeBienSerializer,
     DocumentSerializer,
-    VilleSerializer
+    VilleSerializer,
+    TagBienSerializer
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -377,7 +378,7 @@ class TagListView(generics.ListAPIView):
     """
     Liste des tags disponibles pour les biens
     """
-    serializer_class = serializers.ModelSerializer
+    serializer_class = TagBienSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
@@ -385,11 +386,48 @@ class TagListView(generics.ListAPIView):
 
     @swagger_auto_schema(
         operation_description="Lister tous les tags",
-        responses={200: serializers.ModelSerializer(many=True)},
+        responses={200: TagBienSerializer(many=True)},
         tags=["Tags"]
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+class TarifLookupView(generics.GenericAPIView):
+    """
+    Récupère le tarif d'un bien pour un type donné (Journalier, Hebdomadaire, ...).
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = TarifSerializer
+
+    @swagger_auto_schema(
+        operation_summary="Obtenir le tarif d'un bien par type",
+        manual_parameters=[
+            openapi.Parameter(
+                'type_tarif',
+                openapi.IN_QUERY,
+                description="Type de tarif (JOURNALIER, HEBDOMADAIRE, MENSUEL, ...)",
+                type=openapi.TYPE_STRING,
+                enum=[t.name for t in Typetarif]
+            )
+        ],
+        responses={
+            200: TarifSerializer,
+            400: "Paramètre type_tarif manquant",
+            404: "Bien ou tarif introuvable",
+        },
+        tags=["Tarifs"],
+    )
+    def get(self, request, bien_id):
+        type_tarif = request.query_params.get('type_tarif')
+        if not type_tarif:
+            return Response({"detail": "Le paramètre 'type_tarif' est requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        bien = get_object_or_404(Bien, pk=bien_id)
+        tarif = Tarif.objects.filter(bien=bien, type_tarif=type_tarif).first()
+        if not tarif:
+            return Response({"detail": "Aucun tarif trouvé pour ce type."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(TarifSerializer(tarif).data)
 
 class BienPagination(PageNumberPagination):
     page_size = 10

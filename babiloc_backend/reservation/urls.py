@@ -19,6 +19,7 @@ from .viewserializer import (
     TarifCreateView,
     TarifDeleteView,
     TarifUpdateView,
+    TarifLookupView,
     AvisListCreateView,
     AvisDetailView,
     ReponseProprietaireView,
@@ -63,6 +64,7 @@ urlpatterns = [
     path('tarifs/create/', TarifCreateView.as_view(), name='tarif-create'),
     path('tarifs/<int:pk>/update/', TarifUpdateView.as_view(), name='tarif-update'),
     path('tarifs/<int:pk>/delete/', TarifDeleteView.as_view(), name='tarif-delete'),
+    path('biens/<int:bien_id>/tarif/', TarifLookupView.as_view(), name='bien-tarif-lookup'),
 
     # Favoris
     path('favoris/', AjouterFavoriView.as_view(), name='ajouter-favori'),

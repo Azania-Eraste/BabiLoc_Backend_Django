@@ -166,6 +166,8 @@ class Bien(models.Model):
         """Récupère la première image du bien pour l'affichage en liste"""
         return self.media.first().image.url if self.media.exists() else None
 
+
+
     def nombre_likes(self):
         return self.favoris.count()
 
@@ -264,6 +266,14 @@ class Tarif(models.Model):
     
     def __str__(self):
         return f"{self.type_tarif} - {self.bien.nom}"
+
+    @staticmethod
+    def get_tarif_for_bien_and_type(bien, type_tarif):
+        """
+        Récupère le tarif d'un bien pour un type_tarif donné.
+        Retourne l'objet Tarif ou None si non trouvé.
+        """
+        return Tarif.objects.filter(bien=bien, type_tarif=type_tarif).first()
 
 # ============================================================================
 # MODÈLE MEDIA

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Reservation, Bien, Media, Favori, TagBien, Tarif, Type_Bien, 
     Document, Avis, DisponibiliteHebdo, Ville, CodePromo,
-    HistoriqueStatutReservation, RevenuProprietaire, Fa
+    HistoriqueStatutReservation, RevenuProprietaire
 )
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -288,11 +288,13 @@ class FavoriSerializer(serializers.ModelSerializer):
 class FavoriListSerializer(serializers.ModelSerializer):
     bien_nom = serializers.CharField(source='bien.nom', read_only=True)
     bien_ville = serializers.CharField(source='bien.ville.nom', read_only=True)
+    bien_description = serializers.CharField(source='bien.description', read_only=True)
     first_image = serializers.CharField(source='bien.get_first_image', read_only=True)
-    
+    tarif = TarifSerializer(source='bien.tarifs', many=True, read_only=True)
+
     class Meta:
         model = Favori
-        fields = ['id', 'bien', 'bien_nom', 'bien_ville', 'first_image', 'created_at']
+        fields = ['id', 'bien', 'bien_nom',"bien_description", 'bien_ville', 'first_image', 'tarif', 'created_at']
 
 class AvisSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
