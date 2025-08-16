@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .forms import BienForm
-from .models import Reservation, Ville,Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture, DisponibiliteHebdo, TagBien
+from .models import Reservation, Ville,Favori, Bien, Type_Bien, Tarif, Media, Avis, Facture, DisponibiliteHebdo, TagBien, Document
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
@@ -67,16 +67,56 @@ class FavoriAdmin(admin.ModelAdmin):
 
 @admin.register(DisponibiliteHebdo)
 class DisponibiliteHebdoAdmin(admin.ModelAdmin):
-    list_display = ('bien', 'jours', )
-    list_filter = ('bien',)
+    list_display = ('bien', 'jours', 'heure_debut', 'heure_fin')
+    list_filter = ('bien', 'heure_debut', 'heure_fin')
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('bien', 'jours')
+        }),
+        ('Horaires', {
+            'fields': ('heure_debut', 'heure_fin')
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 @admin.register(Bien)
 class BienAdmin(admin.ModelAdmin):
     form = BienForm
-    list_display = ['id', 'nom', 'ville', 'owner', 'disponibility', 'type_bien']
-    list_filter = ['disponibility', 'type_bien', 'ville', 'created_at']
-    search_fields = ['nom', 'description', 'ville', 'owner__username']
+    list_display = ['id', 'nom', 'ville', 'lieu', 'owner', 'disponibility', 'type_bien']
+    list_filter = ['disponibility', 'type_bien', 'ville', 'created_at', 'carburant', 'transmission']
+    search_fields = ['nom', 'description', 'ville__nom', 'lieu', 'owner__username', 'marque', 'modele']
     ordering = ['-created_at']
+    readonly_fields = ['created_at', 'updated_at', 'vues']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('nom', 'description', 'type_bien', 'ville', 'lieu', 'owner', 'disponibility', 'est_verifie')
+        }),
+        ('Spécifications véhicule', {
+            'fields': ('marque', 'modele', 'plaque', 'nb_places', 'carburant', 'transmission', 'chauffeur', 'prix_chauffeur'),
+            'classes': ('collapse',),
+            'description': 'Champs spécifiques aux véhicules'
+        }),
+        ('Spécifications immobilier', {
+            'fields': ('nb_chambres', 'nb_douches'),
+            'classes': ('collapse',),
+            'description': 'Champs spécifiques aux biens immobiliers'
+        }),
+        ('Équipements et services', {
+            'fields': ('has_piscine', 'has_wifi', 'has_parking', 'has_kitchen', 'has_security', 'has_garden'),
+            'classes': ('collapse',),
+            'description': 'Équipements disponibles pour les biens immobiliers'
+        }),
+        ('Métadonnées', {
+            'fields': ('noteGlobale', 'vues', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 @admin.register(Type_Bien)
 class TypeBienAdmin(admin.ModelAdmin):
@@ -91,8 +131,49 @@ class TarifAdmin(admin.ModelAdmin):
 
 @admin.register(Media)
 class MediaAdmin(admin.ModelAdmin):
-    list_display = ['id', 'bien', 'image']
-    list_filter = ['bien']
+    list_display = ['id', 'bien', 'type_media', 'image']
+    list_filter = ['bien', 'type_media']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('bien', 'type_media', 'image')
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+@admin.register(Document)
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'bien', 'nom', 'type', 'has_file', 'has_image', 'date_upload']
+    list_filter = ['type', 'date_upload', 'bien']
+    search_fields = ['nom', 'bien__nom', 'bien__owner__username']
+    readonly_fields = ['created_at', 'updated_at', 'date_upload']
+    
+    def has_file(self, obj):
+        return bool(obj.fichier)
+    has_file.boolean = True
+    has_file.short_description = "Fichier"
+    
+    def has_image(self, obj):
+        return bool(obj.image)
+    has_image.boolean = True
+    has_image.short_description = "Image"
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('bien', 'nom', 'type')
+        }),
+        ('Fichiers', {
+            'fields': ('fichier', 'image')
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at', 'date_upload'),
+            'classes': ('collapse',)
+        }),
+    )
 
 @admin.register(Avis)
 class AvisAdmin(admin.ModelAdmin):

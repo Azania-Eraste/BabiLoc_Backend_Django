@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation d'annulation - BabiLoc</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .confirmation {
+            background: #e8f5e8;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✅ Annulation Confirmée</h1>
+        <p>L'annulation a été traitée</p>
+    </div>
+    
+    <div class="content">
+        <h2>Bonjour {{ proprietaire_nom }},</h2>
+        
+        <div class="confirmation">
+            <strong>✅ Confirmation :</strong><br>
+            L'annulation de la réservation <strong>#{{ numero_reservation }}</strong> pour <strong>{{ bien_nom }}</strong> a été traitée avec succès.
+        </div>
+        
+        <p>🕐 <strong>Date d'annulation :</strong> {{ date_annulation|date:"d/m/Y à H:i" }}</p>
+        
+        <h3>📝 Informations importantes :</h3>
+        <ul>
+            <li>📧 Le client a été informé de l'annulation</li>
+            <li>🗓️ Les dates sont maintenant disponibles pour d'autres réservations</li>
+            <li>💰 Aucun paiement ne sera traité</li>
+            <li>📱 Votre calendrier a été automatiquement mis à jour</li>
+        </ul>
+        
+        <p>Merci d'utiliser BabiLoc pour la gestion de vos biens !</p>
+    </div>
+    
+    <div class="footer">
+        <p>📧 Email automatique envoyé par BabiLoc</p>
+        <p>💚 Merci de votre confiance !</p>
+    </div>
+</body>
+</html>

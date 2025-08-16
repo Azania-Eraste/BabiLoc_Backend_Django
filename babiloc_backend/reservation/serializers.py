@@ -72,12 +72,12 @@ class TarifSerializer(serializers.ModelSerializer):
         return Tarif.objects.create(bien=bien, **validated_data)
 
 class MediaSerializer(serializers.ModelSerializer):
-    bien_id = serializers.IntegerField(write_only=True)
-    
+    bien_id = serializers.IntegerField(write_only=True, required=False)
+
     class Meta:
         model = Media
-        fields = ['id', 'image', 'bien_id']
-        read_only_fields = ['id']
+        fields = ['id', 'image', 'type_media', 'bien_id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
     
     def validate_bien_id(self, value):
         """Vérifier que le bien existe et appartient à l'utilisateur"""
@@ -166,7 +166,8 @@ class VilleSerializer(serializers.ModelSerializer):
 class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DisponibiliteHebdo
-        fields = ['jours']  # ou ce que tu utilises
+        fields = ['id', 'jours', 'heure_debut', 'heure_fin', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 class TypeCarburantSerializer(serializers.Serializer):
     """Serializer pour les choix de type de carburant"""
@@ -180,9 +181,9 @@ class TypeTransmissionSerializer(serializers.Serializer):
 
 
 class BienSerializer(serializers.ModelSerializer):
-    disponibilite_hebdo = DisponibiliteHebdoSerializer(required=False)
-    tarifs = TarifSerializer( many=True, read_only=True)  # OK selon ton modèle
-    media = MediaSerializer(source='medias', many=True, read_only=True)           # à adapter si nécessaire
+    disponibilite_hebdo = DisponibiliteHebdoSerializer(read_only=False, required=False)
+    tarifs = TarifSerializer(source='Tarifs_Biens_id', many=True, read_only=True)  # Utilise la bonne relation
+    media = MediaSerializer(many=True, read_only=True)
     is_favori = serializers.SerializerMethodField()
     nombre_likes = serializers.SerializerMethodField()
     premiere_image = serializers.SerializerMethodField()
@@ -196,15 +197,19 @@ class BienSerializer(serializers.ModelSerializer):
     tag_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     carburant_display = serializers.CharField(source='get_carburant_display', read_only=True)
     transmission_display = serializers.CharField(source='get_transmission_display', read_only=True)
+    # Ajout du champ prix pour simplifier la gestion
+    prix = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
 
     class Meta:
         model = Bien
         fields = [
-            'id', 'nom', 'description', 'ville', 'ville_id',
+            'id', 'nom', 'description', 'ville', 'ville_id', 'lieu',
             'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
             'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media','tags', 'tag_ids',
-            'marque', 'modele', 'plaque', 'nb_places', 'carburant', 'carburant_display', 'transmission', 'transmission_display', 'nb_chambres', "chauffeur", 'prix_chauffeur',
-            'has_piscine', 'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo',
+            'marque', 'modele', 'plaque', 'nb_places', 'carburant', 'carburant_display', 'transmission', 'transmission_display', 
+            'chauffeur', 'prix_chauffeur',
+            'nb_chambres', 'nb_douches', 'has_piscine', 'has_wifi', 'has_parking', 'has_kitchen', 'has_security', 'has_garden',
+            'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo', 'prix',
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
 
@@ -237,16 +242,27 @@ class BienSerializer(serializers.ModelSerializer):
     def get_premiere_image(self, obj):
         request = self.context.get('request')
         image_url = obj.get_first_image()
-        if request and image_url:
-            return request.build_absolute_uri(image_url)
-        return image_url
+        if image_url:
+            if request:
+                return request.build_absolute_uri(image_url)
+            else:
+                # Si pas de request, et que c'est un chemin relatif, cela posera problème côté client.
+                # Mieux vaut renvoyer None ou une URL par défaut si ce n'est pas une URL absolue.
+                # Pour l'instant, nous renvoyons l'URL relative, en supposant que le problème est résolu côté client
+                # ou que request est toujours disponible pour les vues concernées.
+                # Si l'erreur persiste, il faudra inspecter pourquoi request est absent.
+                return image_url
+        return None # Renvoie None si aucune image n'est trouvée
 
     def create(self, validated_data):
+        print(f"🔧 DEBUG CREATE - Validated data: {validated_data}")
         tarifs_data = validated_data.pop('tarifs', [])
         dispo_data = validated_data.pop('disponibilite_hebdo', None)
         media_data = validated_data.pop('media', [])
         document_data = validated_data.pop('documents', [])
         tag_ids = validated_data.pop('tag_ids', [])
+        prix = validated_data.pop('prix', None)
+        print(f"📅 DEBUG CREATE - Disponibilité data: {dispo_data}")
 
         # Gestion du type de bien
         type_bien_id = validated_data.pop('type_bien_id')
@@ -266,6 +282,12 @@ class BienSerializer(serializers.ModelSerializer):
             tags = TagBien.objects.filter(id__in=tag_ids)
             bien.tags.set(tags)
 
+        # Création du tarif principal si prix fourni
+        if prix is not None:
+            Tarif.objects.create(bien=bien, prix=prix, type_tarif='JOURNALIER')
+            # Calcul automatique des prix hebdomadaire et mensuel
+            self._create_automatic_tarifs(bien, prix)
+
         # Création des objets liés
         for tarif in tarifs_data:
             Tarif.objects.create(bien=bien, **tarif)
@@ -277,37 +299,164 @@ class BienSerializer(serializers.ModelSerializer):
             Document.objects.create(bien=bien, **doc)
 
         if dispo_data:
+            print(f"📅 DEBUG CREATE - Création disponibilité avec: {dispo_data}")
             DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
+        else:
+            print(f"📅 DEBUG CREATE - Aucune donnée de disponibilité reçue")
 
         return bien
 
     def update(self, instance, validated_data):
+        print(f"🔧 DEBUG SERIALIZER UPDATE - Instance ID: {instance.id}")
+        print(f"🔧 DEBUG SERIALIZER UPDATE - Instance nom: {instance.nom}")
+        print(f"🔧 DEBUG SERIALIZER UPDATE - Validated data: {validated_data}")
+        
         tag_ids = validated_data.pop('tag_ids', None)
         ville_id = validated_data.pop('ville_id', None)
         type_bien_id = validated_data.pop('type_bien_id', None)
+        prix = validated_data.pop('prix', None)
+        dispo_data = validated_data.pop('disponibilite_hebdo', None)
+
+        print(f"🏷️ DEBUG - Tag IDs: {tag_ids}")
+        print(f"🏙️ DEBUG - Ville ID: {ville_id}")
+        print(f"🏠 DEBUG - Type bien ID: {type_bien_id}")
+        print(f"💰 DEBUG - Prix: {prix}")
+        print(f"📅 DEBUG - Disponibilité data: {dispo_data}")
 
         # Mise à jour des champs de base
         for attr, value in validated_data.items():
+            print(f"🔄 DEBUG - Mise à jour {attr}: {getattr(instance, attr)} -> {value}")
             setattr(instance, attr, value)
 
         # Gestion du type de bien
         if type_bien_id:
+            print(f"🏠 DEBUG - Changement type de bien vers ID: {type_bien_id}")
             type_bien = Type_Bien.objects.get(id=type_bien_id)
             instance.type_bien = type_bien
 
         # Gestion de la ville
         if ville_id:
+            print(f"🏙️ DEBUG - Changement ville vers ID: {ville_id}")
             ville = Ville.objects.get(id=ville_id)
             instance.ville = ville
 
+        print(f"💾 DEBUG - Sauvegarde de l'instance...")
         instance.save()
+        print(f"✅ DEBUG - Instance sauvegardée")
+
+        # Gestion du prix - mise à jour ou création du tarif journalier principal
+        if prix is not None:
+            print(f"💰 DEBUG - Gestion du prix: {prix}")
+            tarif, created = Tarif.objects.get_or_create(
+                bien=instance,
+                type_tarif='JOURNALIER',  # Utiliser la valeur correcte d'après l'enum
+                defaults={'prix': prix}
+            )
+            if not created:
+                print(f"💰 DEBUG - Mise à jour tarif existant: {tarif.prix} -> {prix}")
+                tarif.prix = prix
+                tarif.save()
+            else:
+                print(f"💰 DEBUG - Création nouveau tarif: {prix}")
+            
+            # Calcul automatique des prix hebdomadaire et mensuel
+            self._create_automatic_tarifs(instance, prix)
+        
+        # Calcul automatique systématique des prix si un tarif journalier existe déjà
+        else:
+            print(f"💰 DEBUG - Vérification du tarif journalier existant...")
+            tarif_journalier_existant = Tarif.objects.filter(
+                bien=instance, 
+                type_tarif='JOURNALIER'
+            ).first()
+            
+            if tarif_journalier_existant:
+                prix_actuel = tarif_journalier_existant.prix
+                print(f"💰 DEBUG - Tarif journalier trouvé: {prix_actuel} - Recalcul automatique...")
+                # Recalcul automatique des prix hebdomadaire et mensuel
+                self._create_automatic_tarifs(instance, prix_actuel)
+            else:
+                print(f"💰 DEBUG - Aucun tarif journalier trouvé, pas de calcul automatique")
+
+        # Gestion des disponibilités
+        if dispo_data is not None:
+            print(f"📅 DEBUG - Gestion disponibilités: {dispo_data}")
+            # Convert string to list of days (for backward compatibility)
+            if isinstance(dispo_data, str):
+                jours_list = [jour.strip() for jour in dispo_data.split(',') if jour.strip()]
+                print(f"📅 DEBUG - Conversion string vers list: {jours_list}")
+                dispo_data = {'jours': jours_list}
+            
+            # Handle nested serializer data (dict)
+            if isinstance(dispo_data, dict):
+                print(f"📅 DEBUG - Traitement données format objet: {dispo_data}")
+                
+                dispo, created = DisponibiliteHebdo.objects.get_or_create(
+                    bien=instance,
+                    defaults=dispo_data
+                )
+                if not created:
+                    print(f"📅 DEBUG - Mise à jour disponibilités existantes")
+                    for key, value in dispo_data.items():
+                        if hasattr(dispo, key):
+                            print(f"📅 DEBUG - {key}: {getattr(dispo, key)} -> {value}")
+                            setattr(dispo, key, value)
+                    dispo.save()
+                else:
+                    print(f"📅 DEBUG - Création nouvelles disponibilités")
+            else:
+                print(f"📅 DEBUG - Format de disponibilité non reconnu: {type(dispo_data)}")
 
         # Mise à jour des tags
         if tag_ids is not None:
+            print(f"🏷️ DEBUG - Mise à jour tags: {tag_ids}")
             tags = TagBien.objects.filter(id__in=tag_ids)
             instance.tags.set(tags)
 
+        print(f"✅ DEBUG - Update terminé pour bien ID: {instance.id}")
         return instance
+    
+    def _create_automatic_tarifs(self, instance, prix_journalier):
+        """
+        Crée automatiquement les tarifs hebdomadaire et mensuel basés sur le prix journalier
+        """
+        print(f"💰 DEBUG - Calcul automatique des tarifs pour bien ID: {instance.id}")
+        
+        # Calcul des prix avec réduction progressive
+        prix_hebdomadaire = float(prix_journalier) * 7 * 0.85  # 15% de réduction pour 7 jours
+        prix_mensuel = float(prix_journalier) * 30 * 0.70      # 30% de réduction pour 30 jours
+        
+        print(f"💰 DEBUG - Prix journalier: {prix_journalier}")
+        print(f"💰 DEBUG - Prix hebdomadaire calculé: {prix_hebdomadaire}")
+        print(f"💰 DEBUG - Prix mensuel calculé: {prix_mensuel}")
+        
+        # Création/mise à jour du tarif hebdomadaire
+        tarif_hebdo, created_hebdo = Tarif.objects.get_or_create(
+            bien=instance,
+            type_tarif='HEBDOMADAIRE',
+            defaults={'prix': prix_hebdomadaire}
+        )
+        if not created_hebdo:
+            tarif_hebdo.prix = prix_hebdomadaire
+            tarif_hebdo.save()
+            print(f"💰 DEBUG - Tarif hebdomadaire mis à jour: {prix_hebdomadaire}")
+        else:
+            print(f"💰 DEBUG - Tarif hebdomadaire créé: {prix_hebdomadaire}")
+        
+        # Création/mise à jour du tarif mensuel
+        tarif_mensuel, created_mensuel = Tarif.objects.get_or_create(
+            bien=instance,
+            type_tarif='MENSUEL',
+            defaults={'prix': prix_mensuel}
+        )
+        if not created_mensuel:
+            tarif_mensuel.prix = prix_mensuel
+            tarif_mensuel.save()
+            print(f"💰 DEBUG - Tarif mensuel mis à jour: {prix_mensuel}")
+        else:
+            print(f"💰 DEBUG - Tarif mensuel créé: {prix_mensuel}")
+        
+        print(f"✅ DEBUG - Calcul automatique des tarifs terminé")
 
 
 
@@ -416,6 +565,35 @@ class ReservationUpdateSerializer(serializers.ModelSerializer):
         return value
 
 class ReservationListSerializer(serializers.ModelSerializer):
+    bien_titre = serializers.SerializerMethodField()
+    bien_adresse = serializers.SerializerMethodField()
+    bien_image = serializers.SerializerMethodField()
+    
+    def get_bien_titre(self, obj):
+        return obj.bien.nom if obj.bien else None
+    
+    def get_bien_adresse(self, obj):
+        if obj.bien and obj.bien.ville:
+            lieu = f", {obj.bien.lieu}" if obj.bien.lieu else ""
+            return f"{obj.bien.ville.nom}{lieu}"
+        return None
+    
+    def get_bien_image(self, obj):
+        if obj.bien:
+            request = self.context.get('request')
+            
+            # Chercher l'image principale d'abord
+            image_principale = obj.bien.media.filter(type_media='principale').first()
+            if image_principale and image_principale.image:
+                image_url = image_principale.image.url
+                return request.build_absolute_uri(image_url) if request else image_url
+            
+            # Sinon, prendre la première image disponible
+            first_image = obj.bien.media.first()
+            if first_image and first_image.image:
+                image_url = first_image.image.url
+                return request.build_absolute_uri(image_url) if request else image_url
+        return None
     """Serializer simplifié pour les listes"""
     
     user_info = serializers.SerializerMethodField()
@@ -426,7 +604,8 @@ class ReservationListSerializer(serializers.ModelSerializer):
         model = Reservation
         fields = [
             'id', 'user_info', 'bien', 'date_debut', 'date_fin',  # Change annonce_id to bien
-            'status', 'status_display', 'prix_total', 'created_at'
+            'status', 'status_display', 'prix_total', 'created_at',
+            'bien_titre', 'bien_adresse', 'bien_image'  # Nouveaux champs ajoutés
         ]
     
     def get_user_info(self, obj):
@@ -510,19 +689,22 @@ class AvisSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     note_moyenne_detaillee = serializers.ReadOnlyField()
     peut_repondre = serializers.SerializerMethodField()
+    auteur_nom = serializers.SerializerMethodField()
+    nom_complet = serializers.SerializerMethodField()
+    note_globale = serializers.SerializerMethodField()
     
     class Meta:
         model = Avis
         fields = [
-            'id', 'user', 'bien', 'reservation', 'note',
+            'id', 'user', 'bien', 'reservation', 'note', 'note_globale',
             'commentaire', 'note_proprete', 'note_communication',
             'note_emplacement', 'note_rapport_qualite_prix', 'recommande',
             'note_moyenne_detaillee', 'reponse_proprietaire', 'date_reponse',
-            'created_at', 'updated_at', 'peut_repondre'
+            'created_at', 'updated_at', 'peut_repondre', 'auteur_nom', 'nom_complet'
         ]
         read_only_fields = [
             'id', 'user', 'created_at', 'updated_at', 
-            'note_moyenne_detaillee', 'peut_repondre'
+            'note_moyenne_detaillee', 'peut_repondre', 'auteur_nom', 'nom_complet', 'note_globale'
         ]
     
     def get_peut_repondre(self, obj):
@@ -531,6 +713,23 @@ class AvisSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.bien.owner == request.user and not obj.reponse_proprietaire
         return False
+    
+    def get_auteur_nom(self, obj):
+        """Retourne le nom complet de l'auteur de l'avis"""
+        if obj.user:
+            first_name = obj.user.first_name or ""
+            last_name = obj.user.last_name or ""
+            full_name = f"{first_name} {last_name}".strip()
+            return full_name if full_name else obj.user.username
+        return "Anonyme"
+    
+    def get_nom_complet(self, obj):
+        """Alias pour auteur_nom pour compatibilité"""
+        return self.get_auteur_nom(obj)
+    
+    def get_note_globale(self, obj):
+        """Alias pour le champ note - compatibilité frontend"""
+        return obj.note
 
 class AvisCreateSerializer(serializers.ModelSerializer):
     """Serializer pour créer un avis"""

@@ -126,8 +126,39 @@ class MeView(APIView):
 
     def get(self, request):
         user = request.user
+        print(f"🔍 MeView - Utilisateur connecté: {user.username} (ID: {user.id})")
         serializer = UserSerializer(user)
+        print(f"✅ MeView - Données sérialisées pour: {user.username}")
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def patch(self, request):
+        user = request.user
+        print(f"🔄 MeView PATCH - Utilisateur: {user.username} (ID: {user.id})")
+        print(f"📝 Données reçues: {request.data}")
+        
+        # Champs autorisés à être mis à jour
+        allowed_fields = ['first_name', 'last_name', 'number', 'birthdate']
+        
+        for field in allowed_fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+                print(f"✏️ {field} mis à jour: {request.data[field]}")
+        
+        try:
+            user.save()
+            print(f"💾 Profil sauvegardé pour: {user.username}")
+            serializer = UserSerializer(user)
+            return Response({
+                'success': True,
+                'message': 'Profil mis à jour avec succès',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"❌ Erreur sauvegarde profil: {e}")
+            return Response({
+                'success': False,
+                'error': 'Erreur lors de la sauvegarde du profil'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -1365,3 +1396,60 @@ def valider_code_promo(request):
             'valid': False,
             'error': 'Code promo invalide'
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BecomeVendorView(APIView):
+    """
+    Endpoint pour promouvoir un utilisateur en vendeur/hôte
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Promouvoir l'utilisateur connecté en vendeur/hôte",
+        responses={
+            200: openapi.Response(
+                description="Promotion réussie",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                        'is_vendor': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    }
+                )
+            ),
+            400: openapi.Response(description="L'utilisateur est déjà vendeur")
+        },
+        tags=["Authentification"]
+    )
+    def patch(self, request):
+        user = request.user
+        print(f"=== BECOME VENDOR REQUEST ===")
+        print(f"User: {user.username} (ID: {user.id})")
+        print(f"Current is_vendor: {user.is_vendor}")
+        print(f"Request data: {request.data}")
+        
+        if user.is_vendor:
+            print(f"❌ User {user.username} is already a vendor")
+            return Response({
+                'success': False,
+                'message': 'Vous êtes déjà un vendeur/hôte',
+                'is_vendor': True
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Promouvoir l'utilisateur en vendeur
+        print(f"✅ Promoting user {user.username} to vendor")
+        user.is_vendor = True
+        user.save()
+        
+        # Générer un nouveau token avec les nouvelles permissions
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        
+        print(f"✅ User {user.username} successfully promoted to vendor")
+        return Response({
+            'success': True,
+            'message': 'Vous êtes maintenant un vendeur/hôte !',
+            'is_vendor': True,
+            'access': access_token,  # Nouveau token avec les permissions mises à jour
+        }, status=status.HTTP_200_OK)

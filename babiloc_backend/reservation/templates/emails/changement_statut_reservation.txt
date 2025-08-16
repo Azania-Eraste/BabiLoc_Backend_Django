@@ -1,0 +1,35 @@
+🔄 MISE À JOUR DE RÉSERVATION - BABILOC
+
+Bonjour {{ destinataire_nom }},
+
+Le statut de votre réservation a changé.
+
+📊 NOUVEAU STATUT : {{ nouveau_statut }}
+
+ℹ️ INFORMATION : {{ message_personnalise }}
+
+📋 DÉTAILS DE LA RÉSERVATION
+==========================================
+🔢 Numéro : #{{ numero_reservation }}
+🚗 Véhicule : {{ bien_nom }}
+📅 Date de début : {{ date_debut|date:"d/m/Y à H:i" }}
+📅 Date de fin : {{ date_fin|date:"d/m/Y à H:i" }}
+💰 Montant : {{ prix_total }} FCFA
+
+📱 TABLEAU DE BORD : {{ url_dashboard }}
+
+{% if type_destinataire == 'client' %}
+📝 QUE FAIRE MAINTENANT ?
+📱 Consultez votre tableau de bord pour plus de détails
+📞 Contactez le propriétaire si nécessaire
+🗓️ Préparez-vous selon le nouveau statut
+{% else %}
+📝 ACTIONS RECOMMANDÉES :
+📱 Vérifiez votre tableau de bord
+📞 Contactez le client si nécessaire
+🚗 Préparez votre véhicule selon le statut
+{% endif %}
+
+==========================================
+📧 Email automatique envoyé par BabiLoc
+💚 Merci d'utiliser BabiLoc !

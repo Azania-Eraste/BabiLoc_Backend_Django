@@ -116,6 +116,7 @@ class Bien(models.Model):
         ESSENCE = 'essence', 'Essence'
         DIESEL = 'diesel', 'Diesel'
         ELECTRIQUE = 'electrique', 'Électrique'
+        ELECTRIQUE_ACCENT = 'électrique', 'Électrique'  # Accepter aussi avec accent
         HYBRIDE = 'hybride', 'Hybride'
 
     class TypeTransmission(models.TextChoices):
@@ -126,8 +127,10 @@ class Bien(models.Model):
     nom = models.CharField(max_length=250)  # Ex: "Villa moderne 4 chambres"
     description = models.TextField()  # Description complète du bien
     ville = models.ForeignKey(Ville, on_delete=models.SET_NULL, null=True, blank=True, related_name="biens", verbose_name="Ville")
+    lieu = models.CharField(max_length=255, blank=True, null=True, verbose_name="Lieu", help_text="Localisation précise du bien (ex: Cocody, Deux-Plateaux)")
     
     noteGlobale = models.FloatField(  # Note moyenne sur 5 étoiles
+        default=0.0,  # Valeur par défaut ajoutée
         validators=[
             MinValueValidator(0.0),      # Note minimale : 0/5
             MaxValueValidator(5.0)       # Note maximale : 5/5
@@ -140,7 +143,7 @@ class Bien(models.Model):
         related_name='Propriétaire_bien',
         verbose_name="Propriétaire"
         )
-    disponibility = models.BooleanField()  # True = disponible, False = occupé
+    disponibility = models.BooleanField(default=True)  # Valeur par défaut ajoutée
     type_bien = models.ForeignKey(Type_Bien, related_name="biens", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
@@ -178,9 +181,17 @@ class Bien(models.Model):
         verbose_name="Type de transmission"
     )
 
-    # Exemple pour une maison
-    nb_chambres = models.IntegerField(null=True, blank=True)
-    has_piscine = models.BooleanField(null=True, blank=True)
+    # Champs pour les biens immobiliers
+    nb_chambres = models.IntegerField(null=True, blank=True, verbose_name="Nombre de chambres")
+    nb_douches = models.IntegerField(null=True, blank=True, verbose_name="Nombre de salles de bain")
+    
+    # Équipements et services
+    has_piscine = models.BooleanField(null=True, blank=True, verbose_name="Piscine")
+    has_wifi = models.BooleanField(null=True, blank=True, verbose_name="WiFi")
+    has_parking = models.BooleanField(null=True, blank=True, verbose_name="Parking")
+    has_kitchen = models.BooleanField(null=True, blank=True, verbose_name="Cuisine équipée")
+    has_security = models.BooleanField(null=True, blank=True, verbose_name="Sécurité")
+    has_garden = models.BooleanField(null=True, blank=True, verbose_name="Jardin")
 
     est_verifie = models.BooleanField(default=False)
 
@@ -207,6 +218,8 @@ class DisponibiliteHebdo(models.Model):
 
     bien = models.OneToOneField('Bien', related_name='disponibilite_hebdo', on_delete=models.CASCADE)
     jours = models.JSONField(default=list, help_text="Ex: ['lundi', 'mardi', 'jeudi']")
+    heure_debut = models.TimeField(default='09:00:00', verbose_name="Heure de début")
+    heure_fin = models.TimeField(default='17:00:00', verbose_name="Heure de fin")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
@@ -282,7 +295,7 @@ class Tarif(models.Model):
 
     prix = models.FloatField(validators=[MinValueValidator(0.0)])
     type_tarif = models.CharField(max_length=50, choices=[(tag.name, tag.value) for tag in Typetarif], null=True)
-    bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='tarifs')
+    bien = models.ForeignKey(Bien,on_delete=models.CASCADE, related_name='Tarifs_Biens_id')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé  le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
     
@@ -298,8 +311,20 @@ class Tarif(models.Model):
 # Exemple : Photos de la façade, salon, chambres, cuisine, etc.
 # Un bien peut avoir plusieurs images pour le présenter aux locataires
 class Media(models.Model):
+    TYPE_MEDIA_CHOICES = [
+        ('galerie', 'Galerie'),
+        ('principale', 'Image principale'),
+        ('document', 'Document (carte grise, etc.)'),
+    ]
+    
     bien = models.ForeignKey('Bien', on_delete=models.CASCADE, related_name='media')
     image = models.ImageField(upload_to='biens/')  # Images stockées dans media/biens/
+    type_media = models.CharField(
+        max_length=20,
+        choices=TYPE_MEDIA_CHOICES,
+        default='galerie',
+        verbose_name="Type de média"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
@@ -408,7 +433,7 @@ class Reservation(models.Model):
 
     def get_tarif_bien(self):
         """Récupère le tarif du bien selon le type choisi"""
-        return self.bien.tarifs.filter(type_tarif=self.type_tarif).first()
+        return self.bien.Tarifs_Biens_id.filter(type_tarif=self.type_tarif).first()
     
     def save(self, *args, **kwargs):
         # Only calculate price for new reservations
@@ -448,7 +473,7 @@ class Reservation(models.Model):
 
 
 class CodePromo(models.Model):
-    nom = models.CharField(unique=True)
+    nom = models.CharField(max_length=50, unique=True)
     reduction = models.DecimalField(
         max_digits=4,
         decimal_places=2,
@@ -655,34 +680,41 @@ class Favori(models.Model):
 @receiver(post_save, sender=Document)
 def send_document_email(sender, instance, created, **kwargs):
     if created:
-        subject = f"Nouveau document soumis : {instance.nom}"
-        message = f"""
+        # Désactivé temporairement à cause de problèmes de configuration SMTP
+        # TODO: Configurer correctement l'envoi d'emails
+        try:
+            subject = f"Nouveau document soumis : {instance.nom}"
+            message = f"""
 Bonjour,
 
 Un nouveau document a été soumis pour le bien : {instance.bien.nom}.
 
 Détails :
 - Type : {instance.get_type_display()}
-- Nom du fichier : {instance.fichier.name}
+- Nom du fichier : {instance.fichier.name if instance.fichier else 'Aucun fichier'}
 - Propriétaire : {instance.bien.owner.get_full_name() or instance.bien.owner.username}
 
 Veuillez le vérifier en pièce jointe.
 
 Merci.
-        """
+            """
 
-        email = EmailMessage(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [settings.EMAIL_HOST_USER,],  # Change ça par l'adresse du modérateur
-        )
+            email = EmailMessage(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [settings.EMAIL_HOST_USER,],  # Change ça par l'adresse du modérateur
+            )
 
-        # Ajoute le fichier
-        if instance.fichier:
-            email.attach_file(instance.fichier.path)
+            # Ajoute le fichier
+            if instance.fichier:
+                email.attach_file(instance.fichier.path)
 
-        email.send(fail_silently=False)
+            email.send(fail_silently=True)  # Changé en True pour éviter les erreurs
+        except Exception as e:
+            # Log l'erreur mais ne fait pas planter l'application
+            print(f"Erreur lors de l'envoi d'email pour le document {instance.id}: {e}")
+            pass
 
 
 class Avis(models.Model):
@@ -706,7 +738,9 @@ class Avis(models.Model):
         on_delete=models.CASCADE,
         related_name='avis',
         verbose_name="Réservation",
-        help_text="L'avis est lié à une réservation spécifique"
+        help_text="L'avis est lié à une réservation spécifique",
+        null=True,
+        blank=True
     )
     
     # Note sur 5 étoiles
@@ -775,8 +809,23 @@ class Avis(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
     
     class Meta:
-        # Un utilisateur ne peut donner qu'un seul avis par réservation
-        unique_together = ('user', 'reservation')
+        # Contraintes d'unicité
+        # Un utilisateur ne peut donner qu'un seul avis par réservation (si réservation)
+        # Un utilisateur ne peut donner qu'un seul avis par bien (si pas de réservation)
+        constraints = [
+            # Contrainte pour les avis avec réservation : un seul avis par réservation
+            models.UniqueConstraint(
+                fields=['user', 'reservation'],
+                name='unique_avis_par_reservation',
+                condition=models.Q(reservation__isnull=False)
+            ),
+            # Contrainte pour les avis sans réservation : un seul avis par utilisateur et bien
+            models.UniqueConstraint(
+                fields=['user', 'bien'],
+                name='unique_avis_sans_reservation',
+                condition=models.Q(reservation__isnull=True)
+            ),
+        ]
         ordering = ['-created_at']
         verbose_name = "Avis"
         verbose_name_plural = "Avis"

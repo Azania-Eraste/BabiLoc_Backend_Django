@@ -1,0 +1,25 @@
+❌ RÉSERVATION ANNULÉE - BABILOC
+
+Bonjour {{ proprietaire_nom }},
+
+⚠️ ANNULATION : Le client {{ client_nom }} a annulé sa réservation pour votre véhicule {{ bien_nom }}.
+
+📋 DÉTAILS DE LA RÉSERVATION ANNULÉE
+==========================================
+🔢 Numéro : #{{ numero_reservation }}
+👤 Client : {{ client_nom }}
+🚗 Véhicule : {{ bien_nom }}
+📅 Dates prévues : {{ date_debut|date:"d/m/Y" }} au {{ date_fin|date:"d/m/Y" }}
+💰 Montant : {{ prix_total }} FCFA
+🕐 Annulée le : {{ date_annulation|date:"d/m/Y à H:i" }}
+
+📝 QUE SE PASSE-T-IL MAINTENANT ?
+🗓️ Ces dates sont maintenant disponibles pour d'autres réservations
+💰 Aucun paiement ne sera traité
+📱 Votre calendrier a été automatiquement mis à jour
+
+📱 VOIR MES RÉSERVATIONS : {{ url_gestion }}
+
+==========================================
+📧 Email automatique envoyé par BabiLoc
+💚 Merci d'utiliser BabiLoc !

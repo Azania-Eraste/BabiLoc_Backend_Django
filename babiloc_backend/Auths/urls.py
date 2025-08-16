@@ -13,13 +13,14 @@ from .views import (
     GetUserByIdView,
     MonParrainageView, MesFilleulsView, HistoriqueParrainageView,
     generer_code_promo, statistiques_parrainage, verifier_code_parrainage,
-    demander_retrait, valider_code_promo
+    demander_retrait, valider_code_promo, BecomeVendorView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('become-vendor/', BecomeVendorView.as_view(), name='become-vendor'),
     path('register/', RegisterView.as_view(), name='register'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('resend-otp/', ResendOTPView.as_view(), name='resend-otp'),

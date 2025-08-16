@@ -1,0 +1,19 @@
+✅ ANNULATION CONFIRMÉE - BABILOC
+
+Bonjour {{ client_nom }},
+
+✅ CONFIRMATION :
+Votre réservation #{{ numero_reservation }} pour {{ bien_nom }} a été annulée avec succès.
+
+🕐 Date d'annulation : {{ date_annulation|date:"d/m/Y à H:i" }}
+
+📝 INFORMATIONS IMPORTANTES :
+💰 Si un paiement avait été effectué, le remboursement sera traité automatiquement
+📧 Le propriétaire a été informé de l'annulation
+🗓️ Les dates sont maintenant libérées
+
+Merci d'avoir utilisé BabiLoc. Nous espérons vous revoir bientôt !
+
+==========================================
+📧 Email automatique envoyé par BabiLoc
+💚 Merci de nous faire confiance !

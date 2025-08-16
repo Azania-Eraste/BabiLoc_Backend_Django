@@ -1,0 +1,36 @@
+✅ RÉSERVATION CONFIRMÉE - BABILOC
+
+Bonjour {{ client_nom }},
+
+🎉 Félicitations ! Votre réservation a été enregistrée avec succès.
+Vous recevrez une notification dès que le propriétaire confirmera votre demande.
+
+📋 RÉCAPITULATIF DE VOTRE RÉSERVATION
+==========================================
+🔢 Numéro de réservation : #{{ numero_reservation }}
+🚗 Véhicule : {{ bien_nom }}
+📅 Date de début : {{ date_debut|date:"d/m/Y à H:i" }}
+📅 Date de fin : {{ date_fin|date:"d/m/Y à H:i" }}
+📍 Lieu de récupération : {{ lieu_recuperation }}
+📊 Statut : {{ statut }}
+💰 Montant total : {{ prix_total }} FCFA
+
+📞 CONTACT DU PROPRIÉTAIRE
+{{ proprietaire_nom }}
+Téléphone : {{ proprietaire_telephone }}
+(Vous pourrez contacter le propriétaire une fois la réservation confirmée)
+
+📱 VOIR MES RÉSERVATIONS : {{ url_reservations }}
+
+📝 PROCHAINES ÉTAPES :
+⏳ Attendez la confirmation du propriétaire
+📧 Vous recevrez un email de confirmation
+💳 Procédez au paiement si requis
+🗓️ Préparez-vous pour la récupération du véhicule
+
+Questions ? N'hésitez pas à nous contacter si vous avez besoin d'aide !
+
+==========================================
+📧 Email automatique envoyé par BabiLoc
+🕐 Réservation créée le {{ date_creation|date:"d/m/Y à H:i" }}
+💚 Merci de nous faire confiance !

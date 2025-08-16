@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mise à jour de réservation - BabiLoc</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .status-update {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .reservation-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #0d47a1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔄 Mise à jour de réservation</h1>
+        <p>Le statut de votre réservation a changé</p>
+    </div>
+    
+    <div class="content">
+        <h2>Bonjour {{ destinataire_nom }},</h2>
+        
+        <div class="status-update">
+            <h3>📊 Nouveau statut</h3>
+            <p style="font-size: 20px; font-weight: bold; color: #2196F3;">{{ nouveau_statut }}</p>
+        </div>
+        
+        <div class="info">
+            <strong>ℹ️ Information :</strong> {{ message_personnalise }}
+        </div>
+        
+        <div class="reservation-details">
+            <h3>📋 Détails de la réservation</h3>
+            
+            <div class="detail-row">
+                <span class="label">🔢 Numéro :</span>
+                <span class="value">#{{ numero_reservation }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">🚗 Véhicule :</span>
+                <span class="value">{{ bien_nom }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📅 Date de début :</span>
+                <span class="value">{{ date_debut|date:"d/m/Y à H:i" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📅 Date de fin :</span>
+                <span class="value">{{ date_fin|date:"d/m/Y à H:i" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">💰 Montant :</span>
+                <span class="value">{{ prix_total }} FCFA</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{ url_dashboard }}" class="button">📱 Voir le tableau de bord</a>
+        </div>
+        
+        {% if type_destinataire == 'client' %}
+        <h3>📝 Que faire maintenant ?</h3>
+        <ul>
+            <li>📱 Consultez votre tableau de bord pour plus de détails</li>
+            <li>📞 Contactez le propriétaire si nécessaire</li>
+            <li>🗓️ Préparez-vous selon le nouveau statut</li>
+        </ul>
+        {% else %}
+        <h3>📝 Actions recommandées :</h3>
+        <ul>
+            <li>📱 Vérifiez votre tableau de bord</li>
+            <li>📞 Contactez le client si nécessaire</li>
+            <li>🚗 Préparez votre véhicule selon le statut</li>
+        </ul>
+        {% endif %}
+    </div>
+    
+    <div class="footer">
+        <p>📧 Email automatique envoyé par BabiLoc</p>
+        <p>💚 Merci d'utiliser BabiLoc !</p>
+    </div>
+</body>
+</html>

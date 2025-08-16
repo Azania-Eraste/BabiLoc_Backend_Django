@@ -203,6 +203,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:8081",  # Ajout pour Flutter web
     "http://127.0.0.1:8081",
+    "http://10.0.2.2:8000",   # Ajout pour l'émulateur Android
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -244,3 +245,6 @@ CINETPAY_API_KEY = config('CINETPAY_API_KEY', default='136374542367d0c397639a18.
 CINETPAY_SITE_ID = config('CINETPAY_SITE_ID', default='105899348')
 CINETPAY_SECRET_KEY = config('CINETPAY_SECRET_KEY', default='89221587685942e4ae2573.09390795')
 BASE_URL = config('BASE_URL', default='http://127.0.0.1:8000')
+
+# Frontend URL pour les notifications
+FRONTEND_URL = config('FRONTEND_URL', default='http://127.0.0.1:3000')

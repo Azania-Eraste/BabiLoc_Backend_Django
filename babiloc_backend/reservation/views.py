@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from .payment_services import cinetpay_service
 import json
 import logging
@@ -15,7 +16,7 @@ from django.db import models  # ✅ Add this import
 from django.http import HttpResponse, Http404
 
 from django.shortcuts import get_object_or_404
-from .models import Reservation, Paiement, HistoriquePaiement, TypeOperation, Facture
+from .models import Reservation, Paiement, HistoriquePaiement, TypeOperation, Facture, Bien
 from rest_framework.views import APIView
 from django.db.models import Sum, F, Q  # ✅ Add Q import
 from Auths import permission
@@ -25,7 +26,8 @@ from .serializers import (
     ReservationUpdateSerializer,
     ReservationListSerializer,
     HistoriquePaiementSerializer,
-    FactureSerializer, FactureCreateSerializer
+    FactureSerializer, FactureCreateSerializer,
+    ChoicesSerializer
 )
 from decimal import Decimal
 
@@ -100,6 +102,20 @@ class CreateReservationView(generics.CreateAPIView):
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        # Retourner les données avec l'ID de la réservation
+        response_data = serializer.data
+        response_data['id'] = serializer.instance.id
+        response_data['success'] = True
+        response_data['message'] = 'Réservation créée avec succès'
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
 class MesReservationsView(generics.ListAPIView):
     serializer_class = ReservationListSerializer
@@ -264,6 +280,37 @@ def cancel_payment(request):
         return Response(result, status=400)
     
     return Response(result)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def cancel_reservation(request):
+    """Annuler une réservation."""
+    reservation_id = request.data.get('reservation_id')
+
+    if not reservation_id:
+        return Response({'error': 'L\'ID de réservation est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        reservation = Reservation.objects.get(id=reservation_id)
+    except Reservation.DoesNotExist:
+        return Response({'error': 'Réservation non trouvée.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Vérifier les permissions: Seul l'utilisateur qui a fait la réservation ou un admin peut annuler
+    if not (request.user == reservation.user or request.user.is_staff):
+        return Response({'error': 'Vous n\'avez pas la permission d\'annuler cette réservation.'}, status=status.HTTP_403_FORBIDDEN)
+
+    # Empêcher l'annulation si la réservation est déjà terminée ou annulée
+    if reservation.status == 'completed':
+        return Response({'error': 'Une réservation terminée ne peut pas être annulée.'}, status=status.HTTP_400_BAD_REQUEST)
+    if reservation.status == 'cancelled':
+        return Response({'error': 'Cette réservation est déjà annulée.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Annuler la réservation
+    reservation.status = 'cancelled'
+    reservation.save()
+
+    logger.info(f"Réservation {reservation_id} annulée par {request.user.username}")
+    return Response({'success': True, 'message': 'Réservation annulée avec succès.'}, status=status.HTTP_200_OK)
 
 class HistoriqueRevenusProprietaireView(APIView):
     """Historique des revenus pour un propriétaire"""
@@ -499,3 +546,404 @@ class FacturesHoteView(generics.ListAPIView):
         return Facture.objects.filter(
             reservation__bien__owner=self.request.user
         ).order_by('-date_emission')
+
+
+# ==========================================
+# ✅ NOUVELLES VUES POUR LA DISPONIBILITÉ
+# ==========================================
+
+from .services.disponibilite_service import DisponibiliteService
+from .models import Bien
+from datetime import datetime
+
+@api_view(['GET'])
+def obtenir_disponibilite_vehicule(request, bien_id):
+    """
+    Obtient la disponibilité d'un véhicule pour un mois donné
+    """
+    try:
+        bien = get_object_or_404(Bien, id=bien_id)
+        
+        # Récupérer les paramètres de date
+        mois = request.GET.get('mois')
+        annee = request.GET.get('annee')
+        
+        if mois:
+            mois = int(mois)
+        if annee:
+            annee = int(annee)
+        
+        # Obtenir les dates indisponibles
+        dates_indisponibles = DisponibiliteService.obtenir_dates_indisponibles(
+            bien, mois, annee
+        )
+        
+        return Response({
+            'success': True,
+            'data': {
+                'vehicule_id': bien.id,
+                'vehicule_nom': bien.nom,
+                'disponibilite_generale': bien.disponibility,
+                'statut': bien.status,
+                'dates_indisponibles': dates_indisponibles,
+                'mois': mois or timezone.now().month,
+                'annee': annee or timezone.now().year,
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur obtention disponibilité véhicule {bien_id}: {e}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def verifier_disponibilite_periode(request, bien_id):
+    """
+    Vérifie si un véhicule est disponible pour une période donnée
+    """
+    try:
+        bien = get_object_or_404(Bien, id=bien_id)
+        
+        # Récupérer les données
+        date_debut_str = request.data.get('date_debut')
+        date_fin_str = request.data.get('date_fin')
+        reservation_id = request.data.get('reservation_id')  # Pour exclure une réservation existante
+        
+        if not date_debut_str or not date_fin_str:
+            return Response({
+                'success': False,
+                'error': 'Les dates de début et de fin sont requises'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Convertir les dates
+        try:
+            date_debut = datetime.fromisoformat(date_debut_str.replace('Z', '+00:00'))
+            date_fin = datetime.fromisoformat(date_fin_str.replace('Z', '+00:00'))
+        except ValueError:
+            return Response({
+                'success': False,
+                'error': 'Format de date invalide. Utilisez le format ISO 8601'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Vérifier que la date de début est antérieure à la date de fin
+        if date_debut >= date_fin:
+            return Response({
+                'success': False,
+                'error': 'La date de début doit être antérieure à la date de fin'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Récupérer la réservation à exclure si spécifiée
+        reservation_exclue = None
+        if reservation_id:
+            try:
+                reservation_exclue = Reservation.objects.get(id=reservation_id)
+            except Reservation.DoesNotExist:
+                pass
+        
+        # Vérifier la disponibilité
+        disponible = DisponibiliteService.verifier_disponibilite_periode(
+            bien, date_debut, date_fin, reservation_exclue
+        )
+        
+        return Response({
+            'success': True,
+            'data': {
+                'vehicule_id': bien.id,
+                'vehicule_nom': bien.nom,
+                'date_debut': date_debut.isoformat(),
+                'date_fin': date_fin.isoformat(),
+                'disponible': disponible,
+                'message': 'Véhicule disponible pour cette période' if disponible else 'Véhicule non disponible pour cette période'
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur vérification disponibilité véhicule {bien_id}: {e}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def forcer_mise_a_jour_disponibilite(request, bien_id):
+    """
+    Force la mise à jour de la disponibilité d'un véhicule
+    (Fonction d'administration)
+    """
+    try:
+        bien = get_object_or_404(Bien, id=bien_id)
+        
+        # Vérifier que l'utilisateur est le propriétaire ou un admin
+        if not (request.user.is_staff or bien.proprietaire == request.user):
+            return Response({
+                'success': False,
+                'error': 'Vous n\'avez pas l\'autorisation de modifier ce véhicule'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Forcer la mise à jour
+        mise_a_jour_effectuee = DisponibiliteService.mettre_a_jour_disponibilite_vehicule(bien)
+        
+        # Recharger le véhicule pour obtenir les dernières données
+        bien.refresh_from_db()
+        
+        return Response({
+            'success': True,
+            'data': {
+                'vehicule_id': bien.id,
+                'vehicule_nom': bien.nom,
+                'nouvelle_disponibilite': bien.disponibility,
+                'nouveau_statut': bien.status,
+                'mise_a_jour_effectuee': mise_a_jour_effectuee,
+                'message': 'Disponibilité mise à jour avec succès'
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur force mise à jour disponibilité véhicule {bien_id}: {e}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def mettre_a_jour_statuts_automatique(request):
+    """
+    Lance la mise à jour automatique des statuts de réservation
+    (Fonction d'administration)
+    """
+    try:
+        # Vérifier que l'utilisateur est un admin
+        if not request.user.is_staff:
+            return Response({
+                'success': False,
+                'error': 'Seuls les administrateurs peuvent lancer cette opération'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Lancer la mise à jour automatique
+        reservations_modifiees = DisponibiliteService.mettre_a_jour_statuts_reservations()
+        
+        return Response({
+            'success': True,
+            'data': {
+                'reservations_modifiees': reservations_modifiees,
+                'message': f'{reservations_modifiees} réservations ont été mises à jour'
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur mise à jour automatique des statuts: {e}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def reservations_bien(request):
+    """
+    Récupère les réservations existantes d'un bien spécifique pour afficher la disponibilité
+    
+    Query Parameters:
+    - bien_id: ID du bien (obligatoire)
+    - statut: Statut des réservations à récupérer (optionnel, défaut: 'confirmed')
+    
+    Utilisé par l'application mobile pour afficher les périodes réservées sur la page de booking
+    """
+    try:
+        # Récupération des paramètres
+        bien_id = request.GET.get('bien_id')
+        statut = request.GET.get('statut', 'confirmed')
+        
+        if not bien_id:
+            return Response({
+                'success': False,
+                'error': 'Le paramètre bien_id est obligatoire'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            bien_id = int(bien_id)
+        except ValueError:
+            return Response({
+                'success': False,
+                'error': 'Le bien_id doit être un nombre entier'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Vérifier que le bien existe
+        try:
+            bien = Bien.objects.get(id=bien_id)
+        except Bien.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': f'Aucun bien trouvé avec l\'ID {bien_id}'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Récupérer les réservations selon le statut demandé
+        reservations_query = Reservation.objects.filter(bien_id=bien_id)
+        
+        if statut == 'confirmed':
+            # Récupérer uniquement les réservations confirmées
+            reservations_query = reservations_query.filter(status='confirmed')
+        elif statut == 'all':
+            # Récupérer toutes les réservations sauf annulées
+            reservations_query = reservations_query.exclude(status='cancelled')
+        else:
+            # Filtrer par statut spécifique
+            reservations_query = reservations_query.filter(status=statut)
+        
+        # Ordonner par date de début
+        reservations = reservations_query.select_related('user').order_by('date_debut')
+        
+        # Sérialiser les données pour la réponse
+        reservations_data = []
+        for reservation in reservations:
+            reservations_data.append({
+                'id': reservation.id,
+                'date_debut': reservation.date_debut.strftime('%Y-%m-%d'),
+                'date_fin': reservation.date_fin.strftime('%Y-%m-%d'),
+                'statut': reservation.status,
+                'utilisateur_nom': f"{reservation.user.first_name} {reservation.user.last_name}".strip() or reservation.user.username,
+                'prix_total': float(reservation.prix_total),
+                'created_at': reservation.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            })
+        
+        logger.info(f"Réservations bien {bien_id}: {len(reservations_data)} trouvées (statut: {statut})")
+        
+        return Response({
+            'success': True,
+            'reservations': reservations_data,
+            'count': len(reservations_data),
+            'bien_info': {
+                'id': bien.id,
+                'titre': bien.nom,  # Utiliser 'nom' au lieu de 'titre'
+                'proprietaire': f"{bien.owner.first_name} {bien.owner.last_name}".strip() or bien.owner.username,  # Utiliser 'owner' au lieu de 'proprietaire'
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Erreur récupération réservations bien: {e}")
+        return Response({
+            'success': False,
+            'error': f'Erreur interne du serveur: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def confirm_reservation_payment(request):
+    """Confirmer une réservation après paiement réussi"""
+    try:
+        reservation_id = request.data.get('reservation_id')
+        payment_method = request.data.get('payment_method', 'Mobile Money')
+        transaction_id = request.data.get('transaction_id')
+        
+        if not reservation_id:
+            return Response({
+                'success': False,
+                'error': 'ID de réservation requis'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Récupérer la réservation
+        try:
+            reservation = Reservation.objects.get(
+                id=reservation_id,
+                user=request.user
+            )
+        except Reservation.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Réservation non trouvée'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Vérifier que la réservation est en attente
+        if reservation.status != 'pending':
+            return Response({
+                'success': False,
+                'error': f'Cette réservation a déjà le statut: {reservation.get_status_display()}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Confirmer la réservation
+        reservation.status = 'confirmed'
+        reservation.confirmed_at = timezone.now()
+        reservation.save()
+        
+        # Log pour traçabilité
+        logger.info(f"Réservation {reservation_id} confirmée par paiement - Utilisateur: {request.user.username}")
+        
+        return Response({
+            'success': True,
+            'message': 'Réservation confirmée avec succès',
+            'data': {
+                'reservation_id': reservation.id,
+                'status': reservation.status,
+                'confirmed_at': reservation.confirmed_at,
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Erreur confirmation réservation: {e}")
+        return Response({
+            'success': False,
+            'error': f'Erreur lors de la confirmation: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ChoicesView(APIView):
+    """Vue pour récupérer les choices de l'application"""
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Récupérer tous les choices (carburant, transmission, etc.)",
+        responses={
+            200: openapi.Response(
+                description="Choices récupérés avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'carburant': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'value': openapi.Schema(type=openapi.TYPE_STRING),
+                                    'label': openapi.Schema(type=openapi.TYPE_STRING),
+                                }
+                            )
+                        ),
+                        'transmission': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'value': openapi.Schema(type=openapi.TYPE_STRING),
+                                    'label': openapi.Schema(type=openapi.TYPE_STRING),
+                                }
+                            )
+                        ),
+                    }
+                )
+            )
+        },
+        tags=['Choices']
+    )
+    def get(self, request):
+        """Récupérer tous les choices disponibles"""
+        try:
+            choices_data = ChoicesSerializer.get_all_choices()
+            return Response({
+                'success': True,
+                'data': choices_data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Erreur récupération choices: {e}")
+            return Response({
+                'success': False,
+                'error': f'Erreur lors de la récupération des choices: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

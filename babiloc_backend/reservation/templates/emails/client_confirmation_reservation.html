@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de réservation - BabiLoc</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .reservation-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            padding: 15px;
+            background: #f0f8f0;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .contact-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✅ Réservation Confirmée !</h1>
+        <p>Votre demande de réservation a été enregistrée</p>
+    </div>
+    
+    <div class="content">
+        <h2>Bonjour {{ client_nom }},</h2>
+        
+        <div class="success">
+            <strong>🎉 Félicitations !</strong> Votre réservation a été enregistrée avec succès. 
+            Vous recevrez une notification dès que le propriétaire confirmera votre demande.
+        </div>
+        
+        <div class="reservation-details">
+            <h3>📋 Récapitulatif de votre réservation</h3>
+            
+            <div class="detail-row">
+                <span class="label">🔢 Numéro de réservation :</span>
+                <span class="value">#{{ numero_reservation }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">🚗 Véhicule :</span>
+                <span class="value">{{ bien_nom }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📅 Date de début :</span>
+                <span class="value">{{ date_debut|date:"d/m/Y à H:i" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📅 Date de fin :</span>
+                <span class="value">{{ date_fin|date:"d/m/Y à H:i" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📍 Lieu de récupération :</span>
+                <span class="value">{{ lieu_recuperation }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📊 Statut :</span>
+                <span class="value">{{ statut }}</span>
+            </div>
+        </div>
+        
+        <div class="price">
+            💰 Montant total : {{ prix_total }} FCFA
+        </div>
+        
+        <div class="contact-box">
+            <h4>📞 Contact du propriétaire</h4>
+            <p><strong>{{ proprietaire_nom }}</strong></p>
+            <p>📞 Téléphone : {{ proprietaire_telephone }}</p>
+            <p><em>Vous pourrez contacter le propriétaire une fois la réservation confirmée.</em></p>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{ url_reservations }}" class="button">📱 Voir mes réservations</a>
+        </div>
+        
+        <h3>📝 Prochaines étapes :</h3>
+        <ul>
+            <li>⏳ Attendez la confirmation du propriétaire</li>
+            <li>📧 Vous recevrez un email de confirmation</li>
+            <li>💳 Procédez au paiement si requis</li>
+            <li>🗓️ Préparez-vous pour la récupération du véhicule</li>
+        </ul>
+        
+        <p><strong>Questions ?</strong> N'hésitez pas à nous contacter si vous avez besoin d'aide !</p>
+    </div>
+    
+    <div class="footer">
+        <p>📧 Email automatique envoyé par BabiLoc</p>
+        <p>🕐 Réservation créée le {{ date_creation|date:"d/m/Y à H:i" }}</p>
+        <p>💚 Merci de nous faire confiance !</p>
+    </div>
+</body>
+</html>

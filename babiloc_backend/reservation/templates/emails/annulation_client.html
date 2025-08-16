@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation annulée par le propriétaire - BabiLoc</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .reservation-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .sorry {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .support {
+            background: #e8f5e8;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>❌ Réservation Annulée</h1>
+        <p>Votre réservation a été annulée</p>
+    </div>
+    
+    <div class="content">
+        <h2>Bonjour {{ client_nom }},</h2>
+        
+        <div class="sorry">
+            <strong>😔 Nous sommes désolés...</strong><br>
+            Le propriétaire <strong>{{ proprietaire_nom }}</strong> a dû annuler votre réservation pour <strong>{{ bien_nom }}</strong>.
+        </div>
+        
+        <div class="reservation-details">
+            <h3>📋 Détails de la réservation annulée</h3>
+            
+            <div class="detail-row">
+                <span class="label">🔢 Numéro :</span>
+                <span class="value">#{{ numero_reservation }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">🚗 Véhicule :</span>
+                <span class="value">{{ bien_nom }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">👤 Propriétaire :</span>
+                <span class="value">{{ proprietaire_nom }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📅 Dates prévues :</span>
+                <span class="value">{{ date_debut|date:"d/m/Y" }} au {{ date_fin|date:"d/m/Y" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">💰 Montant :</span>
+                <span class="value">{{ prix_total }} FCFA</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">🕐 Annulée le :</span>
+                <span class="value">{{ date_annulation|date:"d/m/Y à H:i" }}</span>
+            </div>
+        </div>
+        
+        <div class="support">
+            <strong>🤝 Notre support :</strong><br>
+            • 💰 Si vous aviez effectué un paiement, le remboursement sera traité automatiquement<br>
+            • 🔍 Nous vous aidons à trouver une alternative<br>
+            • 📞 Notre équipe est disponible pour vous accompagner
+        </div>
+        
+        <h3>📝 Prochaines étapes :</h3>
+        <ul>
+            <li>🔍 Recherchez d'autres véhicules similaires</li>
+            <li>💰 Vérifiez le statut de votre remboursement si applicable</li>
+            <li>📞 Contactez notre support si vous avez besoin d'aide</li>
+        </ul>
+        
+        <div style="text-align: center;">
+            <a href="{{ url_support }}" class="button">📞 Contacter le support</a>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>📧 Email automatique envoyé par BabiLoc</p>
+        <p>💚 Merci de votre compréhension</p>
+    </div>
+</body>
+</html>

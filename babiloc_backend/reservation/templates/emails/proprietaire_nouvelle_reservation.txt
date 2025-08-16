@@ -1,0 +1,33 @@
+🎉 NOUVELLE RÉSERVATION - BABILOC
+
+Bonjour {{ proprietaire_nom }},
+
+Excellente nouvelle ! Vous venez de recevoir une nouvelle réservation pour votre bien {{ bien_nom }}.
+
+📋 DÉTAILS DE LA RÉSERVATION
+==========================================
+👤 Client : {{ client_nom }}
+📧 Email : {{ client_email }}
+📞 Téléphone : {{ client_telephone }}
+🚗 Véhicule : {{ bien_nom }}
+📅 Date de début : {{ date_debut|date:"d/m/Y à H:i" }}
+📅 Date de fin : {{ date_fin|date:"d/m/Y à H:i" }}
+📊 Statut : {{ statut }}
+💰 Montant total : {{ prix_total }} FCFA
+
+⚠️ ACTION REQUISE
+Vous devez confirmer ou refuser cette réservation dans les plus brefs délais.
+Le client attend votre réponse !
+
+🎯 GÉRER MES RÉSERVATIONS : {{ url_gestion }}
+
+📝 PROCHAINES ÉTAPES :
+✅ Vérifiez la disponibilité de votre véhicule
+📋 Confirmez ou refusez la réservation  
+📞 Contactez le client si nécessaire
+🗓️ Préparez votre véhicule pour la location
+
+==========================================
+📧 Email automatique envoyé par BabiLoc
+🕐 Reçu le {{ date_creation|date:"d/m/Y à H:i" }}
+💚 Merci d'utiliser BabiLoc !

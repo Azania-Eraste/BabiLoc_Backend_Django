@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle réservation - BabiLoc</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .reservation-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            padding: 15px;
+            background: #f0f8f0;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 Nouvelle Réservation !</h1>
+        <p>Vous avez reçu une nouvelle demande de réservation</p>
+    </div>
+    
+    <div class="content">
+        <h2>Bonjour {{ proprietaire_nom }},</h2>
+        
+        <p>Excellente nouvelle ! Vous venez de recevoir une nouvelle réservation pour votre bien <strong>{{ bien_nom }}</strong>.</p>
+        
+        <div class="reservation-details">
+            <h3>📋 Détails de la réservation</h3>
+            
+            <div class="detail-row">
+                <span class="label">👤 Client :</span>
+                <span class="value">{{ client_nom }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📧 Email :</span>
+                <span class="value">{{ client_email }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📞 Téléphone :</span>
+                <span class="value">{{ client_telephone }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">🚗 Véhicule :</span>
+                <span class="value">{{ bien_nom }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📅 Date de début :</span>
+                <span class="value">{{ date_debut|date:"d/m/Y à H:i" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📅 Date de fin :</span>
+                <span class="value">{{ date_fin|date:"d/m/Y à H:i" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">📊 Statut :</span>
+                <span class="value">{{ statut }}</span>
+            </div>
+        </div>
+        
+        <div class="price">
+            💰 Montant total : {{ prix_total }} FCFA
+        </div>
+        
+        <div class="alert">
+            <strong>⚠️ Action requise :</strong> 
+            Vous devez confirmer ou refuser cette réservation dans les plus brefs délais. 
+            Le client attend votre réponse !
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{ url_gestion }}" class="button">🎯 Gérer mes réservations</a>
+        </div>
+        
+        <h3>📝 Prochaines étapes :</h3>
+        <ul>
+            <li>✅ Vérifiez la disponibilité de votre véhicule</li>
+            <li>📋 Confirmez ou refusez la réservation</li>
+            <li>📞 Contactez le client si nécessaire</li>
+            <li>🗓️ Préparez votre véhicule pour la location</li>
+        </ul>
+    </div>
+    
+    <div class="footer">
+        <p>📧 Email automatique envoyé par BabiLoc</p>
+        <p>🕐 Reçu le {{ date_creation|date:"d/m/Y à H:i" }}</p>
+        <p>💚 Merci d'utiliser BabiLoc !</p>
+    </div>
+</body>
+</html>

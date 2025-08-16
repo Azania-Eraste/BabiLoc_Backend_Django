@@ -1,7 +1,8 @@
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
-from cinetpay_sdk.s_d_k import Cinetpay
+# Importer depuis notre implémentation locale
+from .cinetpay_sdk.s_d_k import Cinetpay
 import uuid
 import logging
 from .models import Paiement, Reservation, StatutPaiement, TypeOperation, HistoriquePaiement
