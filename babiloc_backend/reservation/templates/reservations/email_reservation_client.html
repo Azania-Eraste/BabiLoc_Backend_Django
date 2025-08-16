@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Confirmation réservation</title></head>
+<body>
+  <h2>Confirmation de votre réservation</h2>
+  <p>Bonjour {{ client.get_full_name|default:client.username }},</p>
+  <p>Votre réservation n°{{ reservation.id }} pour le bien « {{ bien.nom }} » a été créée.</p>
+  <ul>
+    <li>Période: du {{ reservation.date_debut|date:"d/m/Y H:i" }} au {{ reservation.date_fin|date:"d/m/Y H:i" }}</li>
+    <li>Montant total: {{ reservation.prix_total }} FCFA</li>
+    <li>Statut: {{ reservation.get_status_display }}</li>
+  </ul>
+  <p>Hôte: {{ hote.get_full_name|default:hote.username }} ({{ hote.email }})</p>
+  <p>Merci de votre confiance.</p>
+</body>
+</html>

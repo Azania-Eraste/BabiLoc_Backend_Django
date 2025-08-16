@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
 from reportlab.lib.pagesizes import A4
@@ -20,6 +20,7 @@ from reportlab.platypus.flowables import HRFlowable
 from django.core.files.base import ContentFile
 from io import BytesIO
 import os
+from django.utils.html import strip_tags
 
 User = get_user_model()
 
@@ -752,3 +753,49 @@ def creer_revenu_proprietaire(sender, instance, created, **kwargs):
                 commission_plateforme=instance.commission_plateforme,
                 revenu_net=instance.revenu_proprietaire
             )
+
+@receiver(post_save, sender=Reservation)
+def envoyer_emails_creation_reservation(sender, instance, created, **kwargs):
+    """Envoie un email au client et à l'hôte quand une réservation est créée"""
+    if not created:
+        return
+
+    try:
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', getattr(settings, 'EMAIL_HOST_USER', None))
+
+        context = {
+            'reservation': instance,
+            'client': instance.user,
+            'hote': instance.bien.owner,
+            'bien': instance.bien,
+        }
+
+        # Email client
+        if instance.user and instance.user.email:
+            subject_client = f"Confirmation de votre réservation #{instance.id} - {instance.bien.nom}"
+            html_client = render_to_string('reservations/email_reservation_client.html', context)
+            text_client = strip_tags(html_client)
+
+            mail_client = EmailMultiAlternatives(
+                subject_client, text_client, from_email, [instance.user.email]
+            )
+            mail_client.attach_alternative(html_client, 'text/html')
+            mail_client.send(fail_silently=True)
+
+        # Email hôte
+        if instance.bien.owner and instance.bien.owner.email:
+            subject_hote = f"Nouvelle réservation pour votre bien « {instance.bien.nom} » (#{instance.id})"
+            html_hote = render_to_string('reservations/email_reservation_hote.html', context)
+            text_hote = strip_tags(html_hote)
+
+            mail_hote = EmailMultiAlternatives(
+                subject_hote, text_hote, from_email, [instance.bien.owner.email]
+            )
+            mail_hote.attach_alternative(html_hote, 'text/html')
+            mail_hote.send(fail_silently=True)
+
+    except Exception as e:
+        # Évite de casser la création de réservation en cas d'erreur email
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erreur envoi email réservation #{instance.id}: {e}")
