@@ -4,13 +4,13 @@ Django settings for babiloc_backend project.
 
 from pathlib import Path
 from decouple import config
-import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
-DEBUG = True
+DEBUG = True  # mets False en prod
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.ngrok-free.app', '10.0.2.2']
 
@@ -68,11 +68,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'babiloc_backend.wsgi.application'
 
 # Database
+db_url = config('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.parse(
+        db_url,
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
 }
 
 # Password validation
