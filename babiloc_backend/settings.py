@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',') if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='.ondigitalocean.app,127.0.0.1,localhost').split(',') if h.strip()]
 
 # Security settings (define SECRET_KEY before using it below)
 SECRET_KEY = config('SECRET_KEY', default='CHANGE_ME_IN_PRODUCTION')
@@ -203,11 +203,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS settings - Configuration plus permissive pour le développement
 CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 CORS_ALLOWED_ORIGINS = [o.strip() for o in config('CORS_ALLOWED_ORIGINS', default='').split(',') if o.strip()]
-
 CORS_ALLOW_CREDENTIALS = True
 
 # Pour le développement uniquement - à retirer en production
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
