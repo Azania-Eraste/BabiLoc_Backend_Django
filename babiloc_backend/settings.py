@@ -10,10 +10,12 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
-DEBUG = True  # mets False en prod
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.ngrok-free.app', '10.0.2.2']
+ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',') if h.strip()]
 
+# Security settings (define SECRET_KEY before using it below)
+SECRET_KEY = config('SECRET_KEY', default='CHANGE_ME_IN_PRODUCTION')
 
 # Application definition
 INSTALLED_APPS = [
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # Ajouter cette ligne
     'django.middleware.common.CommonMiddleware',
@@ -69,11 +72,12 @@ WSGI_APPLICATION = 'babiloc_backend.wsgi.application'
 
 # Database
 db_url = config('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+db_ssl_required = config('DB_SSL_REQUIRED', default=not DEBUG, cast=bool)
 DATABASES = {
     "default": dj_database_url.parse(
         db_url,
         conn_max_age=600,
-        ssl_require=not DEBUG,
+        ssl_require=db_ssl_required,
     )
 }
 
@@ -144,7 +148,7 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': False,
 
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': 'your-secret-key-here',  # Utilisez une clé secrète forte
+    'SIGNING_KEY': config('JWT_SIGNING_KEY', default=SECRET_KEY),
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
@@ -181,8 +185,9 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
@@ -195,18 +200,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Security settings (à modifier en production)
-SECRET_KEY = 'django-insecure-your-secret-key-change-this-in-production'
-
 # CORS settings - Configuration plus permissive pour le développement
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
-    "http://localhost:8080",
-    "http://localhost:8081",  # Ajout pour Flutter web
-    "http://127.0.0.1:8081",
-]
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+CORS_ALLOWED_ORIGINS = [o.strip() for o in config('CORS_ALLOWED_ORIGINS', default='').split(',') if o.strip()]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -235,12 +231,7 @@ CORS_ALLOW_METHODS = [
 
 
 # Désactiver CSRF pour les API (développement uniquement)
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o.strip()]
 
 # ❌ SUPPRIMER CETTE SECTION CINETPAY
 # CinetPay Configuration - À SUPPRIMER
@@ -253,3 +244,7 @@ CSRF_TRUSTED_ORIGINS = [
 SUPABASE_URL = config('SUPABASE_URL', default='')
 SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY', default='')
 SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
+
+# HTTPS/Proxy (App Platform)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
