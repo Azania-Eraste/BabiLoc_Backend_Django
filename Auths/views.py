@@ -1371,3 +1371,105 @@ def valider_code_promo(request):
             'valid': False,
             'error': 'Code promo invalide'
         }, status=status.HTTP_400_BAD_REQUEST)
+
+class DevenirVendorView(APIView):
+    """
+    Demande pour devenir vendor (propriétaire/hôte)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Soumettre une demande pour devenir propriétaire",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['structure_type'],
+            properties={
+                'structure_type': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['particulier', 'agence', 'societe'],
+                    description="Type de structure"
+                ),
+                'agence_nom': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Nom de l'agence (si applicable)"
+                ),
+                'agence_adresse': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Adresse complète (si applicable)"
+                ),
+                'representant_telephone': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Téléphone représentant légal"
+                ),
+            }
+        ),
+        responses={
+            201: "Demande soumise avec succès",
+            400: "Données invalides",
+            401: "Non authentifié"
+        },
+        tags=['Vendor']
+    )
+    def post(self, request):
+        user = request.user
+        structure_type = request.data.get('structure_type', 'particulier')
+        
+        # Vérifier si l'utilisateur n'est pas déjà vendor
+        if user.is_vendor:
+            return Response({
+                'error': 'Vous êtes déjà propriétaire/hôte'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Créer le document principal (pièce d'identité)
+        piece_identite = request.FILES.get('piece_identite')
+        if piece_identite:
+            DocumentUtilisateur.objects.create(
+                utilisateur=user,
+                nom=f"Pièce d'identité - Demande vendor",
+                type_document='carte_identite',
+                fichier=piece_identite,
+                statut_verification='en_attente'
+            )
+        
+        # Pour les entreprises, ajouter les documents supplémentaires
+        if structure_type in ['agence', 'societe']:
+            # Pièce d'identité du représentant légal
+            piece_representant = request.FILES.get('piece_identite_representant')
+            if piece_representant:
+                DocumentUtilisateur.objects.create(
+                    utilisateur=user,
+                    nom=f"Pièce d'identité représentant légal",
+                    type_document='carte_identite',
+                    fichier=piece_representant,
+                    statut_verification='en_attente'
+                )
+            
+            # Document RCCM
+            rccm = request.FILES.get('document_rccm')
+            if rccm:
+                DocumentUtilisateur.objects.create(
+                    utilisateur=user,
+                    nom=f"Document RCCM",
+                    type_document='rccm',
+                    fichier=rccm,
+                    statut_verification='en_attente'
+                )
+        
+        # Envoyer notification aux admins
+        try:
+            from django.core.mail import send_mail
+            send_mail(
+                subject=f'Nouvelle demande vendor - {user.username}',
+                message=f'Une nouvelle demande pour devenir propriétaire a été soumise par {user.get_full_name() or user.username}',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[settings.EMAIL_HOST_USER],
+                fail_silently=True
+            )
+        except Exception as e:
+            logger.warning(f"Erreur envoi email notification: {e}")
+        
+        return Response({
+            'message': 'Demande soumise avec succès',
+            'structure_type': structure_type,
+            'status': 'en_attente_verification'
+        }, status=status.HTTP_201_CREATED)

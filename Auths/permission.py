@@ -1,5 +1,11 @@
-from rest_framework.permissions import BasePermission
+from rest_framework import permissions
 
-class IsVendor(BasePermission):
+class IsVendor(permissions.BasePermission):
+    """Permission pour les vendeurs/propriétaires vérifiés"""
+    
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_vendor)
+        return (
+            request.user.is_authenticated and 
+            request.user.is_vendor and 
+            request.user.est_verifie
+        )

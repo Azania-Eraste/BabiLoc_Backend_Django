@@ -13,7 +13,8 @@ from .views import (
     GetUserByIdView,
     MonParrainageView, MesFilleulsView, HistoriqueParrainageView,
     generer_code_promo, statistiques_parrainage, verifier_code_parrainage,
-    demander_retrait, valider_code_promo
+    demander_retrait, valider_code_promo,
+    DevenirVendorView  # Importation de la vue DevenirVendorView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -62,4 +63,7 @@ urlpatterns = [
 
     # Debug
     path('debug-user-status/', DebugUserStatusView.as_view(), name='debug-user-status'),  # Temporaire
+
+    # Vendor
+    path('devenir-vendor/', DevenirVendorView.as_view(), name='devenir-vendor'),
 ]

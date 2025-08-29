@@ -467,13 +467,13 @@ def parrainage_reservation(sender, instance, created, **kwargs):
 
 class DocumentUtilisateur(models.Model):
     """Documents de vérification des utilisateurs"""
-    
     TYPE_DOCUMENT_CHOICES = [
         ('carte_identite', 'Carte d\'identité'),
         ('permis_conduire', 'Permis de conduire'),
         ('passeport', 'Passeport'),
         ('attestation_travail', 'Attestation de travail'),
         ('justificatif_domicile', 'Justificatif de domicile'),
+        ('rccm', 'Document RCCM'),  # ✅ Ajouter pour les entreprises
         ('autre', 'Autre document'),
     ]
     
@@ -539,6 +539,38 @@ class DocumentUtilisateur(models.Model):
         related_name='documents_moderes'
     )
     
+    # Nouveaux champs pour les entreprises
+    structure_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('particulier', 'Particulier / Individuel'),
+            ('agence', 'Agence de location'),
+            ('societe', 'Société'),
+        ],
+        default='particulier',
+        verbose_name="Type de structure"
+    )
+    
+    agence_nom = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Nom de l'agence/société"
+    )
+    
+    agence_adresse = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Adresse complète"
+    )
+    
+    representant_telephone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name="Téléphone représentant légal"
+    )
+
     class Meta:
         verbose_name = "Document utilisateur"
         verbose_name_plural = "Documents utilisateur"
