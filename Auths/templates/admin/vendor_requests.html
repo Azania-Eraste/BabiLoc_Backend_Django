@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demandes Vendor - BabiLoc Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .main-container {
+            padding: 2rem 0;
+        }
+
+        .filter-card, .requests-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .request-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-en_attente {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .status-approuve {
+            background: linear-gradient(135deg, #d1edff, #74b9ff);
+            color: #0c5460;
+        }
+
+        .status-refuse {
+            background: linear-gradient(135deg, #f8d7da, #fab1a0);
+            color: #721c24;
+        }
+
+        .action-btn {
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, var(--success-color), #00b894);
+            color: white;
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, var(--danger-color), #fd79a8);
+            color: white;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-item i {
+            width: 20px;
+            margin-right: 0.5rem;
+            color: var(--secondary-color);
+        }
+
+        .header-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'vendor_dashboard' %}">
+                <i class="fas fa-arrow-left me-2"></i>Retour Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'admin:logout' %}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="header-title">
+        <div class="container">
+            <h1><i class="fas fa-list me-3"></i>Gestion des Demandes Vendor</h1>
+        </div>
+    </div>
+
+    <div class="container main-container">
+        <!-- Filters -->
+        <div class="filter-card">
+            <h4 class="mb-3"><i class="fas fa-filter me-2"></i>Filtres</h4>
+            <form method="GET" class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Statut</label>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Tous</option>
+                        <option value="en_attente" {% if status_filter == 'en_attente' %}selected{% endif %}>En attente</option>
+                        <option value="approuve" {% if status_filter == 'approuve' %}selected{% endif %}>Approuvées</option>
+                        <option value="refuse" {% if status_filter == 'refuse' %}selected{% endif %}>Refusées</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Type de structure</label>
+                    <select name="structure" class="form-select" onchange="this.form.submit()">
+                        <option value="all" {% if structure_filter == 'all' %}selected{% endif %}>Tous</option>
+                        <option value="particulier" {% if structure_filter == 'particulier' %}selected{% endif %}>Particulier</option>
+                        <option value="agence" {% if structure_filter == 'agence' %}selected{% endif %}>Agence</option>
+                        <option value="societe" {% if structure_filter == 'societe' %}selected{% endif %}>Société</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <a href="{% url 'vendor_requests_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i>Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Requests List -->
+        <div class="requests-card">
+            <h4 class="mb-4">
+                <i class="fas fa-users me-2"></i>Demandes ({{ demandes|length }})
+            </h4>
+
+            {% if demandes %}
+                {% for demande in demandes %}
+                <div class="request-card" id="request-{{ demande.user.id }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <div class="user-avatar mx-auto">
+                                {{ demande.user.first_name|first|default:demande.user.username|first }}{{ demande.user.last_name|first|default:"" }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h5 class="mb-2">{{ demande.user.get_full_name|default:demande.user.username }}</h5>
+                            <div class="info-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ demande.user.email }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-phone"></i>
+                                <span>{{ demande.user.number|default:"Non renseigné" }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-building"></i>
+                                <span>{{ demande.document.get_structure_type_display }}</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            {% if demande.document.structure_type != 'particulier' %}
+                                <div class="info-item">
+                                    <i class="fas fa-store"></i>
+                                    <span>{{ demande.document.agence_nom|default:"Non renseigné" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>{{ demande.document.agence_adresse|default:"Non renseigné" }}</span>
+                                </div>
+                            {% endif %}
+                            <div class="info-item">
+                                <i class="fas fa-file"></i>
+                                <span>{{ demande.documents_count }} document(s)</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ demande.document.date_upload|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 text-center">
+                            <div class="mb-3">
+                                <span class="status-badge status-{{ demande.document.statut_verification }}">
+                                    {% if demande.document.statut_verification == 'en_attente' %}
+                                        <i class="fas fa-clock me-1"></i>En attente
+                                    {% elif demande.document.statut_verification == 'approuve' %}
+                                        <i class="fas fa-check me-1"></i>Approuvé
+                                    {% else %}
+                                        <i class="fas fa-times me-1"></i>Refusé
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            {% if demande.document.statut_verification == 'en_attente' %}
+                                <div class="btn-group-vertical d-grid gap-2">
+                                    <button onclick="performAction({{ demande.user.id }}, 'approve')" 
+                                            class="action-btn btn-approve">
+                                        <i class="fas fa-check me-1"></i>Approuver
+                                    </button>
+                                    <button onclick="performAction({{ demande.user.id }}, 'reject')" 
+                                            class="action-btn btn-reject">
+                                        <i class="fas fa-times me-1"></i>Refuser
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-4x mb-3"></i>
+                    <h4>Aucune demande trouvée</h4>
+                    <p>Il n'y a aucune demande correspondant à vos critères de recherche.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="successToast" class="toast" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Succès</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+        
+        <div id="errorToast" class="toast" role="alert">
+            <div class="toast-header bg-danger text-white">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong class="me-auto">Erreur</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function performAction(userId, action) {
+            const requestCard = document.getElementById(`request-${userId}`);
+            requestCard.classList.add('loading');
+
+            fetch('{% url "vendor_action" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    action: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                requestCard.classList.remove('loading');
+                
+                if (data.success) {
+                    showToast('success', data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                requestCard.classList.remove('loading');
+                showToast('error', 'Une erreur est survenue');
+                console.error('Error:', error);
+            });
+        }
+
+        function showToast(type, message) {
+            const toast = document.getElementById(type === 'success' ? 'successToast' : 'errorToast');
+            toast.querySelector('.toast-body').textContent = message;
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+    </script>
+</body>
+</html>

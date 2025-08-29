@@ -1545,3 +1545,169 @@ class DevenirVendorView(APIView):
             'status': 'en_attente_verification',
             'profile_updated': updated  # ✅ Indiquer si le profil a été mis à jour
         }, status=status.HTTP_201_CREATED)
+
+from django.shortcuts import render, redirect
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@staff_member_required
+def vendor_admin_dashboard(request):
+    """Dashboard admin pour gérer les demandes vendor"""
+    # Statistiques des demandes vendor
+    demandes_en_attente = DocumentUtilisateur.objects.filter(
+        nom__icontains='Demande vendor',
+        statut_verification='en_attente'
+    ).count()
+    
+    demandes_approuvees = DocumentUtilisateur.objects.filter(
+        nom__icontains='Demande vendor',
+        statut_verification='approuve'
+    ).count()
+    
+    demandes_refusees = DocumentUtilisateur.objects.filter(
+        nom__icontains='Demande vendor',
+        statut_verification='refuse'
+    ).count()
+    
+    # Dernières demandes
+    dernieres_demandes = DocumentUtilisateur.objects.filter(
+        nom__icontains='Demande vendor'
+    ).select_related('utilisateur').order_by('-date_upload')[:10]
+    
+    context = {
+        'demandes_en_attente': demandes_en_attente,
+        'demandes_approuvees': demandes_approuvees,
+        'demandes_refusees': demandes_refusees,
+        'dernieres_demandes': dernieres_demandes,
+        'total_demandes': demandes_en_attente + demandes_approuvees + demandes_refusees,
+    }
+    
+    return render(request, 'admin/vendor_dashboard.html', context)
+
+@staff_member_required
+def vendor_requests_list(request):
+    """Liste paginée des demandes vendor"""
+    status_filter = request.GET.get('status', 'all')
+    structure_filter = request.GET.get('structure', 'all')
+    
+    # Base queryset
+    queryset = DocumentUtilisateur.objects.filter(
+        nom__icontains='Demande vendor'
+    ).select_related('utilisateur', 'moderateur')
+    
+    # Filtres
+    if status_filter != 'all':
+        queryset = queryset.filter(statut_verification=status_filter)
+    
+    if structure_filter != 'all':
+        queryset = queryset.filter(structure_type=structure_filter)
+    
+    # Regrouper par utilisateur pour éviter les doublons
+    demandes = {}
+    for doc in queryset.order_by('-date_upload'):
+        user_id = doc.utilisateur.id
+        if user_id not in demandes:
+            # Compter tous les documents de cette demande
+            docs_count = DocumentUtilisateur.objects.filter(
+                utilisateur=doc.utilisateur,
+                nom__icontains='Demande vendor'
+            ).count()
+            
+            demandes[user_id] = {
+                'document': doc,
+                'documents_count': docs_count,
+                'user': doc.utilisateur,
+            }
+    
+    context = {
+        'demandes': list(demandes.values()),
+        'status_filter': status_filter,
+        'structure_filter': structure_filter,
+    }
+    
+    return render(request, 'admin/vendor_requests.html', context)
+
+@staff_member_required
+@csrf_exempt
+def vendor_action(request):
+    """Actions sur les demandes vendor (approuver/refuser)"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        action = data.get('action')  # 'approve' ou 'reject'
+        
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            
+            # Récupérer tous les documents de cette demande
+            documents = DocumentUtilisateur.objects.filter(
+                utilisateur=user,
+                nom__icontains='Demande vendor'
+            )
+            
+            if action == 'approve':
+                # Approuver tous les documents
+                documents.update(
+                    statut_verification='approuve',
+                    moderateur=request.user
+                )
+                
+                # Activer le statut vendor
+                user.is_vendor = True
+                user.est_verifie = True
+                user.save()
+                
+                # Email de confirmation
+                try:
+                    from django.core.mail import send_mail
+                    send_mail(
+                        subject='🎉 Demande vendor approuvée - BabiLoc',
+                        message=f'Félicitations {user.get_full_name() or user.username} !\n\nVotre demande pour devenir propriétaire/hôte a été approuvée.\n\nVous pouvez maintenant publier vos biens sur BabiLoc.\n\nL\'équipe BabiLoc',
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[user.email],
+                        fail_silently=True
+                    )
+                except:
+                    pass
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Demande de {user.get_full_name() or user.username} approuvée avec succès'
+                })
+            
+            elif action == 'reject':
+                # Refuser tous les documents
+                documents.update(
+                    statut_verification='refuse',
+                    moderateur=request.user,
+                    commentaire_moderateur="Demande refusée par l'administration"
+                )
+                
+                # Email de refus
+                try:
+                    from django.core.mail import send_mail
+                    send_mail(
+                        subject='❌ Demande vendor refusée - BabiLoc',
+                        message=f'Bonjour {user.get_full_name() or user.username},\n\nNous regrettons de vous informer que votre demande pour devenir propriétaire/hôte a été refusée.\n\nRaison: Documents non conformes ou incomplets.\n\nVous pouvez soumettre une nouvelle demande avec des documents mis à jour.\n\nL\'équipe BabiLoc',
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[user.email],
+                        fail_silently=True
+                    )
+                except:
+                    pass
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Demande de {user.get_full_name() or user.username} refusée'
+                })
+            
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Utilisateur non trouvé'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Méthode non autorisée'})

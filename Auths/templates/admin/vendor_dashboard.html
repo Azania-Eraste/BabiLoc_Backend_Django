@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Vendor - BabiLoc Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-bg: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .main-container {
+            padding: 2rem 0;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--success-color));
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .pending { color: var(--warning-color); }
+        .approved { color: var(--success-color); }
+        .rejected { color: var(--danger-color); }
+        .total { color: var(--secondary-color); }
+
+        .recent-requests {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .request-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .request-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .request-name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .request-details {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-en_attente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approuve {
+            background-color: #d1edff;
+            color: #0c5460;
+        }
+
+        .status-refuse {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-custom {
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .header-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-title p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* ✅ Document Modal Styles */
+        .document-modal .modal-dialog {
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+
+        .document-modal .modal-content {
+            height: 90vh;
+        }
+
+        .document-modal .modal-body {
+            padding: 0;
+            height: calc(90vh - 120px);
+            overflow: hidden;
+        }
+
+        .document-preview {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .action-btn-small {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, var(--secondary-color), #74b9ff);
+            color: white;
+        }
+
+        .btn-approve-small {
+            background: linear-gradient(135deg, var(--success-color), #00b894);
+            color: white;
+        }
+
+        .btn-reject-small {
+            background: linear-gradient(135deg, var(--danger-color), #fd79a8);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'admin:index' %}">
+                <i class="fas fa-home me-2"></i>BabiLoc Admin
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'admin:logout' %}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="header-title">
+        <div class="container">
+            <h1><i class="fas fa-store me-3"></i>Dashboard Vendor</h1>
+            <p>Gestion des demandes de propriétaires/hôtes</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container main-container">
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-clock stats-icon pending"></i>
+                    <div class="stats-number pending">{{ demandes_en_attente }}</div>
+                    <div class="stats-label">En attente</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-check-circle stats-icon approved"></i>
+                    <div class="stats-number approved">{{ demandes_approuvees }}</div>
+                    <div class="stats-label">Approuvées</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-times-circle stats-icon rejected"></i>
+                    <div class="stats-number rejected">{{ demandes_refusees }}</div>
+                    <div class="stats-label">Refusées</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-chart-bar stats-icon total"></i>
+                    <div class="stats-number total">{{ total_demandes }}</div>
+                    <div class="stats-label">Total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Row -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <a href="{% url 'vendor_requests_list' %}" class="btn btn-primary btn-custom me-3">
+                    <i class="fas fa-list me-2"></i>Voir toutes les demandes
+                </a>
+                <a href="{% url 'admin:Auths_documentutilisateur_changelist' %}" class="btn btn-outline-light btn-custom">
+                    <i class="fas fa-cog me-2"></i>Admin classique
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Requests -->
+        <div class="recent-requests">
+            <h3 class="mb-4">
+                <i class="fas fa-history me-2"></i>Dernières demandes
+            </h3>
+            
+            {% if dernieres_demandes %}
+                {% for demande in dernieres_demandes %}
+                <div class="request-item" data-user-id="{{ demande.utilisateur.id }}">
+                    <div class="request-avatar">
+                        {{ demande.utilisateur.first_name|first|default:demande.utilisateur.username|first }}{{ demande.utilisateur.last_name|first|default:"" }}
+                    </div>
+                    <div class="request-info">
+                        <div class="request-name">
+                            {{ demande.utilisateur.get_full_name|default:demande.utilisateur.username }}
+                        </div>
+                        <div class="request-details">
+                            <i class="fas fa-envelope me-1"></i>{{ demande.utilisateur.email }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-building me-1"></i>{{ demande.get_structure_type_display }}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-calendar me-1"></i>{{ demande.date_upload|date:"d/m/Y H:i" }}
+                        </div>
+                        
+                        <!-- ✅ Document Actions -->
+                        {% if demande.statut_verification == 'en_attente' %}
+                        <div class="document-actions mt-2">
+                            <button onclick="viewDocument({{ demande.id }})" class="action-btn-small btn-view">
+                                <i class="fas fa-eye me-1"></i>Voir document
+                            </button>
+                            <button onclick="performQuickAction({{ demande.utilisateur.id }}, 'approve')" class="action-btn-small btn-approve-small">
+                                <i class="fas fa-check me-1"></i>Approuver
+                            </button>
+                            <button onclick="performQuickAction({{ demande.utilisateur.id }}, 'reject')" class="action-btn-small btn-reject-small">
+                                <i class="fas fa-times me-1"></i>Refuser
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span class="status-badge status-{{ demande.statut_verification }}">
+                        {% if demande.statut_verification == 'en_attente' %}
+                            <i class="fas fa-clock me-1"></i>En attente
+                        {% elif demande.statut_verification == 'approuve' %}
+                            <i class="fas fa-check me-1"></i>Approuvé
+                        {% else %}
+                            <i class="fas fa-times me-1"></i>Refusé
+                        {% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>Aucune demande pour le moment</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ✅ Document Modal -->
+    <div class="modal fade document-modal" id="documentModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-alt me-2"></i>
+                        <span id="documentTitle">Document</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="documentContainer">
+                        <!-- Document will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-success" id="approveFromModal" style="display:none;">
+                        <i class="fas fa-check me-1"></i>Approuver
+                    </button>
+                    <button type="button" class="btn btn-danger" id="rejectFromModal" style="display:none;">
+                        <i class="fas fa-times me-1"></i>Refuser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="successToast" class="toast" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong class="me-auto">Succès</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+        
+        <div id="errorToast" class="toast" role="alert">
+            <div class="toast-header bg-danger text-white">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong class="me-auto">Erreur</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentUserId = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // ✅ View Document Function
+        function viewDocument(documentId) {
+            fetch(`/api/auth/documents/${documentId}/view/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = new bootstrap.Modal(document.getElementById('documentModal'));
+                    const container = document.getElementById('documentContainer');
+                    const title = document.getElementById('documentTitle');
+                    
+                    title.textContent = data.document.nom;
+                    currentUserId = data.document.user_id;
+                    
+                    if (data.document.file_type === 'image') {
+                        container.innerHTML = `
+                            <img src="${data.document.file_url}" 
+                                 class="document-preview" 
+                                 style="object-fit: contain;" 
+                                 alt="Document">
+                        `;
+                    } else {
+                        // For PDFs and other documents
+                        container.innerHTML = `
+                            <iframe src="${data.document.file_url}" 
+                                    class="document-preview"
+                                    frameborder="0">
+                            </iframe>
+                        `;
+                    }
+                    
+                    // Show action buttons if document is pending
+                    if (data.document.statut_verification === 'en_attente') {
+                        document.getElementById('approveFromModal').style.display = 'inline-block';
+                        document.getElementById('rejectFromModal').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('approveFromModal').style.display = 'none';
+                        document.getElementById('rejectFromModal').style.display = 'none';
+                    }
+                    
+                    modal.show();
+                } else {
+                    showToast('error', data.message || 'Erreur lors du chargement du document');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', 'Erreur lors du chargement du document');
+            });
+        }
+
+        // ✅ Quick Action Function
+        function performQuickAction(userId, action) {
+            performAction(userId, action);
+        }
+
+        // ✅ Enhanced Action Function
+        function performAction(userId, action) {
+            const requestCard = document.querySelector(`[data-user-id="${userId}"]`);
+            if (requestCard) {
+                requestCard.style.opacity = '0.6';
+                requestCard.style.pointerEvents = 'none';
+            }
+
+            fetch('{% url "vendor_action" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    action: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (requestCard) {
+                    requestCard.style.opacity = '1';
+                    requestCard.style.pointerEvents = 'auto';
+                }
+                
+                if (data.success) {
+                    showToast('success', data.message);
+                    
+                    // Close modal if open
+                    const modalElement = document.getElementById('documentModal');
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                    // Reload page after delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                if (requestCard) {
+                    requestCard.style.opacity = '1';
+                    requestCard.style.pointerEvents = 'auto';
+                }
+                showToast('error', 'Une erreur est survenue');
+                console.error('Error:', error);
+            });
+        }
+
+        // ✅ Modal Action Handlers
+        document.getElementById('approveFromModal').addEventListener('click', function() {
+            if (currentUserId) {
+                performAction(currentUserId, 'approve');
+            }
+        });
+
+        document.getElementById('rejectFromModal').addEventListener('click', function() {
+            if (currentUserId) {
+                performAction(currentUserId, 'reject');
+            }
+        });
+
+        function showToast(type, message) {
+            const toast = document.getElementById(type === 'success' ? 'successToast' : 'errorToast');
+            toast.querySelector('.toast-body').textContent = message;
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+    </script>
+</body>
+</html>

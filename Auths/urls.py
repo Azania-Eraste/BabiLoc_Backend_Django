@@ -14,7 +14,8 @@ from .views import (
     MonParrainageView, MesFilleulsView, HistoriqueParrainageView,
     generer_code_promo, statistiques_parrainage, verifier_code_parrainage,
     demander_retrait, valider_code_promo,
-    DevenirVendorView  # ✅ Vérifier que c'est bien importé
+    DevenirVendorView,  # ✅ Vérifier que c'est bien importé
+    vendor_admin_dashboard, vendor_requests_list, vendor_action  # Ajout des vues pour l'admin vendor
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -66,4 +67,9 @@ urlpatterns = [
 
     # Vendor
     path('devenir-vendor/', DevenirVendorView.as_view(), name='devenir-vendor'),
+
+    # Vendor Admin Interface
+    path('vendor/vendor-dashboard/', vendor_admin_dashboard, name='vendor_dashboard'),
+    path('vendor/vendor-requests/', vendor_requests_list, name='vendor_requests_list'),
+    path('vendor/vendor-action/', vendor_action, name='vendor_action'),
 ]
