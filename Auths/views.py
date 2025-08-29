@@ -1372,6 +1372,8 @@ def valider_code_promo(request):
             'error': 'Code promo invalide'
         }, status=status.HTTP_400_BAD_REQUEST)
 
+# ==================== DEVENIR VENDOR ====================
+
 class DevenirVendorView(APIView):
     """
     Demande pour devenir vendor (propriétaire/hôte)
@@ -1403,8 +1405,19 @@ class DevenirVendorView(APIView):
                 ),
             }
         ),
+        consumes=['multipart/form-data'],
         responses={
-            201: "Demande soumise avec succès",
+            201: openapi.Response(
+                description="Demande soumise avec succès",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                        'structure_type': openapi.Schema(type=openapi.TYPE_STRING),
+                        'status': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            ),
             400: "Données invalides",
             401: "Non authentifié"
         },
@@ -1428,6 +1441,13 @@ class DevenirVendorView(APIView):
                 nom=f"Pièce d'identité - Demande vendor",
                 type_document='carte_identite',
                 fichier=piece_identite,
+                structure_type=structure_type,
+                agence_nom=request.data.get('agence_nom', ''),
+
+                agence_adresse=request.data.get('agence_adresse', ''),
+
+                representant_telephone=request.data.get('representant_telephone', ''),
+
                 statut_verification='en_attente'
             )
         
@@ -1441,6 +1461,13 @@ class DevenirVendorView(APIView):
                     nom=f"Pièce d'identité représentant légal",
                     type_document='carte_identite',
                     fichier=piece_representant,
+                    structure_type=structure_type,
+                    agence_nom=request.data.get('agence_nom', ''),
+
+                    agence_adresse=request.data.get('agence_adresse', ''),
+
+                    representant_telephone=request.data.get('representant_telephone', ''),
+
                     statut_verification='en_attente'
                 )
             
@@ -1449,9 +1476,16 @@ class DevenirVendorView(APIView):
             if rccm:
                 DocumentUtilisateur.objects.create(
                     utilisateur=user,
-                    nom=f"Document RCCM",
+                    nom=f"Document RCCM - {request.data.get('agence_nom', '')}",
                     type_document='rccm',
                     fichier=rccm,
+                    structure_type=structure_type,
+                    agence_nom=request.data.get('agence_nom', ''),
+
+                    agence_adresse=request.data.get('agence_adresse', ''),
+
+                    representant_telephone=request.data.get('representant_telephone', ''),
+
                     statut_verification='en_attente'
                 )
         
@@ -1460,12 +1494,14 @@ class DevenirVendorView(APIView):
             from django.core.mail import send_mail
             send_mail(
                 subject=f'Nouvelle demande vendor - {user.username}',
-                message=f'Une nouvelle demande pour devenir propriétaire a été soumise par {user.get_full_name() or user.username}',
+                message=f'Une nouvelle demande pour devenir propriétaire a été soumise par {user.get_full_name() or user.username}\n\nType: {structure_type}\nAgence: {request.data.get("agence_nom", "N/A")}',
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[settings.EMAIL_HOST_USER],
                 fail_silently=True
             )
         except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
             logger.warning(f"Erreur envoi email notification: {e}")
         
         return Response({

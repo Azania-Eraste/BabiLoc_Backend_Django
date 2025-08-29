@@ -9,12 +9,12 @@ from .views import (
     DocumentUtilisateurDeleteView,
     DocumentsModerationView,
     DocumentModerationView,
-    DebugUserStatusView,  # Importation de la vue DebugUserStatusView
+    DebugUserStatusView,
     GetUserByIdView,
     MonParrainageView, MesFilleulsView, HistoriqueParrainageView,
     generer_code_promo, statistiques_parrainage, verifier_code_parrainage,
     demander_retrait, valider_code_promo,
-    DevenirVendorView  # Importation de la vue DevenirVendorView
+    DevenirVendorView  # ✅ Vérifier que c'est bien importé
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
