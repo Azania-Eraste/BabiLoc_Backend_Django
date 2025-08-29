@@ -41,8 +41,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # ✅ DOIT être en haut
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Ajouter cette ligne
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -200,20 +200,57 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
-CORS_ALLOWED_ORIGINS = [o.strip() for o in config('CORS_ALLOWED_ORIGINS', default='').split(',') if o.strip()]
+# CORS settings - Configuration mise à jour pour le déploiement
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)  # Temporairement True pour debug
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://lobster-app-h4rho.ondigitalocean.app',  # Votre domaine déployé
+    # Ajoutez ici l'URL de votre app Flutter Web déployée si différente
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
-# ✅ Autoriser Flutter Web en dev (localhost avec port aléatoire)
+# ✅ Autoriser Flutter Web (localhost + domaines de production)
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost:\d+$",
     r"^http://127\.0\.0\.1:\d+$",
+    r"^https://.*\.ondigitalocean\.app$",  # Tous les sous-domaines DigitalOcean
+    r"^https://.*\.vercel\.app$",  # Si vous déployez sur Vercel
+    r"^https://.*\.netlify\.app$",  # Si vous déployez sur Netlify
 ]
 
+# Headers CORS autorisés
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
-# Désactiver CSRF pour les API (développement uniquement)
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o.strip()]
+# Méthodes HTTP autorisées
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# CSRF - Ajoutez vos domaines de confiance
+CSRF_TRUSTED_ORIGINS = [
+    'https://lobster-app-h4rho.ondigitalocean.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    # Ajoutez l'URL de votre app Flutter Web
+]
 
 # ❌ SUPPRIMER CETTE SECTION CINETPAY
 # CinetPay Configuration - À SUPPRIMER
