@@ -1386,11 +1386,31 @@ class DevenirVendorView(APIView):
             type=openapi.TYPE_OBJECT,
             required=['structure_type'],
             properties={
+                # ✅ Champs personnels (ajoutés)
+                'last_name': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Nom de famille"
+                ),
+                'first_name': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Prénom"
+                ),
+                'email': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_EMAIL,
+                    description="Adresse email"
+                ),
+                'phone_number': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Numéro de téléphone personnel"
+                ),
+                # ✅ Type de structure
                 'structure_type': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     enum=['particulier', 'agence', 'societe'],
                     description="Type de structure"
                 ),
+                # ✅ Champs entreprise (existants)
                 'agence_nom': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description="Nom de l'agence (si applicable)"
@@ -1433,6 +1453,30 @@ class DevenirVendorView(APIView):
                 'error': 'Vous êtes déjà propriétaire/hôte'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        # ✅ Récupérer et mettre à jour les informations personnelles
+        last_name = request.data.get('last_name')
+        first_name = request.data.get('first_name')
+        email = request.data.get('email')
+        phone_number = request.data.get('phone_number')
+        
+        # Mettre à jour le profil utilisateur si de nouvelles infos sont fournies
+        updated = False
+        if last_name and last_name != user.last_name:
+            user.last_name = last_name
+            updated = True
+        if first_name and first_name != user.first_name:
+            user.first_name = first_name
+            updated = True
+        if email and email != user.email:
+            user.email = email
+            updated = True
+        if phone_number and phone_number != user.number:
+            user.number = phone_number
+            updated = True
+        
+        if updated:
+            user.save()
+        
         # Créer le document principal (pièce d'identité)
         piece_identite = request.FILES.get('piece_identite')
         if piece_identite:
@@ -1443,11 +1487,8 @@ class DevenirVendorView(APIView):
                 fichier=piece_identite,
                 structure_type=structure_type,
                 agence_nom=request.data.get('agence_nom', ''),
-
                 agence_adresse=request.data.get('agence_adresse', ''),
-
                 representant_telephone=request.data.get('representant_telephone', ''),
-
                 statut_verification='en_attente'
             )
         
@@ -1463,11 +1504,8 @@ class DevenirVendorView(APIView):
                     fichier=piece_representant,
                     structure_type=structure_type,
                     agence_nom=request.data.get('agence_nom', ''),
-
                     agence_adresse=request.data.get('agence_adresse', ''),
-
                     representant_telephone=request.data.get('representant_telephone', ''),
-
                     statut_verification='en_attente'
                 )
             
@@ -1481,11 +1519,8 @@ class DevenirVendorView(APIView):
                     fichier=rccm,
                     structure_type=structure_type,
                     agence_nom=request.data.get('agence_nom', ''),
-
                     agence_adresse=request.data.get('agence_adresse', ''),
-
                     representant_telephone=request.data.get('representant_telephone', ''),
-
                     statut_verification='en_attente'
                 )
         
@@ -1494,7 +1529,7 @@ class DevenirVendorView(APIView):
             from django.core.mail import send_mail
             send_mail(
                 subject=f'Nouvelle demande vendor - {user.username}',
-                message=f'Une nouvelle demande pour devenir propriétaire a été soumise par {user.get_full_name() or user.username}\n\nType: {structure_type}\nAgence: {request.data.get("agence_nom", "N/A")}',
+                message=f'Une nouvelle demande pour devenir propriétaire a été soumise par {user.get_full_name() or user.username}\n\nType: {structure_type}\nAgence: {request.data.get("agence_nom", "N/A")}\nEmail: {email}\nTéléphone: {phone_number}',
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[settings.EMAIL_HOST_USER],
                 fail_silently=True
@@ -1507,5 +1542,6 @@ class DevenirVendorView(APIView):
         return Response({
             'message': 'Demande soumise avec succès',
             'structure_type': structure_type,
-            'status': 'en_attente_verification'
+            'status': 'en_attente_verification',
+            'profile_updated': updated  # ✅ Indiquer si le profil a été mis à jour
         }, status=status.HTTP_201_CREATED)
