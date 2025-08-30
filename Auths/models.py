@@ -18,7 +18,14 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Utilisateur"
         verbose_name_plural = "Utilisateurs"
-
+    
+    # ✅ S'assurer que l'email est unique
+    email = models.EmailField(
+        verbose_name='email address',
+        unique=True,  # Forcer l'unicité
+        blank=False   # Email obligatoire
+    )
+    
     number = models.TextField(null=True)
     birthdate = models.DateField(null=True)
     carte_identite = models.FileField(upload_to=upload_path_cni, null=True, blank=True)

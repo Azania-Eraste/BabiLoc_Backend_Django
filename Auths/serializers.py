@@ -15,60 +15,86 @@ from decimal import Decimal
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    # Garder le champ username par défaut pour la connexion
+    """Serializer personnalisé pour l'authentification JWT avec email"""
     
-    def validate(self, attrs):
-        username = attrs.get('username')
-        password = attrs.get('password')
-
-        if username and password:
-            try:
-                # Trouver l'utilisateur par username
-                user = CustomUser.objects.get(username=username)
-
-                # Vérifier si le compte est actif
-                if not user.is_active:
-                    raise serializers.ValidationError({
-                        'detail': 'Compte non activé. Veuillez vérifier votre email et saisir le code OTP.',
-                        'user_id': user.id,
-                        'requires_activation': True
-                    })
-                
-                # ✅ Authentifier l'utilisateur directement
-                from django.contrib.auth import authenticate
-                authenticated_user = authenticate(username=user.username, password=password)
-                
-                if authenticated_user is None:
-                    raise serializers.ValidationError('Mot de passe incorrect.')
-                
-                # ✅ Préparer les données pour la génération du token
-                # Ne pas appeler super().validate() car nous gérons nous-mêmes l'authentification
-                refresh = self.get_token(authenticated_user)
-                
-                return {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    'email': authenticated_user.email,
-                    'username': authenticated_user.username,
-                    'is_vendor': authenticated_user.is_vendor,
-                    'code_parrainage': authenticated_user.code_parrainage,
-                }
-                
-            except CustomUser.DoesNotExist:
-                raise serializers.ValidationError('Aucun compte avec ce nom d\'utilisateur.')
-        
-        raise serializers.ValidationError('Nom d\'utilisateur et mot de passe requis.')
+    # ✅ Changer le champ username pour email
+    username_field = 'email'
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Modifier le nom du champ pour être plus clair
+        self.fields[self.username_field] = serializers.EmailField(
+            help_text="Adresse email"
+        )
+        # Supprimer l'ancien champ username si présent
+        if 'username' in self.fields:
+            del self.fields['username']
     
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Ajouter des données personnalisées au token
-        token['email'] = user.email
+        # Ajouter des claims personnalisés
         token['username'] = user.username
+        token['email'] = user.email
+        token['full_name'] = user.get_full_name()
         token['is_vendor'] = user.is_vendor
-        token['code_parrainage'] = user.code_parrainage
+        token['est_verifie'] = user.est_verifie
         return token
-
+    
+    def validate(self, attrs):
+        # Récupérer l'email fourni
+        email = attrs.get(self.username_field)
+        password = attrs.get('password')
+        
+        if email and password:
+            # Chercher l'utilisateur par email
+            try:
+                user = CustomUser.objects.get(email__iexact=email)
+            except CustomUser.DoesNotExist:
+                raise serializers.ValidationError(
+                    'Email ou mot de passe incorrect.'
+                )
+            
+            # Vérifier le mot de passe
+            if not user.check_password(password):
+                raise serializers.ValidationError(
+                    'Email ou mot de passe incorrect.'
+                )
+            
+            if not user.is_active:
+                raise serializers.ValidationError(
+                    'Ce compte est désactivé.'
+                )
+            
+            # ✅ Vérifier si l'utilisateur a vérifié son OTP
+            if not user.otp_verified:
+                raise serializers.ValidationError({
+                    'error': 'Compte non vérifié',
+                    'message': 'Veuillez vérifier votre compte avec le code OTP reçu par email.',
+                    'user_id': user.id,
+                    'requires_otp': True
+                })
+            
+            # Créer les tokens
+            refresh = self.get_token(user)
+            
+            return {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'is_vendor': user.is_vendor,
+                    'est_verifie': user.est_verifie,
+                }
+            }
+        else:
+            raise serializers.ValidationError(
+                'Email et mot de passe requis.'
+            )
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer pour l'utilisateur avec les biens associés"""

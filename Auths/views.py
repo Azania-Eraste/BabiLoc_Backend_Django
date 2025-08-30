@@ -58,15 +58,16 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     
     @swagger_auto_schema(
-        operation_description="Authentification pour obtenir le JWT",
+        operation_description="Connexion avec adresse email",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=["username", "password"],
+            required=["email", "password"],
             properties={
-                'username': openapi.Schema(
+                'email': openapi.Schema(
                     type=openapi.TYPE_STRING,
-                    description="Nom d'utilisateur",
-                    example="yohannvessime"
+                    format=openapi.FORMAT_EMAIL,
+                    description="Adresse email",
+                    example="yohannvessime@gmail.com"
                 ),
                 'password': openapi.Schema(
                     type=openapi.TYPE_STRING,
@@ -81,16 +82,35 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'code_parrainage': openapi.Schema(type=openapi.TYPE_STRING),
-                        'refresh': openapi.Schema(type=openapi.TYPE_STRING),
                         'access': openapi.Schema(type=openapi.TYPE_STRING),
-                        'email': openapi.Schema(type=openapi.TYPE_STRING),
-                        'username': openapi.Schema(type=openapi.TYPE_STRING),
-                        'is_vendor': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'refresh': openapi.Schema(type=openapi.TYPE_STRING),
+                        'user': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                'username': openapi.Schema(type=openapi.TYPE_STRING),
+                                'email': openapi.Schema(type=openapi.TYPE_STRING),
+                                'first_name': openapi.Schema(type=openapi.TYPE_STRING),
+                                'last_name': openapi.Schema(type=openapi.TYPE_STRING),
+                                'is_vendor': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                                'est_verifie': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                            }
+                        )
                     }
                 )
             ),
-            400: "Compte non activé",
+            400: openapi.Response(
+                description="Erreur de validation",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                        'requires_otp': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    }
+                )
+            ),
             401: "Identifiants invalides"
         },
         tags=['Authentification']
@@ -103,11 +123,11 @@ class MyTokenObtainPairView(TokenObtainPairView):
             logger = logging.getLogger(__name__)
             logger.error(f"Erreur de connexion: {str(e)}")
 
-            username = request.data.get('username')
-            print(f"Username: {username}")  # Debugging line
-            if username:
+            email = request.data.get('email')
+            print(f"Email: {email}")  # Debugging line
+            if email:
                 try:
-                    user = CustomUser.objects.get(username=username)
+                    user = CustomUser.objects.get(email=email)
                     if not user.is_active:
                         return Response({
                             'error': 'Compte non activé. Veuillez utiliser le code OTP reçu par email.',
