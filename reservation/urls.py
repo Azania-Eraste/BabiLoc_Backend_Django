@@ -4,7 +4,6 @@ from .views import (
     ReservationDetailView,
     HistoriqueRevenusProprietaireView,
 )
-
 from .viewserializer import (
     reservations_stats,
     historique_statuts_reservations_bien,
@@ -36,7 +35,14 @@ from .viewserializer import (
     VilleListView,
     CreateReservationView,
     MesReservationsView,
-    AllReservationsView
+    AllReservationsView,
+    cancel_reservation,
+    confirm_reservation_payment,
+    VerifierDroitAvisView,
+    MoyenneAvisProprietaireView,
+    AvisRecusProprietaireView,
+    terminer_reservation,
+    profil_avis_proprietaire,          # <-- ajout
 )
 
 urlpatterns = [
@@ -47,6 +53,11 @@ urlpatterns = [
     
     # Détails et mise à jour
     path('reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
+    path('reservations/cancel/', cancel_reservation, name='reservation-cancel'),
+    path('reservations/confirm-payment/', confirm_reservation_payment, name='reservation-confirm-payment'),
+
+    # Terminer une réservation
+    path('reservations/<int:reservation_id>/terminer/', terminer_reservation, name='reservation-terminer'),
 
     # Types de bien
     path('types-bien/', TypeBienListCreateView.as_view(), name='types-bien-list-create'),
@@ -92,9 +103,6 @@ urlpatterns = [
     path('mes-avis/', mes_avis, name='mes-avis'),
     path('Dashboard/avis-recus/', avis_recus, name='avis-recus'),
 
-    # Documents
-    path('documents/create/', DocumentCreateView.as_view(), name='document-create'),
-    path('biens/<int:bien_id>/documents/', DocumentListView.as_view(), name='document-list'),
-    path('documents/<int:pk>/update/', DocumentUpdateView.as_view(), name='document-update'),
-    path('documents/<int:pk>/delete/', DocumentDeleteView.as_view(), name='document-delete'),
+    # Profil avis propriétaire
+    path('avis/profil/<int:user_id>/', profil_avis_proprietaire, name='profil-avis-proprietaire'),  # <-- ajout
 ]
