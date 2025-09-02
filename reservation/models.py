@@ -300,13 +300,9 @@ class Media(models.Model):
 # Gère le cycle de vie : En attente → Confirmée → Terminée ou Annulée
 class Reservation(models.Model):
     confirmed_at = models.DateTimeField(null=True, blank=True, verbose_name="Confirmée le")
-    
-    # Renommer annonce_id en bien
     bien = models.ForeignKey(Bien, on_delete=models.CASCADE, related_name='reservations')
-    
-    # Commission de la plateforme (15%)
     commission_percent = Decimal("0.15")
-    
+
     STATUS_CHOICES = [
         ('pending', 'En attente'),
         ('confirmed', 'Confirmée'),
@@ -331,10 +327,11 @@ class Reservation(models.Model):
     date_debut = models.DateTimeField(verbose_name="Date de début")
     date_fin = models.DateTimeField(verbose_name="Date de fin")
     status = models.CharField(
-        max_length=20, 
-        choices=StatutReservation, 
-        default='pending',
-        verbose_name="Statut"
+        max_length=20,
+        choices=StatutReservation.choices,  # <-- fix: use .choices
+        default=StatutReservation.EN_ATTENTE,  # keeps 'pending' value
+        verbose_name="Statut",
+        db_index=True  # optional index for frequent filters
     )
     prix_total = models.DecimalField(  # Prix total calculé pour la période
         max_digits=10, 
@@ -362,9 +359,10 @@ class Reservation(models.Model):
     
     @property
     def duree_jours(self):
-        """Calcule la durée du séjour en jours"""
-        return (self.date_fin - self.date_debut).days
-    
+        """Calcule la durée du séjour en jours (min 1)"""
+        delta = (self.date_fin - self.date_debut).days
+        return delta if delta > 0 else 1
+
     @property
     def commission_plateforme(self):
         """Commission de 15% gardée par la plateforme"""
@@ -389,25 +387,22 @@ class Reservation(models.Model):
         """Récupère le tarif du bien selon le type choisi"""
         return self.bien.tarifs.filter(type_tarif=self.type_tarif).first()
     
+    # Remove duplicate save() definitions above and below; keep this single version
     def save(self, *args, **kwargs):
-        # Only calculate price for new reservations
-        if not self.pk and not self.prix_total:
+        # Compute prix_total on first save if not provided
+        if not self.pk and (self.prix_total is None or self.prix_total == 0):
             tarif = self.get_tarif_bien()
-            if tarif:
-                nb_jours = (self.date_fin - self.date_debut).days or 1
-                self.prix_total = Decimal(tarif.prix) * Decimal(nb_jours)
-            else:
-                # Instead of raising an error, provide a more helpful message
+            if not tarif:
                 from django.core.exceptions import ValidationError
                 raise ValidationError(
-                    f"Aucun tarif '{self.type_tarif}' trouvé pour le bien '{self.bien.nom}'. "
-                    f"Veuillez contacter le propriétaire ou choisir un autre type de tarif."
+                    f"Aucun tarif '{self.type_tarif}' trouvé pour le bien '{self.bien.nom}'."
                 )
-        
-        # Update confirmation time
-        if self.status == 'confirmed' and not self.confirmed_at:
+            self.prix_total = Decimal(tarif.prix) * Decimal(self.duree_jours)
+
+        # Set confirmation timestamp
+        if self.status == StatutReservation.CONFIRMED and not self.confirmed_at:
             self.confirmed_at = timezone.now()
-        
+
         super().save(*args, **kwargs)
 
 class CodePromo(models.Model):
@@ -631,17 +626,15 @@ class Avis(models.Model):
     def clean(self):
         """Validation personnalisée"""
         from django.core.exceptions import ValidationError
-        
-        # Vérifier que la réservation est terminée
+
         if self.reservation and self.reservation.status != 'completed':
             raise ValidationError("Vous ne pouvez donner un avis que pour une réservation terminée.")
-        
-        # Vérifier que l'utilisateur a bien fait cette réservation
+
         if self.reservation and self.reservation.user != self.user:
             raise ValidationError("Vous ne pouvez donner un avis que pour vos propres réservations.")
-        
-        # Vérifier que le bien correspond à la réservation
-        if self.reservation and self.reservation.bien != self.bien:
+
+        # Fix: comparer le bien de la réservation au bien de l'avis
+        if self.reservation and self.reservation.bien_id != self.bien_id:
             raise ValidationError("Le bien ne correspond pas à la réservation.")
 
 # ============================================================================
@@ -799,3 +792,19 @@ def envoyer_emails_creation_reservation(sender, instance, created, **kwargs):
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Erreur envoi email réservation #{instance.id}: {e}")
+
+class Mode(models.Model):
+    nom = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='modes')
+    actif = models.BooleanField(default=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Mode"
+        verbose_name_plural = "Modes"
+
+    def __str__(self):
+        u = getattr(self.utilisateur, 'username', 'Utilisateur')
+        return f"{self.nom} - {u}"

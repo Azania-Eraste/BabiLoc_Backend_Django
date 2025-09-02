@@ -42,7 +42,8 @@ from .viewserializer import (
     MoyenneAvisProprietaireView,
     AvisRecusProprietaireView,
     terminer_reservation,
-    profil_avis_proprietaire,          # <-- ajout
+    profil_avis_proprietaire,
+    repondre_avis,  # <-- ajout
 )
 
 urlpatterns = [
@@ -89,6 +90,7 @@ urlpatterns = [
 
     # Revenus propriétaire
     path('Dashboard/revenus/', HistoriqueRevenusProprietaireView.as_view(), name='historique-revenus'),
+    path('Dashboard/profil-avis/', profil_avis_proprietaire, name='dashboard-profil-avis'),  # <-- ajout
 
     # Statistiques
     path('Dashboard/reservation-stats/', reservations_stats, name='reservation-stats'),
@@ -99,10 +101,6 @@ urlpatterns = [
     path('avis/', AvisListCreateView.as_view(), name='avis-list-create'),
     path('avis/<int:pk>/', AvisDetailView.as_view(), name='avis-detail'),
     path('avis/<int:pk>/repondre/', ReponseProprietaireView.as_view(), name='avis-repondre'),
-    path('biens/<int:bien_id>/avis/statistiques/', statistiques_avis_bien, name='statistiques-avis-bien'),
-    path('mes-avis/', mes_avis, name='mes-avis'),
-    path('Dashboard/avis-recus/', avis_recus, name='avis-recus'),
-
-    # Profil avis propriétaire
-    path('avis/profil/<int:user_id>/', profil_avis_proprietaire, name='profil-avis-proprietaire'),  # <-- ajout
+    path('avis/profil/<int:user_id>/', profil_avis_proprietaire, name='profil-avis-proprietaire'),
+    path('avis/repondre/', repondre_avis, name='repondre-avis'),  # <-- ajout
 ]

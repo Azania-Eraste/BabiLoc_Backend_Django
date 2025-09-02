@@ -10,9 +10,8 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
-DEBUG = config('DEBUG', default=False, cast=bool)
-
-ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='.ondigitalocean.app,127.0.0.1,localhost').split(',') if h.strip()]
+DEBUG = True  # Forcer le mode local
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']  # Local uniquement
 
 # Security settings (define SECRET_KEY before using it below)
 SECRET_KEY = config('SECRET_KEY', default='CHANGE_ME_IN_PRODUCTION')
@@ -70,15 +69,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'babiloc_backend.wsgi.application'
 
-# Database
-db_url = config('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
-db_ssl_required = config('DB_SSL_REQUIRED', default=not DEBUG, cast=bool)
+# Database (LOCAL)
 DATABASES = {
-    "default": dj_database_url.parse(
-        db_url,
-        conn_max_age=600,
-        ssl_require=db_ssl_required,
-    )
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
 }
 
 # Password validation
@@ -266,4 +262,4 @@ SUPABASE_SERVICE_KEY = config('SUPABASE_SERVICE_KEY', default='')
 
 # HTTPS/Proxy (App Platform)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+SECURE_SSL_REDIRECT = False  # Désactiver la redirection HTTPS en local
