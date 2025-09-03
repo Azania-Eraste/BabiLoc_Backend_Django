@@ -228,6 +228,8 @@ class ForgotPasswordView(APIView):
         })
 
 class ResetPasswordConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]  # <- allow anonymous users
+
     @swagger_auto_schema(
         operation_description="Réinitialiser le mot de passe avec code OTP",
         request_body=openapi.Schema(
