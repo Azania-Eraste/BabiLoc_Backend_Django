@@ -44,6 +44,17 @@ INSTALLED_APPS += [
     'cloudinary_storage',
 ]
 
+# Utiliser Cloudinary pour les médias
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Optionnel: préfixe racine dans Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
+    'PREFIX': 'babiloc',  # vous pouvez changer/supprimer
+}
+
+MEDIA_URL = '/media/'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
