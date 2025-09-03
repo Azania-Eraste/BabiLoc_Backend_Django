@@ -6,6 +6,8 @@ from pathlib import Path
 from decouple import config
 import dj_database_url
 import os
+# Ensure CLOUDINARY_URL is exported to env for cloudinary_storage
+os.environ.setdefault("CLOUDINARY_URL", config("CLOUDINARY_URL", default=""))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,13 +46,29 @@ INSTALLED_APPS += [
     'cloudinary_storage',
 ]
 
-# Utiliser Cloudinary pour les médias
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# Utiliser Cloudinary pour les médias (une seule fois)
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'  # <-- remove
 
-# Optionnel: préfixe racine dans Cloudinary
+# Provide credentials via top-level CLOUDINARY_URL (or use the 3 keys in CLOUDINARY_STORAGE)
+CLOUDINARY_URL = config('CLOUDINARY_URL')  # e.g. cloudinary://api_key:api_secret@cloud_name
+
+# Optional options for the storage backend (keep only options here)
 CLOUDINARY_STORAGE = {
-    'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
-    'PREFIX': 'babiloc',  # vous pouvez changer/supprimer
+    'PREFIX': 'babiloc',
+    'RESOURCE_TYPE': 'raw',  # This stays here, not in STORAGES
+}
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        # No OPTIONS needed for MediaCloudinaryStorage
+    },
+    'raw_files': {
+        'BACKEND': 'cloudinary_storage.storage.RawMediaCloudinaryStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
 }
 
 MEDIA_URL = '/media/'
@@ -204,23 +222,27 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Remove the old STATICFILES_STORAGE variable; define it via STORAGES below
 
-# Media files
-# Utiliser Cloudinary pour les médias
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# Optionnel: laissez les statiques comme avant si vous utilisez déjà collectstatic localement
-# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
-
-# Si CLOUDINARY_URL est dans l'env, Cloudinary est déjà configuré.
-# (Optionnel) Préfixe global des médias dans Cloudinary (créera un dossier racine "babiloc")
+# Media / Cloudinary
+# Remove any duplicate DEFAULT_FILE_STORAGE/CLOUDINARY_STORAGE/MEDIA_URL above
 CLOUDINARY_STORAGE = {
-    'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
     'PREFIX': 'babiloc',
+    'RESOURCE_TYPE': 'raw',  # Change from 'auto' to 'raw' for non-image files
 }
 
-# MEDIA_URL peut rester simple; les URL Cloudinary complètes seront générées par le storage
+STORAGES = {
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+    },
+    'raw_files': {
+        'BACKEND': 'cloudinary_storage.storage.RawMediaCloudinaryStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
 MEDIA_URL = '/media/'
 
 # Maximum file upload size (50MB)
