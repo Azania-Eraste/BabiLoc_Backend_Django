@@ -5,6 +5,7 @@ Django settings for babiloc_backend project.
 from pathlib import Path
 from decouple import config
 import dj_database_url
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +37,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'reservation.apps.ReservationConfig',
     'chat.apps.ChatConfig',  # Ajouter l'app chat
+]
+
+INSTALLED_APPS += [
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -190,8 +196,21 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
+# Utiliser Cloudinary pour les médias
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Optionnel: laissez les statiques comme avant si vous utilisez déjà collectstatic localement
+# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+
+# Si CLOUDINARY_URL est dans l'env, Cloudinary est déjà configuré.
+# (Optionnel) Préfixe global des médias dans Cloudinary (créera un dossier racine "babiloc")
+CLOUDINARY_STORAGE = {
+    'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
+    'PREFIX': 'babiloc',
+}
+
+# MEDIA_URL peut rester simple; les URL Cloudinary complètes seront générées par le storage
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 # Maximum file upload size (50MB)
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB

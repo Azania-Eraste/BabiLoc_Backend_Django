@@ -1,4 +1,5 @@
 from django.db import models
+from Auths.utils import bien_image_upload_to  # <- [`Auths.utils.bien_image_upload_to`](Auths/utils.py)
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator,MaxValueValidator
 from decimal import Decimal
@@ -799,3 +800,7 @@ def envoyer_emails_creation_reservation(sender, instance, created, **kwargs):
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Erreur envoi email réservation #{instance.id}: {e}")
+
+class BienImage(models.Model):
+    bien = models.ForeignKey('reservation.Bien', related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=bien_image_upload_to)  # Chaque image ira dans "biens/<slug ou id>/"
