@@ -15,7 +15,8 @@ from .views import (
     generer_code_promo, statistiques_parrainage, verifier_code_parrainage,
     demander_retrait, valider_code_promo,
     DevenirVendorView,  # ✅ Vérifier que c'est bien importé
-    vendor_admin_dashboard, vendor_requests_list, vendor_action  # Ajout des vues pour l'admin vendor
+    vendor_admin_dashboard, vendor_requests_list, vendor_action,  # Ajout des vues pour l'admin vendor
+    ChangePasswordView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -72,4 +73,12 @@ urlpatterns = [
     path('vendor/vendor-dashboard/', vendor_admin_dashboard, name='vendor_dashboard'),
     path('vendor/vendor-requests/', vendor_requests_list, name='vendor_requests_list'),
     path('vendor/vendor-action/', vendor_action, name='vendor_action'),
+
+    # Password management
+    path('password/reset/', ForgotPasswordView.as_view(), name='password-reset'),
+    path('password/reset/confirm/', ResetPasswordConfirmView.as_view(), name='password-reset-confirm'),
+    path('password/change/', ChangePasswordView.as_view(), name='password-change'),
+
+    # Auth
+    path('auth/change-password/', ChangePasswordView.as_view(), name='change-password'),
 ]

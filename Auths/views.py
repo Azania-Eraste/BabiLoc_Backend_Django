@@ -33,6 +33,7 @@ from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from datetime import timedelta
 from rest_framework.decorators import api_view, permission_classes
+from django.template.exceptions import TemplateDoesNotExist
 
 User = get_user_model()
 
@@ -195,11 +196,21 @@ class ForgotPasswordView(APIView):
         otp_code = user.generate_otp()
 
         # Email avec OTP
-        subject = "Code de vérification pour réinitialisation"
-        html_message = render_to_string("emails/reset_password_otp_email.html", {
-            'user': user,
-            'otp_code': otp_code,
-        })
+        subject = "Code de vérification pour réinitialiser le mot de passe"
+        try:
+            html_message = render_to_string("emails/reset_password_otp_email.html", {
+                'user': user,
+                'otp_code': otp_code,
+            })
+        except TemplateDoesNotExist:
+            html_message = f"""
+                <html><body>
+                  <p>Bonjour {user.username},</p>
+                  <p>Votre code de vérification est : <strong>{otp_code}</strong></p>
+                  <p>Ce code expire dans 5 minutes.</p>
+                  <p>L'équipe BabiLoc</p>
+                </body></html>
+            """
         plain_message = f"Bonjour {user.username},\n\nVotre code de vérification est : {otp_code}\n\nCe code expire dans 5 minutes."
 
         email_message = EmailMultiAlternatives(
@@ -1731,3 +1742,33 @@ def vendor_action(request):
             })
     
     return JsonResponse({'success': False, 'message': 'Méthode non autorisée'})
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Changer le mot de passe (auth requis)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["old_password", "new_password"],
+            properties={
+                'old_password': openapi.Schema(type=openapi.TYPE_STRING),
+                'new_password': openapi.Schema(type=openapi.TYPE_STRING),
+            }
+        ),
+        tags=['Authentification']
+    )
+    def post(self, request):
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        if not old_password or not new_password:
+            return Response({'error': 'Tous les champs sont requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        if not user.check_password(old_password):
+            return Response({'error': 'Ancien mot de passe incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Mot de passe mis à jour avec succès'}, status=status.HTTP_200_OK)
