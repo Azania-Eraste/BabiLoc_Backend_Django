@@ -41,7 +41,7 @@ from .viewserializer import (
 
 urlpatterns = [
     # Endpoints principaux
-    path('reservations/', CreateReservationView.as_view(), name='create-reservation'),
+    path('creer-reservations/', CreateReservationView.as_view(), name='create-reservation'),
     path('mes-reservations/', MesReservationsView.as_view(), name='mes-reservations'),
     path('all-reservations/', AllReservationsView.as_view(), name='all-reservations'),
     
