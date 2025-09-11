@@ -8,7 +8,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.utils import timezone  # ✅ Add this import
-from .models import CustomUser, DocumentUtilisateur, HistoriqueParrainage, CodePromoParrainage
+from .models import CustomUser, DocumentUtilisateur, HistoriqueParrainage, CodePromoParrainage, AccountDeletionLog
 from reservation.models import Bien  # ✅ Changé de BienSerializer vers le modèle
 from django.db.models import Sum, Count
 from decimal import Decimal
@@ -505,3 +505,15 @@ class GenerationCodePromoSerializer(serializers.Serializer):
         default=50000.00
     )
     duree_jours = serializers.IntegerField(min_value=1, max_value=365, default=30)
+
+class AccountDeletionLogSerializer(serializers.ModelSerializer):
+    performed_by_username = serializers.CharField(source='performed_by.username', read_only=True)
+
+    class Meta:
+        model = AccountDeletionLog
+        fields = [
+            'id', 'user_id', 'email', 'username', 'is_vendor', 'reason', 'ip_address',
+            'reservations_count', 'favoris_count', 'avis_count', 'hard_delete',
+            'deleted_at', 'performed_by', 'performed_by_username'
+        ]
+        read_only_fields = fields

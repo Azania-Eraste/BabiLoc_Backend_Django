@@ -17,6 +17,9 @@ from .views import (
     DevenirVendorView,  # ✅ Vérifier que c'est bien importé
     vendor_admin_dashboard, vendor_requests_list, vendor_action,  # Ajout des vues pour l'admin vendor
     ChangePasswordView,
+    DeleteAccountView,
+    AccountDeletionLogListView,
+    AccountDeletionLogDetailView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -81,4 +84,11 @@ urlpatterns = [
 
     # Auth
     path('auth/change-password/', ChangePasswordView.as_view(), name='change-password'),
+
+    # Delete account
+    path('delete-account/', DeleteAccountView.as_view(), name='delete-account'),
+
+    # Admin account deletions
+    path('admin/account-deletions/', AccountDeletionLogListView.as_view(), name='admin-account-deletions'),
+    path('admin/account-deletions/<int:pk>/', AccountDeletionLogDetailView.as_view(), name='admin-account-deletions-detail'),
 ]

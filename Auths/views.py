@@ -1,4 +1,4 @@
-from .models import CustomUser, DocumentUtilisateur,HistoriqueParrainage,CodePromoParrainage  # Ajouter DocumentUtilisateur
+from .models import CustomUser, DocumentUtilisateur,HistoriqueParrainage,CodePromoParrainage, AccountDeletionLog
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -6,34 +6,41 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from .serializers import (
-    RegisterSerializer, MyTokenObtainPairSerializer, UserSerializer, 
-    OTPVerificationSerializer, DocumentUtilisateurSerializer, 
-    DocumentModerationSerializer, FilleulSerializer, 
-    HistoriqueParrainageSerializer, ParrainageSerializer, 
-    CodePromotionParrainageSerializer, StatistiquesParrainageSerializer,
-    ValidationCodeParrainageSerializer, GenerationCodePromoSerializer
-)
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.mail import EmailMultiAlternatives
 from rest_framework import permissions
-from django.template.loader import render_to_string
-from django.conf import settings
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+# Add missing imports
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
+from .serializers import (
+    MyTokenObtainPairSerializer,
+    UserSerializer,
+    RegisterSerializer,
+    DocumentUtilisateurSerializer,
+    DocumentModerationSerializer,
+    StatistiquesParrainageSerializer,
+    FilleulSerializer,
+    HistoriqueParrainageSerializer,
+    ValidationCodeParrainageSerializer,
+    GenerationCodePromoSerializer,
+    CodePromotionParrainageSerializer,
+    ParrainageSerializer,
+    AccountDeletionLogSerializer,  # <- add
+)
+# Add missing imports
+from rest_framework.decorators import api_view, permission_classes
 from django.http import HttpResponse
+from django.template import TemplateDoesNotExist
+from django.utils import timezone
+from django.db.models import Sum, Count
+from datetime import timedelta
 import random
 import string
-from django.utils import timezone
-from django.db.models import Sum, Count, Q
-from datetime import timedelta
-from rest_framework.decorators import api_view, permission_classes
-from django.template.exceptions import TemplateDoesNotExist
 
 User = get_user_model()
 
@@ -1745,6 +1752,64 @@ def vendor_action(request):
     
     return JsonResponse({'success': False, 'message': 'Méthode non autorisée'})
 
+class AccountDeletionLogListView(generics.ListAPIView):
+    """
+    Liste des suppressions de compte (admin uniquement)
+    Filtres:
+      - q: recherche email/username
+      - user_id: ID utilisateur supprimé
+      - performed_by: ID admin qui a effectué l’action
+      - hard_delete: true/false
+      - from, to: ISO date (YYYY-MM-DD)
+    """
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = AccountDeletionLogSerializer
+
+    @swagger_auto_schema(
+        operation_description="Lister les suppressions de compte (admin)",
+        manual_parameters=[
+            openapi.Parameter('q', openapi.IN_QUERY, type=openapi.TYPE_STRING, description="Rechercher email/username"),
+            openapi.Parameter('user_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="ID utilisateur supprimé"),
+            openapi.Parameter('performed_by', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, description="ID de l'admin"),
+            openapi.Parameter('hard_delete', openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, description="true/false"),
+            openapi.Parameter('from', openapi.IN_QUERY, type=openapi.TYPE_STRING, description="Date début YYYY-MM-DD"),
+            openapi.Parameter('to', openapi.IN_QUERY, type=openapi.TYPE_STRING, description="Date fin YYYY-MM-DD"),
+        ],
+        responses={200: AccountDeletionLogSerializer(many=True)},
+        tags=['Administration']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = AccountDeletionLog.objects.all()
+        q = self.request.query_params.get('q')
+        if q:
+            qs = qs.filter(models.Q(email__icontains=q) | models.Q(username__icontains=q))
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+        performed_by = self.request.query_params.get('performed_by')
+        if performed_by:
+            qs = qs.filter(performed_by_id=performed_by)
+        hard_delete = self.request.query_params.get('hard_delete')
+        if hard_delete is not None:
+            val = str(hard_delete).lower() in ['1', 'true', 'yes']
+            qs = qs.filter(hard_delete=val)
+        date_from = self.request.query_params.get('from')
+        if date_from:
+            qs = qs.filter(deleted_at__date__gte=date_from)
+        date_to = self.request.query_params.get('to')
+        if date_to:
+            qs = qs.filter(deleted_at__date__lte=date_to)
+        return qs.order_by('-deleted_at')
+
+class AccountDeletionLogDetailView(generics.RetrieveAPIView):
+    """Détail d’une suppression (admin uniquement)"""
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = AccountDeletionLogSerializer
+    queryset = AccountDeletionLog.objects.all()
+
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1774,3 +1839,116 @@ class ChangePasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response({'message': 'Mot de passe mis à jour avec succès'}, status=status.HTTP_200_OK)
+
+class DeleteAccountView(APIView):
+    """
+    Supprimer définitivement le compte de l'utilisateur connecté.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Supprimer le compte de l'utilisateur connecté",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['confirm'],
+            properties={
+                'confirm': openapi.Schema(type=openapi.TYPE_BOOLEAN, description="Confirmer la suppression"),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, description="Mot de passe (optionnel si non défini)"),
+                'hard_delete': openapi.Schema(type=openapi.TYPE_BOOLEAN, description="Suppression physique (défaut: false)"),
+                'reason': openapi.Schema(type=openapi.TYPE_STRING, description="Raison fournie par l'utilisateur")
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Compte supprimé (soft) ou désactivé",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'mode': openapi.Schema(type=openapi.TYPE_STRING, enum=['soft', 'hard'])
+                    }
+                )
+            ),
+            204: "Compte supprimé (hard)",
+            400: "Confirmation manquante ou mot de passe incorrect",
+            401: "Non authentifié"
+        },
+        tags=['Profil']
+    )
+    def post(self, request):
+        user = request.user
+        confirm = request.data.get('confirm')
+        if not (confirm is True or str(confirm).lower() in ['true', '1', 'yes', 'on']):
+            return Response({'error': 'Confirmation requise'}, status=status.HTTP_400_BAD_REQUEST)
+
+        password = request.data.get('password')
+        if user.has_usable_password() and password:
+            if not user.check_password(password):
+                return Response({'error': 'Mot de passe incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+
+        hard_delete = bool(request.data.get('hard_delete', False))
+        reason = request.data.get('reason', '')
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0] or request.META.get('REMOTE_ADDR')
+
+        # Compter les objets liés (pour audit)
+        try:
+            from reservation.models import Reservation, Favori, Avis
+            reservations_count = Reservation.objects.filter(user=user).count()
+            favoris_count = Favori.objects.filter(user=user).count()
+            avis_count = Avis.objects.filter(user=user).count()
+        except Exception:
+            reservations_count = favoris_count = avis_count = 0
+
+        # Créer le log d'audit AVANT suppression/anonymisation
+        AccountDeletionLog.objects.create(
+            user_id=user.id,
+            email=user.email,
+            username=user.username,
+            is_vendor=user.is_vendor,
+            reason=reason,
+            ip_address=ip,
+            reservations_count=reservations_count,
+            favoris_count=favoris_count,
+            avis_count=avis_count,
+            hard_delete=hard_delete,  # <- add
+            performed_by=request.user
+        )
+
+        uid = user.id
+
+        if hard_delete:
+            # Suppression physique (les FK en CASCADE tomberont, ex: [`reservation.models.Avis`](reservation/models.py))
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # Soft delete: désactiver et anonymiser
+        user.is_active = False
+        user.is_vendor = False
+        user.est_verifie = False
+        user.first_name = ''
+        user.last_name = ''
+        user.number = None
+        user.otp_code = None
+
+        # Anonymiser identifiants (conserver l'unicité)
+        user.username = f"deleted_user_{uid}"
+        user.email = f"deleted_{uid}@deleted.local"
+
+        # Nettoyer médias (si vous souhaitez aussi supprimer les fichiers)
+        try:
+            if getattr(user, 'photo_profil', None):
+                user.photo_profil.delete(save=False)
+                user.photo_profil = None
+            if getattr(user, 'image_banniere', None):
+                user.image_banniere.delete(save=False)
+                user.image_banniere = None
+        except Exception:
+            pass
+
+        user.save(update_fields=[
+            'is_active', 'is_vendor', 'est_verifie', 'first_name', 'last_name',
+            'number', 'otp_code', 'username', 'email', 'photo_profil', 'image_banniere'
+        ])
+
+        return Response({'message': 'Compte désactivé et anonymisé', 'user_id': uid, 'mode': 'soft'}, status=status.HTTP_200_OK)

@@ -625,3 +625,30 @@ class DocumentUtilisateur(models.Model):
     
     def __str__(self):
         return f"{self.get_type_document_display()} - {self.utilisateur.username}"
+
+
+class AccountDeletionLog(models.Model):
+    user_id = models.IntegerField()
+    email = models.EmailField(null=True, blank=True)
+    username = models.CharField(max_length=150, blank=True)
+    is_vendor = models.BooleanField(default=False)
+    reason = models.TextField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    reservations_count = models.IntegerField(default=0)
+    favoris_count = models.IntegerField(default=0)
+    avis_count = models.IntegerField(default=0)
+    hard_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now_add=True)
+    performed_by = models.ForeignKey(
+        CustomUser, null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='deletions_performed'
+    )
+
+    class Meta:
+        ordering = ['-deleted_at']
+        verbose_name = "Suppression de compte"
+        verbose_name_plural = "Suppressions de compte"
+
+    def __str__(self):
+        return f"Suppression user#{self.user_id} - {self.deleted_at:%Y-%m-%d %H:%M}"

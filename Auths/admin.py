@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, DocumentUtilisateur, HistoriqueParrainage, CodePromoParrainage
+from .models import CustomUser, DocumentUtilisateur, HistoriqueParrainage, CodePromoParrainage, AccountDeletionLog
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Q
@@ -280,3 +280,9 @@ class DemandeVendorAdmin(admin.ModelAdmin):
         
         self.message_user(request, f"{refused} demande(s) refusée(s)")
     refuser_demandes.short_description = "❌ Refuser les demandes"
+
+@admin.register(AccountDeletionLog)
+class AccountDeletionLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user_id', 'email', 'username', 'hard_delete', 'deleted_at', 'performed_by')
+    search_fields = ('email', 'username', 'user_id')
+    list_filter = ('hard_delete', 'deleted_at')
