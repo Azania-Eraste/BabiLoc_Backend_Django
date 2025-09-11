@@ -1887,9 +1887,16 @@ class DeleteAccountView(APIView):
             if not user.check_password(password):
                 return Response({'error': 'Mot de passe incorrect'}, status=status.HTTP_400_BAD_REQUEST)
 
-        hard_delete = bool(request.data.get('hard_delete', False))
-        reason = request.data.get('reason', '')
-        ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0] or request.META.get('REMOTE_ADDR')
+        # Avant
+        # hard_delete = bool(request.data.get('hard_delete', False))
+
+        # Après: false par défaut et parsing sûr
+        hard_delete_raw = request.data.get('hard_delete', 'false')
+        hard_delete = str(hard_delete_raw).strip().lower() in ('1', 'true', 'yes', 'on')
+
+        # (Optionnel) Empêcher le hard delete par un utilisateur non admin
+        if hard_delete and not request.user.is_staff:
+            hard_delete = False
 
         # Compter les objets liés (pour audit)
         try:
@@ -1911,7 +1918,7 @@ class DeleteAccountView(APIView):
             reservations_count=reservations_count,
             favoris_count=favoris_count,
             avis_count=avis_count,
-            hard_delete=hard_delete,  # <- add
+            hard_delete=hard_delete,
             performed_by=request.user
         )
 
