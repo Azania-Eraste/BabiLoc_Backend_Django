@@ -41,6 +41,7 @@ from django.db.models import Sum, Count
 from datetime import timedelta
 import random
 import string
+from django.db import models  # <- add (utilisé dans AccountDeletionLogListView)
 
 User = get_user_model()
 
@@ -1887,16 +1888,16 @@ class DeleteAccountView(APIView):
             if not user.check_password(password):
                 return Response({'error': 'Mot de passe incorrect'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Avant
-        # hard_delete = bool(request.data.get('hard_delete', False))
+        # Récupérer les champs manquants
+        reason = request.data.get('reason', '')  # <- fix
+        ip = (
+            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            or request.META.get('REMOTE_ADDR')
+            or ''
+        )  # <- fix
 
-        # Après: false par défaut et parsing sûr
-        hard_delete_raw = request.data.get('hard_delete', 'false')
-        hard_delete = str(hard_delete_raw).strip().lower() in ('1', 'true', 'yes', 'on')
-
-        # (Optionnel) Empêcher le hard delete par un utilisateur non admin
-        if hard_delete and not request.user.is_staff:
-            hard_delete = False
+        # Forcer le hard delete à False (aucun choix côté front)
+        hard_delete = False  # <- force
 
         # Compter les objets liés (pour audit)
         try:
@@ -1925,7 +1926,6 @@ class DeleteAccountView(APIView):
         uid = user.id
 
         if hard_delete:
-            # Suppression physique (les FK en CASCADE tomberont, ex: [`reservation.models.Avis`](reservation/models.py))
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -1937,12 +1937,10 @@ class DeleteAccountView(APIView):
         user.last_name = ''
         user.number = None
         user.otp_code = None
-
-        # Anonymiser identifiants (conserver l'unicité)
         user.username = f"deleted_user_{uid}"
         user.email = f"deleted_{uid}@deleted.local"
 
-        # Nettoyer médias (si vous souhaitez aussi supprimer les fichiers)
+        # Nettoyer médias si présents
         try:
             if getattr(user, 'photo_profil', None):
                 user.photo_profil.delete(save=False)
@@ -1953,9 +1951,15 @@ class DeleteAccountView(APIView):
         except Exception:
             pass
 
-        user.save(update_fields=[
+        # Sauvegarde sécurisée: inclure seulement les champs existants
+        update_fields = [
             'is_active', 'is_vendor', 'est_verifie', 'first_name', 'last_name',
-            'number', 'otp_code', 'username', 'email', 'photo_profil', 'image_banniere'
-        ])
+            'number', 'otp_code', 'username', 'email'
+        ]
+        for extra in ['photo_profil', 'image_banniere']:
+            if hasattr(user, extra):
+                update_fields.append(extra)
+
+        user.save(update_fields=update_fields)
 
         return Response({'message': 'Compte désactivé et anonymisé', 'user_id': uid, 'mode': 'soft'}, status=status.HTTP_200_OK)
