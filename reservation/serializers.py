@@ -261,7 +261,7 @@ class ReservationUpdateSerializer(serializers.ModelSerializer):
 
 class ReservationListSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    bien_nom = serializers.CharField(source='bien.nom', read_only=True)
+    bien = serializers.CharField(source='bien', read_only=True)
     ville = serializers.CharField(source='bien.ville.nom', read_only=True)
     first_image = serializers.CharField(source='bien.get_first_image', read_only=True)
     owner_name = serializers.SerializerMethodField()
@@ -269,7 +269,7 @@ class ReservationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = [
-            'id', 'user', 'bien', 'bien_nom', 'ville', 'first_image',
+            'id', 'user', 'bien', 'ville', 'first_image',
             'date_debut', 'date_fin', 'status', 'prix_total',
             'created_at', 'owner_name', 'type_tarif'
         ]
