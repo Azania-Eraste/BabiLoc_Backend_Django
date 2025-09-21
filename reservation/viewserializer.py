@@ -233,6 +233,66 @@ class AllReservationsView(generics.ListAPIView):
         
         return queryset
 
+class DisponibiliteBienView(generics.ListAPIView):
+    """
+    Vue publique pour récupérer les réservations actives d'un bien spécifique
+    (pour afficher la disponibilité dans l'app)
+    """
+    serializer_class = ReservationListSerializer
+    permission_classes = [permissions.AllowAny]  # Accessible sans authentification
+    pagination_class = ReservationPagination
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer les réservations actives d'un bien pour vérifier la disponibilité",
+        manual_parameters=[
+            openapi.Parameter(
+                'bien_id',
+                openapi.IN_PATH,
+                description="ID du bien",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+            openapi.Parameter(
+                'status',
+                openapi.IN_QUERY,
+                description="Filtrer par statut (par défaut: confirmed,pending)",
+                type=openapi.TYPE_STRING,
+                enum=['pending', 'confirmed', 'cancelled', 'completed']
+            )
+        ],
+        responses={
+            200: ReservationListSerializer(many=True),
+            404: "Bien non trouvé"
+        },
+        tags=['Disponibilité']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        # Protection contre les appels Swagger
+        if getattr(self, 'swagger_fake_view', False):
+            return Reservation.objects.none()
+        
+        bien_id = self.kwargs.get('bien_id')
+        if not bien_id:
+            return Reservation.objects.none()
+        
+        # Par défaut, afficher les réservations actives (confirmed et pending)
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            statuses = [status_filter]
+        else:
+            statuses = ['confirmed', 'pending']
+        
+        # Récupérer les réservations du bien avec les statuts actifs
+        queryset = Reservation.objects.filter(
+            bien_id=bien_id,
+            status__in=statuses
+        ).select_related('user', 'bien').order_by('-created_at')
+        
+        return queryset
+
 class ReservationDetailView(generics.RetrieveUpdateAPIView):
     """
     Détails et mise à jour d'une réservation

@@ -36,7 +36,8 @@ from .viewserializer import (
     VilleListView,
     CreateReservationView,
     MesReservationsView,
-    AllReservationsView
+    AllReservationsView,
+    DisponibiliteBienView
 )
 
 urlpatterns = [
@@ -44,6 +45,9 @@ urlpatterns = [
     path('creer-reservations/', CreateReservationView.as_view(), name='create-reservation'),
     path('mes-reservations/', MesReservationsView.as_view(), name='mes-reservations'),
     path('all-reservations/', AllReservationsView.as_view(), name='all-reservations'),
+    
+    # Disponibilité publique
+    path('biens/<int:bien_id>/disponibilite/', DisponibiliteBienView.as_view(), name='disponibilite-bien'),
     
     # Détails et mise à jour
     path('reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
