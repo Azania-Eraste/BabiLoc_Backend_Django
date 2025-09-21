@@ -1,16 +1,40 @@
-from django.urls import path
-from .views import (
-    RegisterView, ForgotPasswordView, ResetPasswordConfirmView, ompte</title></head>
-    MeView, MyTokenObtainPairView, ProfileUpdateView, welcome_view,
-    VerifyOTPView, ResendOTPView, ActivateAccountView,
-    DocumentUtilisateurCreateView,|default:user.username }},</p>
-    MesDocumentsView,é la suppression de votre compte.</p>
-    DocumentUtilisateurUpdateView,t :</p>
-    DocumentUtilisateurDeleteView,{ otp_code }}</h1>
-    DocumentsModerationView,inutes.</p>
-    DocumentModerationView,'origine de cette demande, ignorez cet email.</p>
-    DebugUserStatusView,>
-    GetUserByIdView,
-    MonParrainageView, MesFilleulsView, HistoriqueParrainageView,    generer_code_promo, statistiques_parrainage, verifier_code_parrainage,    demander_retrait, valider_code_promo,    DevenirVendorView,  # ✅ Vérifier que c'est bien importé    vendor_admin_dashboard, vendor_requests_list, vendor_action,  # Ajout des vues pour l'admin vendor    ChangePasswordView,    DeleteAccountView,    AccountDeletionLogListView,    AccountDeletionLogDetailView,    DeleteAccountRequestOTPView, DeleteAccountConfirmOTPView,  # <- add)from rest_framework_simplejwt.views import TokenRefreshViewurlpatterns = [    path('login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),    path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),    path('register/', RegisterView.as_view(), name='register'),    path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),    path('resend-otp/', ResendOTPView.as_view(), name='resend-otp'),    path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),    path('reset-password/', ResetPasswordConfirmView.as_view(), name='reset-password'),    path('me/', MeView.as_view(), name='me'),    path('update/', ProfileUpdateView.as_view(), name='update-user'),    path('welcome/', welcome_view, name='welcome'),    path('user/<int:user_id>/', GetUserByIdView.as_view(), name='get-user-by-id'),        # Informations de parrainage    path('parrainage/mon-parrainage/', MonParrainageView.as_view(), name='mon-parrainage'),    path('parrainage/mes-filleuls/', MesFilleulsView.as_view(), name='mes-filleuls'),    path('parrainage/historique/', HistoriqueParrainageView.as_view(), name='historique-parrainage'),    path('parrainage/statistiques/', statistiques_parrainage, name='statistiques-parrainage'),        # Codes de parrainage    path('parrainage/verifier-code/', verifier_code_parrainage, name='verifier-code-parrainage'),        # Codes promo    path('parrainage/generer-code-promo/', generer_code_promo, name='generer-code-promo'),    path('parrainage/valider-code-promo/', valider_code_promo, name='valider-code-promo'),        # Retraits    path('parrainage/demander-retrait/', demander_retrait, name='demander-retrait'),    # Ancien endpoint pour compatibilité    path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate'),    # Documents utilisateur    path('documents/upload/', DocumentUtilisateurCreateView.as_view(), name='document-upload'),    path('documents/mes-documents/', MesDocumentsView.as_view(), name='mes-documents'),    path('documents/<int:pk>/update/', DocumentUtilisateurUpdateView.as_view(), name='document-update'),    path('documents/<int:pk>/delete/', DocumentUtilisateurDeleteView.as_view(), name='document-delete'),        # Modération    path('admin/documents/moderation/', DocumentsModerationView.as_view(), name='documents-moderation'),    path('admin/documents/<int:pk>/moderer/', DocumentModerationView.as_view(), name='document-moderer'),    # Debug    path('debug-user-status/', DebugUserStatusView.as_view(), name='debug-user-status'),  # Temporaire    # Vendor    path('devenir-vendor/', DevenirVendorView.as_view(), name='devenir-vendor'),    # Vendor Admin Interface    path('vendor/vendor-dashboard/', vendor_admin_dashboard, name='vendor_dashboard'),    path('vendor/vendor-requests/', vendor_requests_list, name='vendor_requests_list'),    path('vendor/vendor-action/', vendor_action, name='vendor_action'),    # Password management    path('password/reset/', ForgotPasswordView.as_view(), name='password-reset'),    path('password/reset/confirm/', ResetPasswordConfirmView.as_view(), name='password-reset-confirm'),    path('password/change/', ChangePasswordView.as_view(), name='password-change'),    # Auth    path('auth/change-password/', ChangePasswordView.as_view(), name='change-password'),    # Delete account    path('delete-account/', DeleteAccountView.as_view(), name='delete-account'),    path('delete-account/request-otp/', DeleteAccountRequestOTPView.as_view(), name='delete-account-request-otp'),    path('delete-account/confirm-otp/', DeleteAccountConfirmOTPView.as_view(), name='delete-account-confirm-otp'),    # Admin account deletions    path('admin/account-deletions/', AccountDeletionLogListView.as_view(), name='admin-account-deletions'),
-    path('admin/account-deletions/<int:pk>/', AccountDeletionLogDetailView.as_view(), name='admin-account-deletions-detail'),
-]
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Confirmation suppression de compte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f6f9fc; margin:0; padding:0; }
+    .container { max-width:560px; margin:24px auto; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .header { background:#111827; color:#fff; padding:16px 24px; }
+    .content { padding:24px; color:#111827; }
+    .otp { font-size:28px; letter-spacing:6px; font-weight:bold; text-align:center; margin:16px 0; }
+    .muted { color:#6b7280; font-size:14px; }
+    .footer { padding:16px 24px; color:#6b7280; font-size:12px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      Confirmation de suppression de compte
+    </div>
+    <div class="content">
+      <p>Bonjour {{ user.get_full_name|default:user.username }},</p>
+      <p>Vous avez demandé la suppression de votre compte BabiLoc.</p>
+      {% if reason %}
+        <p class="muted">Motif: {{ reason }}</p>
+      {% endif %}
+      <p>Veuillez utiliser le code de confirmation ci-dessous pour valider votre demande:</p>
+      <div class="otp">{{ otp_code }}</div>
+      <p class="muted"><strong>Ce code expire dans 2 minutes.</strong></p>
+      <p class="muted">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+      <p>Cordialement,<br/>L'équipe BabiLoc</p>
+    </div>
+    <div class="footer">
+      © BabiLoc — Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.
+    </div>
+  </div>
+</body>
+</html>
