@@ -20,6 +20,7 @@ from .views import (
     DeleteAccountView,
     AccountDeletionLogListView,
     AccountDeletionLogDetailView,
+    DeleteAccountRequestOTPView, DeleteAccountConfirmOTPView,  # <- add
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -87,6 +88,8 @@ urlpatterns = [
 
     # Delete account
     path('delete-account/', DeleteAccountView.as_view(), name='delete-account'),
+    path('delete-account/request-otp/', DeleteAccountRequestOTPView.as_view(), name='delete-account-request-otp'),
+    path('delete-account/confirm-otp/', DeleteAccountConfirmOTPView.as_view(), name='delete-account-confirm-otp'),
 
     # Admin account deletions
     path('admin/account-deletions/', AccountDeletionLogListView.as_view(), name='admin-account-deletions'),
