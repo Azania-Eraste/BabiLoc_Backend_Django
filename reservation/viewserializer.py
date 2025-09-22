@@ -530,6 +530,35 @@ class BienListCreateView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
+class MesBiensView(generics.ListAPIView):
+    """Vue pour récupérer tous les biens du propriétaire connecté"""
+    serializer_class = BienSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = BienPagination
+
+    def get_queryset(self):
+        """Retourne uniquement les biens du propriétaire connecté"""
+        return Bien.objects.filter(owner=self.request.user).select_related('type_bien').order_by('-created_at')
+
+    @swagger_auto_schema(
+        operation_description="Récupérer tous les biens du propriétaire connecté",
+        responses={200: BienSerializer(many=True)},
+        tags=["Biens", "Propriétaire"]
+    )
+    def get(self, request, *args, **kwargs):
+        print(f"=== MES BIENS ===")
+        print(f"Utilisateur: {request.user.username} (ID: {request.user.id})")
+        
+        queryset = self.get_queryset()
+        print(f"Nombre de biens trouvés: {queryset.count()}")
+        
+        return super().get(request, *args, **kwargs)
+
+    def get_serializer_context(self):
+        """Passe le request au serializer context"""
+        return {'request': self.request}
+
+
 class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bien.objects.all()
     permission_classes = [permissions.IsAuthenticated]

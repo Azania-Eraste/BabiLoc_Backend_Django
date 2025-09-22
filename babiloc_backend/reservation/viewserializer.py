@@ -371,6 +371,7 @@ class BienListCreateView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
+
 class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bien.objects.all()
     permission_classes = [permissions.IsAuthenticated]
