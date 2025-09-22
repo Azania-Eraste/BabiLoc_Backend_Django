@@ -99,6 +99,45 @@ class BienSerializer(serializers.ModelSerializer):
             'media'
         ]
 
+class BienUpdateSerializer(serializers.ModelSerializer):
+    """Serializer pour la mise à jour des biens"""
+    
+    class Meta:
+        model = Bien
+        fields = [
+            'nom',
+            'description',
+            'ville',
+            'disponibility',
+            'type_bien',
+            'nb_places',
+            'nb_chambres',
+            'nb_douches',
+            'chauffeur',
+            'prix_chauffeur',
+            'has_piscine',
+            'has_wifi',
+            'has_parking',
+            'has_kitchen',
+            'has_security',
+            'has_garden',
+            'disponibilite_hebdo',
+            'marque',
+            'modele',
+            'plaque',
+            'carburant',
+            'transmission',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'owner', 'vues', 'nombre_likes']
+    
+    def validate(self, data):
+        """Validation personnalisée pour la mise à jour"""
+        # Vérifier que l'utilisateur est le propriétaire du bien
+        if self.instance and self.context['request'].user != self.instance.owner:
+            raise serializers.ValidationError("Vous ne pouvez modifier que vos propres biens.")
+        
+        return data
+
     def validate_owner(self, value):
         if not value.is_vendor:
             raise serializers.ValidationError("L'utilisateur doit être un vendeur.")
