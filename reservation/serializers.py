@@ -334,3 +334,68 @@ class StatistiquesAvisSerializer(serializers.Serializer):
     repartition_notes = serializers.DictField()
     pourcentage_recommandation = serializers.FloatField()
     notes_moyennes_categories = serializers.DictField()
+
+class BienUpdateSerializer(serializers.ModelSerializer):
+    """Serializer pour la mise à jour des biens"""
+    disponibilite_hebdo = DisponibiliteHebdoSerializer(required=False)
+    ville_id = serializers.IntegerField(required=False, allow_null=True)
+    type_bien_id = serializers.IntegerField(required=False)
+    tag_ids = serializers.ListField(child=serializers.IntegerField(), required=False)
+    
+    class Meta:
+        model = Bien
+        fields = [
+            'nom', 'description', 'ville_id', 'disponibility', 'type_bien_id',
+            'nb_places', 'nb_chambres', 'chauffeur', 'prix_chauffeur',
+            'has_piscine', 'disponibilite_hebdo', 'marque', 'modele', 'plaque',
+            'carburant', 'transmission', 'tag_ids'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'owner', 'vues', 'nombre_likes']
+    
+    def validate(self, data):
+        """Validation personnalisée pour la mise à jour"""
+        # Vérifier que l'utilisateur est le propriétaire du bien
+        if self.instance and self.context['request'].user != self.instance.owner:
+            raise serializers.ValidationError("Vous ne pouvez modifier que vos propres biens.")
+        
+        return data
+    
+    def validate_type_bien_id(self, value):
+        if value and not Type_Bien.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Ce type de bien n'existe pas.")
+        return value
+    
+    def update(self, instance, validated_data):
+        """Mise à jour personnalisée"""
+        dispo_data = validated_data.pop('disponibilite_hebdo', None)
+        tag_ids = validated_data.pop('tag_ids', None)
+        
+        # Gérer le type_bien_id
+        type_bien_id = validated_data.pop('type_bien_id', None)
+        if type_bien_id:
+            type_bien = Type_Bien.objects.get(id=type_bien_id)
+            validated_data['type_bien'] = type_bien
+        
+        # Gérer le ville_id
+        ville_id = validated_data.pop('ville_id', None)
+        if ville_id:
+            ville = Ville.objects.get(id=ville_id)
+            validated_data['ville'] = ville
+        
+        # Mettre à jour l'instance
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Mettre à jour les tags
+        if tag_ids is not None:
+            instance.tags.set(tag_ids)
+        
+        # Mettre à jour la disponibilité hebdomadaire
+        if dispo_data:
+            dispo, created = DisponibiliteHebdo.objects.get_or_create(bien=instance)
+            for attr, value in dispo_data.items():
+                setattr(dispo, attr, value)
+            dispo.save()
+        
+        return instance
