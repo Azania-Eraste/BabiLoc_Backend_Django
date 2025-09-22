@@ -15,7 +15,6 @@ from .serializers import (
     ReservationUpdateSerializer,
     ReservationListSerializer,
     BienSerializer,
-    BienUpdateSerializer,
     MediaSerializer,
     FavoriSerializer,
     FavoriListSerializer,
@@ -374,13 +373,8 @@ class BienListCreateView(generics.ListCreateAPIView):
 
 class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bien.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_serializer_class(self):
-        """Utiliser le bon serializer selon la méthode HTTP"""
-        if self.request.method in ['PUT', 'PATCH']:
-            return BienUpdateSerializer
-        return BienSerializer
+    serializer_class = BienSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -389,58 +383,13 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
-        """Mise à jour avec validation des permissions"""
-        instance = self.get_object()
-        
-        # Vérifier que l'utilisateur est le propriétaire
-        if request.user != instance.owner:
-            return Response(
-                {"error": "Vous ne pouvez modifier que vos propres biens."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     @swagger_auto_schema(
-        operation_description="Récupérer les détails d'un bien",
+        operation_description="Récupérer les détails d’un bien",
         responses={200: BienSerializer, 404: "Bien non trouvé"},
         tags=["Biens"]
     )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_description="Mettre à jour un bien",
-        request_body=BienUpdateSerializer,
-        responses={
-            200: BienSerializer,
-            400: "Données invalides",
-            403: "Permissions insuffisantes",
-            404: "Bien non trouvé"
-        },
-        tags=["Biens"]
-    )
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    @swagger_auto_schema(
-        operation_description="Mettre à jour partiellement un bien",
-        request_body=BienUpdateSerializer,
-        responses={
-            200: BienSerializer,
-            400: "Données invalides",
-            403: "Permissions insuffisantes",
-            404: "Bien non trouvé"
-        },
-        tags=["Biens"]
-    )
-    def patch(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_description="Mettre à jour un bien",
