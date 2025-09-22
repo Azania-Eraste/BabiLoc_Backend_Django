@@ -1,0 +1,683 @@
+EXTRACTION DU DESIGN - INTERFACE RÉSERVATIONS
+=====================================================
+
+STRUCTURE GÉNÉRALE:
+- Interface mobile avec header "Mes Réservations"
+- Bouton retour (<) en haut à gauche, blanc
+- Fond sombre/noir (#1a1a1a ou similaire) avec éléments en relief
+- Design moderne avec coins arrondis et ombres subtiles
+
+SECTION STATISTIQUES:
+- Titre: "Mes Statistiques" avec icône verte carrée 
+- Container sombre arrondi avec padding généreux
+- Bordures arrondies (radius ~12px)
+- 4 cartes statistiques en grille 2x2 avec espacement uniforme:
+
+  Carte 1 - Total réservations:
+  - Icône: calendrier vert
+  - Nombre: "2" (grand, blanc)
+  - Label: "Total réservations" (petit, gris)
+
+  Carte 2 - Terminées:
+  - Icône: check vert circulaire
+  - Nombre: "0" (grand, blanc)
+  - Label: "Terminées" (petit, gris)
+
+  Carte 3 - En cours:
+  - Icône: horloge orange/jaune
+  - Nombre: "2" (grand, blanc)
+  - Label: "En cours" (petit, gris)
+
+  Carte 4 - Montant total:
+  - Icône: billet vert
+  - Montant: "1750 FCFA" (grand, blanc)
+  - Label: "Montant total" (petit, gris)
+
+SECTION FILTRES:
+- Onglets horizontaux:
+  - "Toutes" (actif, fond jaune/orange)
+  - "En attente" (inactif, texte gris)
+  - "Confirmées" (inactif, texte gris)
+  - "Terminées" (inactif, texte gris)
+  - "Annulées" (inactif, texte gris)
+
+CARTES RÉSERVATIONS:
+Structure répétée pour chaque réservation:
+
+Réservation 1:
+- Container blanc arrondi avec ombre
+- Icône maison à gauche
+- Badge "En attente" (orange, arrondi)
+
+=====================================================
+CODE FLUTTER CORRESPONDANT
+=====================================================
+
+```dart
+import 'package:flutter/material.dart';
+
+class MesReservationsPage extends StatefulWidget {
+  const MesReservationsPage({Key? key}) : super(key: key);
+
+  @override
+  State<MesReservationsPage> createState() => _MesReservationsPageState();
+}
+
+class _MesReservationsPageState extends State<MesReservationsPage> {
+  String selectedFilter = 'Toutes';
+  
+  // Données d'exemple
+  final Map<String, dynamic> statistiques = {
+    'total_reservations': 2,
+    'terminees': 0,
+    'en_cours': 2,
+    'montant_total': 1750,
+  };
+  
+  final List<Map<String, dynamic>> reservations = [
+    {
+      'id': '1',
+      'adresse': 'Adresse non disponible',
+      'date_debut': '15/12/2024',
+      'date_fin': '20/12/2024',
+      'duree': '5 jours',
+      'montant': 750,
+      'statut': 'En attente',
+    },
+    {
+      'id': '2',
+      'adresse': 'Adresse non disponible',
+      'date_debut': '15/12/2024',
+      'date_fin': '20/12/2024',
+      'duree': '5 jours',
+      'montant': 750,
+      'statut': 'En attente',
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1a1a1a),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 24),
+                _buildStatistiquesSection(),
+                const SizedBox(height: 24),
+                _buildFiltresSection(),
+                const SizedBox(height: 24),
+                _buildReservationsList(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 16),
+        const Text(
+          'Mes Réservations',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatistiquesSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2a2a2a),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10b981),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Icon(
+                  Icons.bar_chart,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Mes Statistiques',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildStatistiquesGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatistiquesGrid() {
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 1.8,
+      children: [
+        _buildStatCard(
+          icon: Icons.calendar_today,
+          iconColor: const Color(0xFF10b981),
+          value: '${statistiques['total_reservations']}',
+          label: 'Total\nréservations',
+        ),
+        _buildStatCard(
+          icon: Icons.check_circle,
+          iconColor: const Color(0xFF10b981),
+          value: '${statistiques['terminees']}',
+          label: 'Terminées',
+        ),
+        _buildStatCard(
+          icon: Icons.access_time,
+          iconColor: const Color(0xFFf59e0b),
+          value: '${statistiques['en_cours']}',
+          label: 'En cours',
+        ),
+        _buildStatCard(
+          icon: Icons.attach_money,
+          iconColor: const Color(0xFF10b981),
+          value: '${statistiques['montant_total']} FCFA',
+          label: 'Montant total',
+          isLargeText: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required Color iconColor,
+    required String value,
+    required String label,
+    bool isLargeText = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2a2a2a),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(
+            icon,
+            color: iconColor,
+            size: 20,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isLargeText ? 14 : 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF9ca3af),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFiltresSection() {
+    final filtres = ['Toutes', 'En attente', 'Confirmées', 'Terminées', 'Annulées'];
+    
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: filtres.map((filtre) => _buildFilterButton(filtre)).toList(),
+      ),
+    );
+  }
+
+  Widget _buildFilterButton(String filtre) {
+    final isSelected = selectedFilter == filtre;
+    
+    return GestureDetector(
+      onTap: () => setState(() => selectedFilter = filtre),
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFf59e0b) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? const Color(0xFFf59e0b) : const Color(0xFF9ca3af),
+          ),
+        ),
+        child: Text(
+          filtre,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF9ca3af),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReservationsList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: reservations.length,
+      itemBuilder: (context, index) {
+        final reservation = reservations[index];
+        return _buildReservationCard(reservation);
+      },
+    );
+  }
+
+  Widget _buildReservationCard(Map<String, dynamic> reservation) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.home,
+                color: Colors.grey,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFf59e0b).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  reservation['statut'],
+                  style: const TextStyle(
+                    color: Color(0xFFf59e0b),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            reservation['adresse'],
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today,
+                color: Colors.grey,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Dates',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            '${reservation['date_debut']} - ${reservation['date_fin']}',
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(
+                Icons.access_time,
+                color: Colors.grey,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Durée',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            reservation['duree'],
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.grey,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Total',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${reservation['montant']} FCFA',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: OutlinedButton(
+              onPressed: () {
+                // Navigation vers les détails
+              },
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFe5e7eb)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              ),
+              child: const Text(
+                'Voir détails',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+```
+
+UTILISATION:
+- Remplacer les données mockées par les vraies données de l'API
+- Adapter les couleurs selon le thème de l'app
+- Ajouter la logique de filtrage fonctionnelle
+- Implémenter la navigation vers les détails des réservations
+- Ajouter la gestion des états de chargement et d'erreur
+
+COMPOSANTS PRINCIPAUX:
+1. _buildHeader() - En-tête avec bouton retour
+2. _buildStatistiquesSection() - Section avec les 4 cartes statistiques
+3. _buildFiltresSection() - Onglets de filtrage horizontaux
+4. _buildReservationsList() - Liste des réservations
+5. _buildReservationCard() - Card individuelle de réservation
+
+FEATURES À AJOUTER:
+- Pull-to-refresh
+- Pagination
+- Animation des transitions
+- État vide avec illustration
+- Gestion des erreurs réseau
+
+=====================================================
+CODE FLUTTER RÉEL TROUVÉ DANS LE PROJET
+=====================================================
+
+FICHIER: lib/screens/profilescreens/mes_reservations_page.dart
+
+Ce fichier contient déjà l'implémentation complète de l'interface "Mes Réservations" 
+avec la section "Mes Statistiques" incluant:
+
+✅ Section statistiques avec 4 cartes en grille 2x2
+✅ Total réservations, Terminées, En cours, Montant total
+✅ Design avec fond sombre et cartes claires
+✅ Icônes colorées pour chaque statistique
+✅ Calculs dynamiques basés sur les vraies données
+
+STRUCTURE CLÉS DU FICHIER:
+- Ligne ~650: Titre "Mes Statistiques" avec icône
+- Ligne ~665-700: Grille 2x2 des cartes statistiques
+- _buildStatCard(): Méthode pour créer chaque carte de statistique
+- _buildStatsSection(): Section complète des statistiques
+
+STATISTIQUES CALCULÉES:
+- completedCount: Réservations terminées
+- pendingCount: Réservations en attente  
+- confirmedCount: Réservations confirmées
+- totalAmount: Montant total de toutes les réservations
+
+Les données sont calculées dynamiquement à partir de la liste _reservations.
+
+CODE EXACT DE LA SECTION STATISTIQUES:
+
+```dart
+Widget _buildStatsSection() {
+  // Utiliser les vraies données des réservations
+  final completedCount = _reservations.where((r) => r.status == StatutReservation.completed).length;
+  final pendingCount = _reservations.where((r) => r.status == StatutReservation.pending).length;
+  final confirmedCount = _reservations.where((r) => r.status == StatutReservation.confirmed).length;
+  final cancelledCount = _reservations.where((r) => r.status == StatutReservation.cancelled).length;
+  final totalAmount = _reservations.fold<double>(0, (sum, r) => sum + (r.montantTotal ?? 0));
+
+  return Container(
+    margin: const EdgeInsets.all(16),
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        colors: [Color(0xFF1A1A1A), Color(0xFF2A2A2A)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFBAFF00).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.analytics_outlined,
+                color: Color(0xFFBAFF00),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Mes Statistiques',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'Total\nréservations',
+                '${_reservations.length}',
+                Icons.event_available,
+                const Color(0xFFBAFF00),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Terminées',
+                '$completedCount',
+                Icons.check_circle_outline,
+                Colors.green,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'En cours',
+                '${confirmedCount + pendingCount}',
+                Icons.schedule,
+                Colors.orange,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Montant total',
+                '${totalAmount.toStringAsFixed(0)} FCFA',
+                Icons.payments_outlined,
+                const Color(0xFFBAFF00),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.05),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: Colors.white.withOpacity(0.1),
+        width: 1,
+      ),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          color: color,
+          size: 20,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.white.withOpacity(0.7),
+            height: 1.2,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+```
+- Boutons avec effet hover/press
+- Onglets avec état actif/inactif clairement défini
+- Cards réservations cliquables (bouton "Voir détails")
+- Navigation fluide avec animations subtiles
