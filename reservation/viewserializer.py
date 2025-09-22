@@ -611,7 +611,7 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class MediaCreateView(generics.CreateAPIView):
     serializer_class = MediaSerializer
-    permission_classes = [permission.IsVendor]
+    permission_classes = [permissions.IsAuthenticated]  # Changé de IsVendor à IsAuthenticated
 
     def perform_create(self, serializer):
         serializer.save()
