@@ -565,7 +565,7 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_serializer_class(self):
         """Utiliser le bon serializer selon la méthode HTTP"""
         if self.request.method in ['PUT', 'PATCH']:
-            return BienUpdateSerializer
+            return BienSerializer
         return BienSerializer
 
     def retrieve(self, request, *args, **kwargs):
@@ -602,7 +602,7 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(
         operation_description="Mettre à jour un bien",
-        request_body=BienUpdateSerializer,
+        request_body=BienSerializer,
         responses={
             200: BienSerializer,
             400: "Données invalides",
@@ -616,7 +616,7 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(
         operation_description="Mettre à jour partiellement un bien",
-        request_body=BienUpdateSerializer,
+        request_body=BienSerializer,
         responses={
             200: BienSerializer,
             400: "Données invalides",
