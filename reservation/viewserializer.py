@@ -16,7 +16,6 @@ from .serializers import (
     ReservationUpdateSerializer,
     ReservationListSerializer,
     BienSerializer,
-    BienUpdateSerializer,
     MediaSerializer,
     FavoriSerializer,
     FavoriListSerializer,
