@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from rest_framework import permissions
+from rest_framework import permissions, status
+from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -42,6 +43,8 @@ from datetime import timedelta
 import random
 import string
 from django.db import models  # <- add (utilisé dans AccountDeletionLogListView)
+from django.urls import reverse  # utile si besoin plus tard
+from django.db import transaction
 
 User = get_user_model()
 
@@ -432,7 +435,7 @@ class VerifyOTPView(APIView):
                     type=openapi.TYPE_STRING,
                     description="Code OTP à 4 chiffres",
                     example="1234"
-                ),
+                )
             }
         ),
         responses={
@@ -1160,7 +1163,6 @@ def generer_code_promo(request):
         }, status=status.HTTP_400_BAD_REQUEST)
     
     # Générer le code
-    import random
     import string
     code = f"PARRAIN{user.id}{random.randint(100, 999)}"
     
@@ -1963,3 +1965,260 @@ class DeleteAccountView(APIView):
         user.save(update_fields=update_fields)
 
         return Response({'message': 'Compte désactivé et anonymisé', 'user_id': uid, 'mode': 'soft'}, status=status.HTTP_200_OK)
+
+class DeleteAccountRequestOTPView(APIView):
+    """
+    Étape 1: Demander la suppression (génère un OTP et l'envoie par email)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Demander un OTP pour confirmer la suppression du compte",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'reason': openapi.Schema(type=openapi.TYPE_STRING, description="Raison (optionnelle)"),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, description="Mot de passe (si requis)"),
+            }
+        ),
+        responses={200: "OTP envoyé par email"},
+        tags=['Profil']
+    )
+    def post(self, request):
+        user = request.user
+        reason = request.data.get('reason', '')
+        password = request.data.get('password')
+
+        # Vérif mot de passe si l'utilisateur en a un et qu'il a fourni le champ
+        if user.has_usable_password() and password:
+            if not user.check_password(password):
+                return Response({'error': 'Mot de passe incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Générer un OTP spécifique (sans toucher à otp_verified)
+        otp_code = str(random.randint(1000, 9999))
+        user.otp_code = otp_code
+        user.otp_created_at = timezone.now()
+        user.save(update_fields=['otp_code', 'otp_created_at'])
+
+        # Envoi email OTP
+        subject = "Confirmez la suppression de votre compte - Code OTP"
+        try:
+            html_message = render_to_string('emails/delete_account_otp_email.html', {
+                'user': user,
+                'otp_code': otp_code,
+                'reason': reason,
+            })
+        except TemplateDoesNotExist:
+            html_message = f"""
+                <html><body>
+                    <p>Bonjour {user.get_full_name() or user.username},</p>
+                    <p>Vous avez demandé la suppression de votre compte.</p>
+                    <p>Votre code de confirmation est : <strong>{otp_code}</strong></p>
+                    <p>Ce code expire dans 2 minutes.</p>
+                    <p>Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+                    <p>L'équipe BabiLoc</p>
+                </body></html>
+            """
+
+        plain_message = (
+            f"Bonjour {user.get_full_name() or user.username},\n\n"
+            f"Vous avez demandé la suppression de votre compte.\n"
+            f"Votre code de confirmation est : {otp_code}\n"
+            f"Ce code expire dans 2 minutes.\n\n"
+            f"Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.\n"
+            f"L'équipe BabiLoc"
+        )
+
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=plain_message,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[user.email]
+        )
+        email.attach_alternative(html_message, "text/html")
+        email.send(fail_silently=True)
+
+        return Response({'message': 'OTP envoyé par email'}, status=status.HTTP_200_OK)
+
+
+class DeleteAccountConfirmOTPView(APIView):
+    """
+    Étape 2: Confirmer avec l’OTP et exécuter la suppression (soft delete)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Confirmer la suppression avec l’OTP",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["otp_code", "confirm"],
+            properties={
+                'otp_code': openapi.Schema(type=openapi.TYPE_STRING),
+                'confirm': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                'reason': openapi.Schema(type=openapi.TYPE_STRING),
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Compte désactivé et anonymisé",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING),
+                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'mode': openapi.Schema(type=openapi.TYPE_STRING, enum=['soft'])
+                    }
+                )
+            ),
+            400: "OTP invalide/expiré ou confirmation manquante",
+        },
+        tags=['Profil']
+    )
+    def post(self, request):
+        user = request.user
+        confirm = request.data.get('confirm')
+        if not (confirm is True or str(confirm).lower() in ['true', '1', 'yes', 'on']):
+            return Response({'error': 'Confirmation requise'}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp_code = request.data.get('otp_code')
+        if not otp_code:
+            return Response({'error': 'Code OTP requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Valider l’OTP via la fenêtre de validité existante
+        if not (str(user.otp_code) == str(otp_code) and user.is_otp_valid()):
+            return Response({'error': 'Code OTP invalide ou expiré'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Nettoyer l’OTP
+        user.otp_code = None
+        user.otp_created_at = None
+        user.save(update_fields=['otp_code', 'otp_created_at'])
+
+        # Récupérer infos pour audit
+        reason = request.data.get('reason', 'confirmed_via_otp')
+        ip = (
+            request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            or request.META.get('REMOTE_ADDR')
+            or ''
+        )
+        hard_delete = False  # on force soft delete
+
+        # Compter les objets liés (audit)
+        try:
+            from reservation.models import Reservation, Favori, Avis
+            reservations_count = Reservation.objects.filter(user=user).count()
+            favoris_count = Favori.objects.filter(user=user).count()
+            avis_count = Avis.objects.filter(user=user).count()
+        except Exception:
+            reservations_count = favoris_count = avis_count = 0
+
+        # Journaliser avant anonymisation
+        AccountDeletionLog.objects.create(
+            user_id=user.id,
+            email=user.email,
+            username=user.username,
+            is_vendor=user.is_vendor,
+            reason=reason,
+            ip_address=ip,
+            reservations_count=reservations_count,
+            favoris_count=favoris_count,
+            hard_delete=hard_delete,
+            performed_by=request.user
+        )
+
+        # Soft delete (réutilise la logique de [`Auths.views.DeleteAccountView`](Auths/views.py))
+        uid = user.id
+        user.is_active = False
+        user.is_vendor = False
+        user.est_verifie = False
+        user.first_name = ''
+        user.last_name = ''
+        user.number = None
+        user.username = f"deleted_user_{uid}"
+        user.email = f"deleted_{uid}@deleted.local"
+
+        try:
+            if getattr(user, 'photo_profil', None):
+                user.photo_profil.delete(save=False)
+                user.photo_profil = None
+            if getattr(user, 'image_banniere', None):
+                user.image_banniere.delete(save=False)
+                user.image_banniere = None
+        except Exception:
+            pass
+
+        update_fields = [
+            'is_active', 'is_vendor', 'est_verifie', 'first_name', 'last_name',
+            'number', 'username', 'email'
+        ]
+        for extra in ['photo_profil', 'image_banniere']:
+            if hasattr(user, extra):
+                update_fields.append(extra)
+
+        user.save(update_fields=update_fields)
+
+        return Response({'message': 'Compte désactivé et anonymisé', 'user_id': uid, 'mode': 'soft'}, status=status.HTTP_200_OK)
+
+class DocumentUniverselUploadView(generics.CreateAPIView):
+    """
+    Upload universel: crée ou met à jour le document de vérification d'un type donné.
+    Si un document (utilisateur, type_document) existe déjà, il est mis à jour.
+    """
+    serializer_class = DocumentUtilisateurSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Créer ou mettre à jour un document utilisateur (upsert)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['nom', 'type_document'],
+            properties={
+                'nom': openapi.Schema(type=openapi.TYPE_STRING),
+                'type_document': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['carte_identite', 'permis_conduire', 'passeport', 'attestation_travail',
+                          'justificatif_domicile', 'rccm', 'autre']
+                ),
+                'fichier': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY),
+                'image': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY),
+                'date_expiration': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            }
+        ),
+        consumes=['multipart/form-data'],
+        responses={
+            200: DocumentUtilisateurSerializer,
+            201: DocumentUtilisateurSerializer,
+            400: "Données invalides",
+            401: "Non authentifié"
+        },
+        tags=['Documents Utilisateur']
+    )
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['utilisateur'] = request.user.id
+        type_doc = data.get('type_document')
+
+        if not type_doc:
+            return Response({'error': 'type_document requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Chercher un document existant de ce type
+        instance = DocumentUtilisateur.objects.filter(
+            utilisateur=request.user,
+            type_document=type_doc
+        ).first()
+
+        context = {'request': request}
+
+        if instance:
+            # Mise à jour
+            serializer = self.get_serializer(instance, data=data, partial=True, context=context)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Création
+            serializer = self.get_serializer(data=data, context=context)
+            if serializer.is_valid():
+                serializer.save(utilisateur=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

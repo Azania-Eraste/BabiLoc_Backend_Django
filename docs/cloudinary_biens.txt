@@ -1,0 +1,70 @@
+Cloudinary – Stockage des images des biens (Résumé projet BabiLoc)
+
+1) Rôle de Cloudinary (paramétrage global)
+- Cloudinary est le backend de stockage par défaut des fichiers Django.
+- Configuration: babiloc_backend/settings.py
+  - CLOUDINARY_URL (variable d’environnement)
+  - STORAGES['default'] = cloudinary_storage.storage.MediaCloudinaryStorage
+  - STORAGES['raw_files'] = cloudinary_storage.storage.RawMediaCloudinaryStorage
+  - CLOUDINARY_STORAGE (ex: PREFIX='babiloc')
+=> Toute écriture sur un ImageField/FileField envoie le fichier vers Cloudinary. L’URL publique est accessible via <champ>.url.
+
+2) Où sont les images des biens (models)
+- Galerie d’un bien:
+  - reservation.models.Media.image: ImageField(upload_to='biens/')
+  - Relation: Media.bien (ForeignKey) avec related_name='media' (exposition en liste sur un Bien)
+- Galerie alternative (chemin dynamique):
+  - reservation.models.BienImage.image: ImageField(upload_to=Auths.utils.bien_image_upload_to)
+  - Fonction d’upload: Auths/utils.py -> bien_image_upload_to (génère un chemin du type biens/<bien|slug|id>/<fichier>)
+- Documents liés à un bien (si image de document):
+  - reservation.models.Document.image (et/ou fichier “raw” via .fichier)
+
+3) API d’upload côté biens (views + urls)
+- Créer un média (image) pour un bien:
+  - Vue: reservation.viewserializer.MediaCreateView
+  - Route: voir reservation/urls.py (POST multipart/form-data)
+  - Champs attendus (usuel): bien (ID), image (fichier binaire)
+- Créer un document de bien:
+  - Vue: reservation.viewserializer.DocumentCreateView
+  - Route: voir reservation/urls.py (POST multipart/form-data)
+  - Champs: bien (ID), image ou fichier (PDF/…)
+=> Aucun code Cloudinary spécifique n’est nécessaire: DRF reçoit request.FILES, le modèle a un ImageField/FileField, et le backend Cloudinary fait l’upload.
+
+4) Sérialisation et URLs d’accès
+- reservation.serializers.MediaSerializer: expose généralement image (-> image.url Cloudinary)
+- reservation.serializers.BienSerializer:
+  - get_premiere_image: retourne la première URL d’image du bien (en s’appuyant sur Bien.get_first_image)
+  - media = MediaSerializer(many=True, read_only=True): liste des médias du bien
+- reservation.serializers.DocumentSerializer.get_file_url: construit l’URL publique d’un document (image/fichier)
+=> Côté client, consommer directement les URLs Cloudinary renvoyées par l’API.
+
+5) Suppression/Nettoyage
+- Supprimer une image: instance.image.delete(save=False) supprime aussi l’asset Cloudinary.
+- Exemple de pattern déjà présent: Auths.views.DeleteAccountView supprime photo_profil / image_banniere via .delete().
+- Recommandé: si vous remplacez une image, appelez .delete() sur l’ancienne avant d’assigner la nouvelle.
+
+6) Exemples rapides
+- Upload (curl) d’un média de bien:
+  curl -X POST https://<host>/api/location/medias/ ^
+       -H "Authorization: Bearer <token>" ^
+       -F "bien=<ID_BIEN>" ^
+       -F "image=@c:\chemin\vers\photo.jpg"
+  -> La réponse JSON contiendra image: "https://res.cloudinary.com/<cloud>/.../photo.jpg"
+
+- Django shell (sauvegarde programmatique):
+  from django.core.files.base import ContentFile
+  from django.core.files.storage import default_storage
+  public_id = default_storage.save("biens/tests/hello.jpg", ContentFile(b"binary..."))
+  # public_id est l’identifiant Cloudinary; une instance ImageField aurait .url pour l’URL.
+
+7) Dépannage
+- Erreur “Missing CLOUDINARY_URL”: vérifier le .env et le chargement dans settings.
+- AttributeError: '<FieldFile>.url' -> le champ n’a pas de fichier; vérifier l’upload multipart/form-data et le nom de champ.
+- 400 côté API: confirmer le Content-Type multipart/form-data et les noms des champs (bien, image/fichier).
+
+8) Points clés à retenir
+- Toutes les images de biens vont sur Cloudinary grâce au storage par défaut configuré.
+- Les endpoints ne contiennent pas de code Cloudinary direct; ils manipulent des ImageField/FileField.
+- Les URLs renvoyées sont des URLs Cloudinary (CDN), prêtes pour le front.
+
+Dernière mise à jour: 2025-09-22

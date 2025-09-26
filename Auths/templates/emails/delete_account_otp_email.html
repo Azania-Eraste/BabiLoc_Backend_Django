@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Confirmation suppression de compte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f6f9fc; margin:0; padding:0; }
+    .container { max-width:560px; margin:24px auto; background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .header { background:#111827; color:#fff; padding:16px 24px; }
+    .content { padding:24px; color:#111827; }
+    .otp { font-size:28px; letter-spacing:6px; font-weight:bold; text-align:center; margin:16px 0; }
+    .muted { color:#6b7280; font-size:14px; }
+    .footer { padding:16px 24px; color:#6b7280; font-size:12px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      Confirmation de suppression de compte
+    </div>
+    <div class="content">
+      <p>Bonjour {{ user.get_full_name|default:user.username }},</p>
+      <p>Vous avez demandé la suppression de votre compte BabiLoc.</p>
+      {% if reason %}
+        <p class="muted">Motif: {{ reason }}</p>
+      {% endif %}
+      <p>Veuillez utiliser le code de confirmation ci-dessous pour valider votre demande:</p>
+      <div class="otp">{{ otp_code }}</div>
+      <p class="muted"><strong>Ce code expire dans 2 minutes.</strong></p>
+      <p class="muted">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+      <p>Cordialement,<br/>L'équipe BabiLoc</p>
+    </div>
+    <div class="footer">
+      © BabiLoc — Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.
+    </div>
+  </div>
+</body>
+</html>
