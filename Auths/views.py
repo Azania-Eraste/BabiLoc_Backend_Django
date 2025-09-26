@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from rest_framework import permissions
+from rest_framework import permissions, status
+from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -43,6 +44,7 @@ import random
 import string
 from django.db import models  # <- add (utilisé dans AccountDeletionLogListView)
 from django.urls import reverse  # utile si besoin plus tard
+from django.db import transaction
 
 User = get_user_model()
 
@@ -433,7 +435,7 @@ class VerifyOTPView(APIView):
                     type=openapi.TYPE_STRING,
                     description="Code OTP à 4 chiffres",
                     example="1234"
-                ),
+                )
             }
         ),
         responses={
@@ -1161,7 +1163,6 @@ def generer_code_promo(request):
         }, status=status.HTTP_400_BAD_REQUEST)
     
     # Générer le code
-    import random
     import string
     code = f"PARRAIN{user.id}{random.randint(100, 999)}"
     
@@ -2120,7 +2121,6 @@ class DeleteAccountConfirmOTPView(APIView):
             ip_address=ip,
             reservations_count=reservations_count,
             favoris_count=favoris_count,
-            avis_count=avis_count,
             hard_delete=hard_delete,
             performed_by=request.user
         )
@@ -2157,3 +2157,68 @@ class DeleteAccountConfirmOTPView(APIView):
         user.save(update_fields=update_fields)
 
         return Response({'message': 'Compte désactivé et anonymisé', 'user_id': uid, 'mode': 'soft'}, status=status.HTTP_200_OK)
+
+class DocumentUniverselUploadView(generics.CreateAPIView):
+    """
+    Upload universel: crée ou met à jour le document de vérification d'un type donné.
+    Si un document (utilisateur, type_document) existe déjà, il est mis à jour.
+    """
+    serializer_class = DocumentUtilisateurSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Créer ou mettre à jour un document utilisateur (upsert)",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['nom', 'type_document'],
+            properties={
+                'nom': openapi.Schema(type=openapi.TYPE_STRING),
+                'type_document': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['carte_identite', 'permis_conduire', 'passeport', 'attestation_travail',
+                          'justificatif_domicile', 'rccm', 'autre']
+                ),
+                'fichier': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY),
+                'image': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY),
+                'date_expiration': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            }
+        ),
+        consumes=['multipart/form-data'],
+        responses={
+            200: DocumentUtilisateurSerializer,
+            201: DocumentUtilisateurSerializer,
+            400: "Données invalides",
+            401: "Non authentifié"
+        },
+        tags=['Documents Utilisateur']
+    )
+    def post(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['utilisateur'] = request.user.id
+        type_doc = data.get('type_document')
+
+        if not type_doc:
+            return Response({'error': 'type_document requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Chercher un document existant de ce type
+        instance = DocumentUtilisateur.objects.filter(
+            utilisateur=request.user,
+            type_document=type_doc
+        ).first()
+
+        context = {'request': request}
+
+        if instance:
+            # Mise à jour
+            serializer = self.get_serializer(instance, data=data, partial=True, context=context)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Création
+            serializer = self.get_serializer(data=data, context=context)
+            if serializer.is_valid():
+                serializer.save(utilisateur=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

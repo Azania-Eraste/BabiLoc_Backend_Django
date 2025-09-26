@@ -3,7 +3,7 @@ from .views import (
     RegisterView, ForgotPasswordView, ResetPasswordConfirmView, 
     MeView, MyTokenObtainPairView, ProfileUpdateView, welcome_view,
     VerifyOTPView, ResendOTPView, ActivateAccountView,
-    DocumentUtilisateurCreateView,
+    DocumentUniverselUploadView,     # ✅ ajouter
     MesDocumentsView,
     DocumentUtilisateurUpdateView,
     DocumentUtilisateurDeleteView,
@@ -14,8 +14,8 @@ from .views import (
     MonParrainageView, MesFilleulsView, HistoriqueParrainageView,
     generer_code_promo, statistiques_parrainage, verifier_code_parrainage,
     demander_retrait, valider_code_promo,
-    DevenirVendorView,  # ✅ Vérifier que c'est bien importé
-    vendor_admin_dashboard, vendor_requests_list, vendor_action,  # Ajout des vues pour l'admin vendor
+    DevenirVendorView,
+    vendor_admin_dashboard, vendor_requests_list, vendor_action,
     ChangePasswordView,
     DeleteAccountView,
     AccountDeletionLogListView,
@@ -58,7 +58,7 @@ urlpatterns = [
     path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate'),
 
     # Documents utilisateur
-    path('documents/upload/', DocumentUtilisateurCreateView.as_view(), name='document-upload'),
+    path('documents/upload-universel/', DocumentUniverselUploadView.as_view(), name='document-upload-universel'),
     path('documents/mes-documents/', MesDocumentsView.as_view(), name='mes-documents'),
     path('documents/<int:pk>/update/', DocumentUtilisateurUpdateView.as_view(), name='document-update'),
     path('documents/<int:pk>/delete/', DocumentUtilisateurDeleteView.as_view(), name='document-delete'),

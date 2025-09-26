@@ -4,6 +4,9 @@ import random
 import string
 from django.utils import timezone
 from datetime import timedelta
+from Auths.utils import document_upload_to
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 
 # Create your models here.
 
@@ -505,16 +508,18 @@ class DocumentUtilisateur(models.Model):
     
     # Soit un fichier soit une image
     fichier = models.FileField(
-        upload_to='documents_utilisateurs/fichiers/', 
-        blank=True, 
+        upload_to=document_upload_to,
+        blank=True,
         null=True,
-        verbose_name="Fichier document"
+        verbose_name="Fichier document",
+        # validators=[validate_file_size, FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'webp'])]
     )
     image = models.ImageField(
-        upload_to='documents_utilisateurs/images/', 
-        blank=True, 
+        upload_to=document_upload_to,
+        blank=True,
         null=True,
-        verbose_name="Image du document"
+        verbose_name="Image du document",
+        # validators=[validate_file_size, FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])]
     )
     
     statut_verification = models.CharField(

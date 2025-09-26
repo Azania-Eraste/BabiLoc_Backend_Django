@@ -16,11 +16,21 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='documentutilisateur',
             name='fichier',
-            field=models.FileField(blank=True, null=True, upload_to=Auths.utils.document_upload_to, validators=[Auths.models.validate_file_size, django.core.validators.FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'webp'])]),
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to=Auths.utils.document_upload_to,
+                validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'webp'])]
+            ),
         ),
         migrations.AlterField(
             model_name='documentutilisateur',
             name='image',
-            field=models.ImageField(blank=True, null=True, upload_to=Auths.utils.document_upload_to, validators=[Auths.models.validate_file_size, django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])]),
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to=Auths.utils.document_upload_to,
+                validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])]
+            ),
         ),
     ]
