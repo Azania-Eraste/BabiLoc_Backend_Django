@@ -39,6 +39,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['full_name'] = user.get_full_name()
         token['is_vendor'] = user.is_vendor
         token['est_verifie'] = user.est_verifie
+        token['code_parrainage'] = user.code_parrainage
         return token
     
     def validate(self, attrs):
@@ -89,6 +90,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     'last_name': user.last_name,
                     'is_vendor': user.is_vendor,
                     'est_verifie': user.est_verifie,
+                    'code_parrainage': user.code_parrainage,
                 }
             }
         else:

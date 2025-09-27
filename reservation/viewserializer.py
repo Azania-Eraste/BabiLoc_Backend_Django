@@ -529,10 +529,44 @@ class BienListCreateView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
+class MesBiensView(generics.ListAPIView):
+    """Vue pour récupérer tous les biens du propriétaire connecté"""
+    serializer_class = BienSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = BienPagination
+
+    def get_queryset(self):
+        """Retourne uniquement les biens du propriétaire connecté"""
+        return Bien.objects.filter(owner=self.request.user).select_related('type_bien').order_by('-created_at')
+
+    @swagger_auto_schema(
+        operation_description="Récupérer tous les biens du propriétaire connecté",
+        responses={200: BienSerializer(many=True)},
+        tags=["Biens", "Propriétaire"]
+    )
+    def get(self, request, *args, **kwargs):
+        print(f"=== MES BIENS ===")
+        print(f"Utilisateur: {request.user.username} (ID: {request.user.id})")
+        
+        queryset = self.get_queryset()
+        print(f"Nombre de biens trouvés: {queryset.count()}")
+        
+        return super().get(request, *args, **kwargs)
+
+    def get_serializer_context(self):
+        """Passe le request au serializer context"""
+        return {'request': self.request}
+
+
 class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bien.objects.all()
-    serializer_class = BienSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        """Utiliser le bon serializer selon la méthode HTTP"""
+        if self.request.method in ['PUT', 'PATCH']:
+            return BienSerializer
+        return BienSerializer
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -540,6 +574,23 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance.save(update_fields=["vues"])
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        """Mise à jour avec validation des permissions"""
+        instance = self.get_object()
+        
+        # Vérifier que l'utilisateur est le propriétaire
+        if request.user != instance.owner:
+            return Response(
+                {"error": "Vous ne pouvez modifier que vos propres biens."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_description="Récupérer les détails d’un bien",
@@ -551,11 +602,31 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @swagger_auto_schema(
         operation_description="Mettre à jour un bien",
-        responses={200: BienSerializer, 400: "Données invalides"},
+        request_body=BienSerializer,
+        responses={
+            200: BienSerializer,
+            400: "Données invalides",
+            403: "Permissions insuffisantes",
+            404: "Bien non trouvé"
+        },
         tags=["Biens"]
     )
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        return self.update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Mettre à jour partiellement un bien",
+        request_body=BienSerializer,
+        responses={
+            200: BienSerializer,
+            400: "Données invalides",
+            403: "Permissions insuffisantes",
+            404: "Bien non trouvé"
+        },
+        tags=["Biens"]
+    )
+    def patch(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_description="Supprimer un bien",
@@ -568,7 +639,7 @@ class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class MediaCreateView(generics.CreateAPIView):
     serializer_class = MediaSerializer
-    permission_classes = [permission.IsVendor]
+    permission_classes = [permissions.IsAuthenticated]  # Changé de IsVendor à IsAuthenticated
 
     def perform_create(self, serializer):
         serializer.save()
