@@ -21,6 +21,7 @@ from .views import (
     AccountDeletionLogListView,
     AccountDeletionLogDetailView,
     DeleteAccountRequestOTPView, DeleteAccountConfirmOTPView,  # <- add
+    documents_has_types, document_get_by_type,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -94,4 +95,8 @@ urlpatterns = [
     # Admin account deletions
     path('admin/account-deletions/', AccountDeletionLogListView.as_view(), name='admin-account-deletions'),
     path('admin/account-deletions/<int:pk>/', AccountDeletionLogDetailView.as_view(), name='admin-account-deletions-detail'),
+
+    # Document type checks
+    path('documents/has/', documents_has_types, name='documents-has-types'),
+    path('documents/get/', document_get_by_type, name='document-get-by-type'),
 ]

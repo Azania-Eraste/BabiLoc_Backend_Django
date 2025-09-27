@@ -35,6 +35,7 @@ from .serializers import (
 )
 # Add missing imports
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.utils import timezone
@@ -2222,3 +2223,121 @@ class DocumentUniverselUploadView(generics.CreateAPIView):
                 serializer.save(utilisateur=request.user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@swagger_auto_schema(
+    operation_description="Vérifier l'existence de documents utilisateur par type (séparés par des virgules). Sans paramètre retourne tous les types.",
+    manual_parameters=[
+        openapi.Parameter(
+            'types',
+            openapi.IN_QUERY,
+            description="Liste de types séparés par des virgules (ex: carte_identite,permis_conduire)",
+            type=openapi.TYPE_STRING
+        )
+    ],
+    responses={
+        200: openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'requested_types': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)),
+                'results': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    additional_properties=openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'exists': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                            'document_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                            'statut': openapi.Schema(type=openapi.TYPE_STRING),
+                            'file_url': openapi.Schema(type=openapi.TYPE_STRING)
+                        }
+                    )
+                ),
+                'total_found': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        ),
+        401: "Non authentifié"
+    },
+    tags=['Documents Utilisateur']
+)
+def documents_has_types(request):
+    """
+    Retourne, pour chaque type demandé, s'il existe un document.
+    Query param: types=carte_identite,permis_conduire (optionnel)
+    """
+    from .models import DocumentUtilisateur
+    types_param = request.query_params.get('types')
+
+    # Types valides depuis le modèle
+    VALID_TYPES = [t[0] for t in DocumentUtilisateur.TYPE_DOCUMENT_CHOICES]
+
+    if types_param:
+        requested = [t.strip() for t in types_param.split(',') if t.strip()]
+        requested = [t for t in requested if t in VALID_TYPES]
+        if not requested:
+            return Response({'error': 'Aucun type valide fourni'}, status=400)
+    else:
+        requested = VALID_TYPES
+
+    docs = DocumentUtilisateur.objects.filter(
+        utilisateur=request.user,
+        type_document__in=requested
+    )
+
+    by_type = {t: {'exists': False} for t in requested}
+    for d in docs:
+        by_type[d.type_document] = {
+            'exists': True,
+            'document_id': d.id,
+            'statut': d.statut_verification,
+            'file_url': d.get_file_url()
+        }
+
+    total_found = sum(1 for v in by_type.values() if v['exists'])
+    return Response({
+        'requested_types': requested,
+        'results': by_type,
+        'total_found': total_found
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@swagger_auto_schema(
+    operation_description="Récupérer un document utilisateur par type",
+    manual_parameters=[
+        openapi.Parameter(
+            'type_document',
+            openapi.IN_QUERY,
+            required=True,
+            description="Type de document (ex: carte_identite)",
+            type=openapi.TYPE_STRING
+        )
+    ],
+    responses={
+        200: DocumentUtilisateurSerializer,
+        400: "Paramètre manquant",
+        404: "Document non trouvé",
+        401: "Non authentifié"
+    },
+    tags=['Documents Utilisateur']
+)
+def document_get_by_type(request):
+    """
+    Récupère le document (unique) d'un type pour l'utilisateur connecté.
+    """
+    from .models import DocumentUtilisateur
+    type_doc = request.query_params.get('type_document')
+    if not type_doc:
+        return Response({'error': 'type_document requis'}, status=400)
+
+    instance = DocumentUtilisateur.objects.filter(
+        utilisateur=request.user,
+        type_document=type_doc
+    ).first()
+
+    if not instance:
+        return Response({'error': 'Document non trouvé'}, status=404)
+
+    ser = DocumentUtilisateurSerializer(instance, context={'request': request})
+    return Response(ser.data)
