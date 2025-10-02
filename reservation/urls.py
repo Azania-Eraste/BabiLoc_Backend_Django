@@ -27,6 +27,7 @@ from .viewserializer import (
     statistiques_avis_bien,
     mes_avis,
     avis_recus,
+    creer_avis_reservation,
     TypeBienListCreateView,
     TypeBienDetailView,
     DocumentCreateView,
@@ -97,6 +98,7 @@ urlpatterns = [
     path('biens/<int:bien_id>/avis/statistiques/', statistiques_avis_bien, name='statistiques-avis-bien'),
     path('mes-avis/', mes_avis, name='mes-avis'),
     path('Dashboard/avis-recus/', avis_recus, name='avis-recus'),
+    path('avis/creer/', creer_avis_reservation, name='creer-avis-reservation'),
 
     # Documents
     path('documents/create/', DocumentCreateView.as_view(), name='document-create'),
