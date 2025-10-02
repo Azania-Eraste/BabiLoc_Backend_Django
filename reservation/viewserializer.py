@@ -1457,10 +1457,107 @@ class VilleListView(generics.ListAPIView):
     def get_queryset(self):
         return Ville.objects.all()
 
-    @swagger_auto_schema(
-        operation_description="Lister toutes les villes",
-        responses={200: VilleSerializer(many=True)},
-        tags=["Villes"]
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+@swagger_auto_schema(
+    operation_description="Lister toutes les villes",
+    responses={200: VilleSerializer(many=True)},
+    tags=["Villes"]
+)
+def get(self, request, *args, **kwargs):
+    return super().get(request, *args, **kwargs)
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Créer un avis pour une réservation terminée",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['bien', 'reservation', 'note', 'commentaire'],
+        properties={
+            'bien': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID du bien"),
+            'reservation': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID de la réservation"),
+            'note': openapi.Schema(type=openapi.TYPE_INTEGER, minimum=1, maximum=5, description="Note de 1 à 5"),
+            'commentaire': openapi.Schema(type=openapi.TYPE_STRING, description="Commentaire de l'avis"),
+            'recommande': openapi.Schema(type=openapi.TYPE_BOOLEAN, description="Recommande le bien", default=True),
+        }
+    ),
+    responses={
+        201: AvisSerializer,
+        400: "Données invalides",
+        403: "Non autorisé",
+        404: "Réservation ou bien non trouvé"
+    },
+    tags=['Avis']
+)
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def creer_avis_reservation(request):
+    """
+    Créer un avis pour une réservation terminée.
+    Permet à un utilisateur de laisser un avis sur un bien qu'il a réservé.
+    """
+    try:
+        bien_id = request.data.get('bien')
+        reservation_id = request.data.get('reservation')
+        note = request.data.get('note')
+        commentaire = request.data.get('commentaire')
+        recommande = request.data.get('recommande', True)
+
+        # Validation des données requises
+        if not all([bien_id, reservation_id, note, commentaire]):
+            return Response(
+                {'error': 'Les champs bien, reservation, note et commentaire sont obligatoires'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Vérifier que le bien existe
+        try:
+            bien = Bien.objects.get(id=bien_id)
+        except Bien.DoesNotExist:
+            return Response(
+                {'error': 'Bien non trouvé'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Vérifier que la réservation existe et appartient à l'utilisateur
+        try:
+            reservation = Reservation.objects.get(id=reservation_id, user=request.user)
+        except Reservation.DoesNotExist:
+            return Response(
+                {'error': 'Réservation non trouvée ou n\'appartient pas à l\'utilisateur'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Vérifier que la réservation est terminée
+        if reservation.status not in ['completed', 'terminee']:
+            return Response(
+                {'error': 'Vous ne pouvez laisser un avis que sur une réservation terminée'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Vérifier que l'utilisateur n'a pas déjà laissé d'avis pour cette réservation
+        if Avis.objects.filter(reservation=reservation, user=request.user).exists():
+            return Response(
+                {'error': 'Vous avez déjà laissé un avis pour cette réservation'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Créer l'avis
+        avis = Avis.objects.create(
+            user=request.user,
+            bien=bien,
+            reservation=reservation,
+            note=int(note),
+            commentaire=commentaire,
+            recommande=bool(recommande),
+            est_valide=True
+        )
+
+        serializer = AvisSerializer(avis, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        print(f"Erreur lors de la création d'avis: {e}")
+        return Response(
+            {'error': 'Erreur interne du serveur'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
