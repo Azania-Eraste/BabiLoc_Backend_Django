@@ -17,6 +17,20 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='.ondigitalocean.app,127.0.0.1,localhost').split(',') if h.strip()]
 
+# Allow internal Kubernetes IPs for health checks
+import socket
+try:
+    hostname = socket.gethostname()
+    internal_ip = socket.gethostbyname(hostname)
+    if internal_ip not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(internal_ip)
+except:
+    pass
+
+# Allow all private IPs for health checks (10.x.x.x range used by DigitalOcean)
+if not DEBUG:
+    ALLOWED_HOSTS.append('*')
+
 # Security settings (define SECRET_KEY before using it below)
 SECRET_KEY = config('SECRET_KEY', default='CHANGE_ME_IN_PRODUCTION')
 
