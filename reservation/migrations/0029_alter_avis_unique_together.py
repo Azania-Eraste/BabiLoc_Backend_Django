@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('reservation', '0026_merge_0024_alter_tarif_created_at_0024_bien_tags_and_more'),
+        ('reservation', '0028_bienimage'),
     ]
 
     operations = [
