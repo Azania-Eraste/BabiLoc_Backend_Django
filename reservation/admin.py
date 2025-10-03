@@ -1,3 +1,4 @@
+from pyexpat.errors import messages
 from django.contrib import admin
 from .forms import BienForm
 from .models import (
@@ -5,6 +6,12 @@ from .models import (
     Avis, DisponibiliteHebdo, TagBien, CodePromo, HistoriqueStatutReservation,
     RevenuProprietaire, Document
 )
+
+def mark_as_verified(modeladmin, request, queryset):
+    updated = queryset.update(est_verifie=True)
+    messages.success(request, f"{updated} bien(s) marqué(s) comme vérifié(s) !")
+
+mark_as_verified.short_description = "Marquer les biens sélectionnés comme vérifiés"
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
@@ -77,6 +84,9 @@ class BienAdmin(admin.ModelAdmin):
     list_filter = ['disponibility', 'type_bien', 'ville', 'created_at']
     search_fields = ['nom', 'description', 'ville__nom', 'owner__username']
     ordering = ['-created_at']
+
+    readonly_fields = ['created_at', 'updated_at']
+    actions = [mark_as_verified]
 
 @admin.register(Type_Bien)
 class TypeBienAdmin(admin.ModelAdmin):
