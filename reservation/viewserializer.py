@@ -1534,10 +1534,10 @@ def creer_avis_reservation(request):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Vérifier que l'utilisateur n'a pas déjà laissé d'avis pour cette réservation
-        if Avis.objects.filter(reservation=reservation, user=request.user).exists():
+        # Vérifier que l'utilisateur n'a pas déjà laissé d'avis pour ce bien
+        if Avis.objects.filter(bien=bien, user=request.user).exists():
             return Response(
-                {'error': 'Vous avez déjà laissé un avis pour cette réservation'},
+                {'error': 'Vous avez déjà laissé un avis pour ce bien'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
