@@ -606,8 +606,8 @@ class Avis(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
     
     class Meta:
-        # Un utilisateur ne peut donner qu'un seul avis par réservation
-        unique_together = ('user', 'reservation')
+        # Un utilisateur ne peut donner qu'un seul avis par bien
+        unique_together = ('user', 'bien')
         ordering = ['-created_at']
         verbose_name = "Avis"
         verbose_name_plural = "Avis"

@@ -15,7 +15,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='.ondigitalocean.app,127.0.0.1,localhost').split(',') if h.strip()]
+# Allow all hosts in production for DigitalOcean health checks (Kubernetes uses dynamic internal IPs)
+# In production, traffic is filtered by DigitalOcean's firewall
+if DEBUG:
+    ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = ['*']  # Allow all hosts in production (protected by DigitalOcean firewall)
 
 # Security settings (define SECRET_KEY before using it below)
 SECRET_KEY = config('SECRET_KEY', default='CHANGE_ME_IN_PRODUCTION')

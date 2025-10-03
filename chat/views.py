@@ -341,15 +341,39 @@ class ChatByReservationView(APIView):
         
         try:
             chat_room = ChatRoom.objects.get(reservation=reservation)
+            serializer = ChatRoomSerializer(chat_room)
             return Response({
                 'success': True,
-                'chat_room_id': chat_room.supabase_id,
-                'reservation_id': reservation.id,
-                'local_chat_id': chat_room.id
+                'data': serializer.data
             }, status=status.HTTP_200_OK)
         except ChatRoom.DoesNotExist:
-            return Response({'error': 'Aucun chat associé à cette réservation'}, 
-                           status=status.HTTP_404_NOT_FOUND)
+            # Créer automatiquement le chat s'il n'existe pas
+            participant1 = reservation.user
+            participant2 = reservation.bien.owner
+            
+            # Créer le chat
+            chat_room = ChatRoom.objects.create(
+                participant1=participant1,
+                participant2=participant2,
+                reservation=reservation
+            )
+            
+            # Envoyer un message de bienvenue automatique
+            bien_nom = reservation.bien.nom
+            message_text = f"💬 Discussion au sujet de '{bien_nom}'\n\nBonjour ! Vous pouvez maintenant échanger au sujet de cette réservation."
+            
+            ChatMessage.objects.create(
+                chat_room=chat_room,
+                sender=participant2,  # Message envoyé par le propriétaire
+                message=message_text,
+                message_type='text'
+            )
+            
+            serializer = ChatRoomSerializer(chat_room)
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
 
 class ChatRealtimeTestView(APIView):
     """

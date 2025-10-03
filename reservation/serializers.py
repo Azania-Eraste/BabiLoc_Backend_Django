@@ -310,17 +310,24 @@ class AvisSerializer(serializers.ModelSerializer):
             'est_valide', 'reponse_proprietaire', 'date_reponse',
             'created_at', 'note_moyenne_detaillee'
         ]
-
+    
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
 
 class AvisCreateSerializer(serializers.ModelSerializer):
+    # Accepter 'note_qualite_prix' comme alias de 'note_rapport_qualite_prix'
+    note_qualite_prix = serializers.IntegerField(
+        source='note_rapport_qualite_prix', 
+        required=False, 
+        allow_null=True
+    )
+    
     class Meta:
         model = Avis
         fields = [
             'bien', 'reservation', 'note', 'commentaire',
             'note_proprete', 'note_communication', 'note_emplacement',
-            'note_rapport_qualite_prix', 'recommande'
+            'note_rapport_qualite_prix', 'note_qualite_prix', 'recommande'
         ]
 
 class ReponseProprietaireSerializer(serializers.ModelSerializer):
