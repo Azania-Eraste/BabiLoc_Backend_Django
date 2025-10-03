@@ -995,6 +995,10 @@ class AvisListCreateView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
     
+    def perform_create(self, serializer):
+        """Assigner automatiquement l'utilisateur connecté lors de la création d'un avis"""
+        serializer.save(user=self.request.user)
+    
     @swagger_auto_schema(
         operation_description="Créer un avis",
         request_body=AvisCreateSerializer,
