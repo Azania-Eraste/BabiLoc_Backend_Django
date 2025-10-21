@@ -107,3 +107,43 @@ class ChatMessage(models.Model):
     def __str__(self):
         sender_name = self.sender.username if self.sender else "Système"
         return f"{sender_name}: {self.message[:50]}..."
+
+
+class SignalementChat(models.Model):
+    """Signalement d'une room de chat par un utilisateur.
+
+    Permet aux administrateurs de recevoir une alerte et d'intervenir.
+    """
+    chat_room = models.ForeignKey(
+        ChatRoom,
+        on_delete=models.CASCADE,
+        related_name='signalements',
+        verbose_name="Salon de chat"
+    )
+    reporter = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Utilisateur ayant signalé"
+    )
+    message = models.TextField(verbose_name="Message du signalement", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
+    handled = models.BooleanField(default=False, verbose_name="Traité")
+    handled_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='handled_chat_reports',
+        verbose_name="Traité par"
+    )
+    handled_at = models.DateTimeField(null=True, blank=True, verbose_name="Traité le")
+
+    class Meta:
+        verbose_name = "Signalement de chat"
+        verbose_name_plural = "Signalements de chat"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Signalement #{self.id} - room:{self.chat_room.supabase_id or self.chat_room.id} reporter:{self.reporter.username if self.reporter else 'anon'}"

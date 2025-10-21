@@ -8,6 +8,9 @@ from .views import (
     ChatNotificationsView,
     RealtimeStatusView,
     TestRealtimeMessageView,
+    SignalementCreateView,
+    SignalementsListView,
+    SignalementDetailView,
 )
 
 app_name = 'chat'
@@ -34,4 +37,9 @@ urlpatterns = [
     # ✅ NOUVEAUX ENDPOINTS TEMPS RÉEL
     path('realtime/status/', RealtimeStatusView.as_view(), name='realtime-status'),
     path('test-realtime/', TestRealtimeMessageView.as_view(), name='test-realtime'),
+    # Signalement d'une room de chat
+    path('signalement/', SignalementCreateView.as_view(), name='chat-signalement'),
+    # Admin HTML pages for reports
+    path('signalements/', SignalementsListView.as_view(), name='chat-signalements-list'),
+    path('signalements/<int:pk>/', SignalementDetailView.as_view(), name='chat-signalement-detail'),
 ]

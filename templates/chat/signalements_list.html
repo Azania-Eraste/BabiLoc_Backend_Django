@@ -1,0 +1,49 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %}Signalements de chat{% endblock %}
+
+{% block content %}
+  <h1>Signalements de chat</h1>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Room</th>
+        <th>Reporter</th>
+        <th>Message</th>
+        <th>Created At</th>
+        <th>Handled</th>
+        <th>Handled By</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in signalements %}
+      <tr>
+        <td>{{ s.id }}</td>
+        <td>{{ s.chat_room.supabase_id|default:s.chat_room.id }}</td>
+        <td>{{ s.reporter.username if s.reporter else 'Anonyme' }}</td>
+        <td>{{ s.message|default:'-' }}</td>
+        <td>{{ s.created_at }}</td>
+        <td>{{ s.handled }}</td>
+        <td>{{ s.handled_by.username if s.handled_by else '-' }}</td>
+        <td>
+          <a href="{% url 'chat:chat-signalement-detail' s.id %}">Voir</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8">Aucun signalement</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}">Précédent</a>
+  {% endif %}
+  <span>Page {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}">Suivant</a>
+  {% endif %}
+
+{% endblock %}

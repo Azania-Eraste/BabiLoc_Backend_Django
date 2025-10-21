@@ -1,0 +1,22 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %}Détail du signalement #{{ s.id }}{% endblock %}
+
+{% block content %}
+  <h1>Signalement #{{ s.id }}</h1>
+  <p><strong>Room</strong>: {{ s.chat_room.supabase_id|default:s.chat_room.id }}</p>
+  <p><strong>Reporter</strong>: {{ s.reporter.username if s.reporter else 'Anonyme' }}</p>
+  <p><strong>Message</strong>: {{ s.message|default:'-' }}</p>
+  <p><strong>Created at</strong>: {{ s.created_at }}</p>
+  <p><strong>Handled</strong>: {{ s.handled }}</p>
+  <p><strong>Handled by</strong>: {{ s.handled_by.username if s.handled_by else '-' }}</p>
+
+  {% if not s.handled %}
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="button">Marquer comme traité</button>
+    </form>
+  {% endif %}
+
+  <p><a href="{% url 'chat:chat-signalements-list' %}">Retour à la liste</a></p>
+{% endblock %}

@@ -6,10 +6,10 @@ from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .supabase_service import chat_supabase_service
-from .models import ChatRoom
+from .models import ChatRoom, ChatMessage, SignalementChat
 from reservation.models import Reservation
 from django.shortcuts import get_object_or_404
-from .serializers import ChatRoomSerializer
+from .serializers import ChatRoomSerializer, ChatMessageSerializer
 from django.utils import timezone
 
 class UserChatRoomsView(APIView):
@@ -407,6 +407,88 @@ class ChatRealtimeTestView(APIView):
                 'success': False,
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+from .serializers import SignalementChatSerializer
+from django.core.mail import mail_admins
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+from django.shortcuts import render
+from django.core.paginator import Paginator
+
+
+class SignalementCreateView(APIView):
+    """Endpoint pour signaler une room de chat. Les admins seront notifiés.
+
+    POST payload: { "chat_room_supabase_id": "room-id", "message": "raison" }
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Créer un signalement pour une room de chat",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['chat_room_supabase_id'],
+            properties={
+                'chat_room_supabase_id': openapi.Schema(type=openapi.TYPE_STRING),
+                'message': openapi.Schema(type=openapi.TYPE_STRING),
+            }
+        ),
+        responses={200: 'Signalement créé', 400: 'Données invalides', 401: 'Non authentifié'},
+        tags=['Chat']
+    )
+    def post(self, request):
+        serializer = SignalementChatSerializer(data=request.data, context={'reporter': request.user})
+        if not serializer.is_valid():
+            return Response({'success': False, 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        signalement = serializer.save()
+
+        # Notifier les administrateurs par email si configuré
+        subject = f"Signalement chat: room {signalement.chat_room.supabase_id or signalement.chat_room.id}"
+        body = f"Un utilisateur a signalé la room {signalement.chat_room.supabase_id or signalement.chat_room.id}\n\n"
+        body += f"Reporter: {request.user.username} (id:{request.user.id})\n"
+        body += f"Message: {signalement.message}\n\n"
+        body += f"Consultez l'admin panel pour plus de détails."
+
+        try:
+            mail_admins(subject, body, fail_silently=True)
+        except Exception:
+            # Silencieusement ignorer si la config email n'est pas présente
+            pass
+
+        return Response({'success': True, 'data': {'id': signalement.id}}, status=status.HTTP_201_CREATED)
+
+
+class SignalementsListView(APIView):
+    """Page admin HTML listant tous les signalements de chat"""
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        signalements_qs = SignalementChat.objects.select_related('chat_room', 'reporter', 'handled_by').all()
+        paginator = Paginator(signalements_qs, 25)
+        page = request.GET.get('page', 1)
+        page_obj = paginator.get_page(page)
+        return render(request, 'chat/signalements_list.html', {'signalements': page_obj.object_list, 'page_obj': page_obj})
+
+
+class SignalementDetailView(APIView):
+    """Détail d'un signalement et possibilité de marquer traité"""
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, pk):
+        signalement = get_object_or_404(SignalementChat, pk=pk)
+        return render(request, 'chat/signalement_detail.html', {'s': signalement})
+
+    def post(self, request, pk):
+        # Marquer comme traité
+        signalement = get_object_or_404(SignalementChat, pk=pk)
+        signalement.handled = True
+        signalement.handled_by = request.user
+        signalement.handled_at = timezone.now()
+        signalement.save()
+        return render(request, 'chat/signalement_detail.html', {'s': signalement, 'message': 'Signalement marqué comme traité'})
 
 class ChatNotificationsView(APIView):
     """
