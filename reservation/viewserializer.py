@@ -560,7 +560,7 @@ class MesBiensView(generics.ListAPIView):
 
 class BienDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bien.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Permettre la consultation sans connexion
 
     def get_serializer_class(self):
         """Utiliser le bon serializer selon la méthode HTTP"""
