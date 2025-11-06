@@ -111,14 +111,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'babiloc_backend.wsgi.application'
 
 # Database
-db_url = config('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+db_url = config('MY_DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 db_ssl_required = config('DB_SSL_REQUIRED', default=not DEBUG, cast=bool)
 DATABASES = {
-    "default": dj_database_url.parse(
-        db_url,
-        conn_max_age=600,
-        ssl_require=db_ssl_required,
-    )
+    "default": dj_database_url.parse(db_url,conn_max_age=600,ssl_require=db_ssl_required,)
 }
 
 # Password validation
@@ -210,14 +206,14 @@ SIMPLE_JWT = {
 }
 
 # Email settings
-# Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')  # Change from os.getenv to config
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # Change from os.getenv to config
 DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER', default='noreply@babiloc.com')
+
 # Internationalization
 LANGUAGE_CODE = 'fr-FR'
 TIME_ZONE = 'Europe/Paris'
