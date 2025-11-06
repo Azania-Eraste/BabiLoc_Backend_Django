@@ -79,6 +79,7 @@ urlpatterns = [
     path('vendor/vendor-requests/', vendor_requests_list, name='vendor_requests_list'),
     path('vendor/vendor-action/', vendor_action, name='vendor_action'),
 
+
     # Password management
     path('password/reset/', ForgotPasswordView.as_view(), name='password-reset'),
     path('password/reset/confirm/', ResetPasswordConfirmView.as_view(), name='password-reset-confirm'),
