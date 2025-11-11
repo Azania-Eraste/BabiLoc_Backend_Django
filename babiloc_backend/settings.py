@@ -44,9 +44,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'reservation.apps.ReservationConfig',
     'chat.apps.ChatConfig',  # Ajouter l'app chat
-]
 
-INSTALLED_APPS += [
+    # NOUVELLE LIGNE AJOUTÉE
+    'notifications', 
+
     'cloudinary',
     'cloudinary_storage',
 ]
@@ -221,7 +222,7 @@ DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER', default='noreply@babiloc.com')
 # Internationalization
 LANGUAGE_CODE = 'fr-FR'
 TIME_ZONE = 'Europe/Paris'
-USE_I18N = True
+USE_I1N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
