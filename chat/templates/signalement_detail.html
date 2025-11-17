@@ -9,7 +9,7 @@
   <p><strong>Message</strong>: {{ s.message|default:'-' }}</p>
   <p><strong>Created at</strong>: {{ s.created_at }}</p>
   <p><strong>Handled</strong>: {{ s.handled }}</p>
-  <p><strong>Handled by</strong>: {{ s.handled_by.username if s.handled_by else '-' }}</p>
+  <p><strong>Handled by</strong>: {% if s.handled_by %}{{ s.handled_by.username }}{% else %}-{% endif %}</p>
 
   {% if not s.handled %}
     <form method="post">
