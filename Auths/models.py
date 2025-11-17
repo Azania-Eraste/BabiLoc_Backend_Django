@@ -139,6 +139,9 @@ class CustomUser(AbstractUser):
         if not self.code_parrainage:
             self.generate_code_parrainage()
         super().save(*args, **kwargs)
+
+    # Support flag: permet d'identifier les agents de support
+    is_support = models.BooleanField(default=False, verbose_name="Support")
     
     def parrainer(self, filleul):
         """Parrainer un utilisateur"""
@@ -236,6 +239,29 @@ class CustomUser(AbstractUser):
             self.save()
             return True
         return False
+
+
+class Support(CustomUser):
+    """Proxy model pour représenter les comptes Support/Moderation.
+
+    Utiliser un proxy permet d'éviter de changer le modèle utilisateur principal
+    tout en offrant une représentation distincte dans l'admin si besoin.
+    """
+
+    class Meta:
+        proxy = True
+        verbose_name = "Support"
+        verbose_name_plural = "Supports"
+
+    def save(self, *args, **kwargs):
+        # Les comptes Support doivent automatiquement avoir les droits staff
+        # afin d'accéder aux interfaces d'administration/support.
+        try:
+            self.is_support = True
+            self.is_staff = True
+        except Exception:
+            pass
+        super().save(*args, **kwargs)
 
 class HistoriqueParrainage(models.Model):
     """Historique des actions de parrainage"""

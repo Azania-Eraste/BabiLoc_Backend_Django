@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework import status, permissions
+from Auths.permission import IsSupportOrAdmin
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -463,7 +464,7 @@ class SignalementCreateView(APIView):
 
 class SignalementsListView(APIView):
     """Page admin HTML listant tous les signalements de chat"""
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSupportOrAdmin]
 
     def get(self, request):
         signalements_qs = SignalementChat.objects.select_related('chat_room', 'reporter', 'handled_by').all()
@@ -475,7 +476,7 @@ class SignalementsListView(APIView):
 
 class SignalementDetailView(APIView):
     """Détail d'un signalement et possibilité de marquer traité"""
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSupportOrAdmin]
 
     def get(self, request, pk):
         signalement = get_object_or_404(SignalementChat, pk=pk)

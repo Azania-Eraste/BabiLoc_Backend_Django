@@ -281,6 +281,16 @@ class DemandeVendorAdmin(admin.ModelAdmin):
         self.message_user(request, f"{refused} demande(s) refusée(s)")
     refuser_demandes.short_description = "❌ Refuser les demandes"
 
+
+from .models import Support
+
+
+@admin.register(Support)
+class SupportAdmin(admin.ModelAdmin):
+    list_display = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active', 'is_support', 'is_staff']
+    search_fields = ['username', 'email', 'first_name', 'last_name']
+    ordering = ['-date_joined']
+
 @admin.register(AccountDeletionLog)
 class AccountDeletionLogAdmin(admin.ModelAdmin):
     list_display = ('id', 'user_id', 'email', 'username', 'hard_delete', 'deleted_at', 'performed_by')
