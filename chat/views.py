@@ -470,7 +470,7 @@ class SignalementsListView(APIView):
         paginator = Paginator(signalements_qs, 25)
         page = request.GET.get('page', 1)
         page_obj = paginator.get_page(page)
-        return render(request, 'chat/signalements_list.html', {'signalements': page_obj.object_list, 'page_obj': page_obj})
+        return render(request, 'signalements_list.html', {'signalements': page_obj.object_list, 'page_obj': page_obj})
 
 
 class SignalementDetailView(APIView):
@@ -479,7 +479,7 @@ class SignalementDetailView(APIView):
 
     def get(self, request, pk):
         signalement = get_object_or_404(SignalementChat, pk=pk)
-        return render(request, 'chat/signalement_detail.html', {'s': signalement})
+        return render(request, 'signalement_detail.html', {'s': signalement})
 
     def post(self, request, pk):
         # Marquer comme traité
