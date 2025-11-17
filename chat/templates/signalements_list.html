@@ -23,11 +23,11 @@
       <tr>
         <td>{{ s.id }}</td>
         <td>{{ s.chat_room.supabase_id|default:s.chat_room.id }}</td>
-        <td>{{ s.reporter.username if s.reporter else 'Anonyme' }}</td>
+        <td>{% if s.reporter %}{{ s.reporter.username }}{% else %}Anonyme{% endif %}</td>
         <td>{{ s.message|default:'-' }}</td>
         <td>{{ s.created_at }}</td>
         <td>{{ s.handled }}</td>
-        <td>{{ s.handled_by.username if s.handled_by else '-' }}</td>
+        <td>{% if s.handled_by %}{{ s.handled_by.username }}{% else %}-{% endif %}</td>
         <td>
           <a href="{% url 'chat:chat-signalement-detail' s.id %}">Voir</a>
         </td>
