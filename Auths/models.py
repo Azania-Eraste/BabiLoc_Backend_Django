@@ -257,7 +257,6 @@ class Support(CustomUser):
         # Les comptes Support doivent automatiquement avoir les droits staff
         # afin d'accéder aux interfaces d'administration/support.
         try:
-            self.is_support = True
             self.is_staff = True
         except Exception:
             pass
