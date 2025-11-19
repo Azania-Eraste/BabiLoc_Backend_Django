@@ -140,8 +140,7 @@ class CustomUser(AbstractUser):
             self.generate_code_parrainage()
         super().save(*args, **kwargs)
 
-    # Support flag: permet d'identifier les agents de support
-    is_support = models.BooleanField(default=False, verbose_name="Support")
+
     
     def parrainer(self, filleul):
         """Parrainer un utilisateur"""

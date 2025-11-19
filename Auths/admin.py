@@ -287,7 +287,7 @@ from .models import Support
 
 @admin.register(Support)
 class SupportAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active', 'is_support', 'is_staff']
+    list_display = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active', 'is_staff']
     search_fields = ['username', 'email', 'first_name', 'last_name']
     ordering = ['-date_joined']
 
