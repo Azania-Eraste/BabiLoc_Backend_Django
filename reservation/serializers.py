@@ -219,6 +219,13 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
         date_debut = data.get('date_debut')
         date_fin = data.get('date_fin')
 
+        # Validation: empêcher le propriétaire de réserver son propre bien
+        request = self.context.get('request')
+        if request and request.user == bien.owner:
+            raise serializers.ValidationError(
+                "Vous ne pouvez pas réserver votre propre bien."
+            )
+
         # Validation des dates
         if date_debut >= date_fin:
             raise serializers.ValidationError("La date de fin doit être après la date de début")
