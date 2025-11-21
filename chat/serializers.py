@@ -8,6 +8,9 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     """
     Serializer pour les salons de chat
     """
+    id = serializers.CharField(source='supabase_id', read_only=True)
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    host_id = serializers.IntegerField(source='host.id', read_only=True)
     user_name = serializers.CharField(source='user.username', read_only=True)
     host_name = serializers.CharField(source='host.username', read_only=True)
     reservation_id = serializers.IntegerField(source='reservation.id', read_only=True)
@@ -15,7 +18,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatRoom
         fields = [
-            'id', 'supabase_id', 'reservation_id', 'user', 'host',
+            'id', 'reservation_id', 'user_id', 'host_id',
             'user_name', 'host_name', 'property_name', 'status',
             'created_at', 'last_message_at'
         ]
