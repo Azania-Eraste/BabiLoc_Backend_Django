@@ -349,14 +349,15 @@ class ChatByReservationView(APIView):
             }, status=status.HTTP_200_OK)
         except ChatRoom.DoesNotExist:
             # Créer automatiquement le chat s'il n'existe pas
-            participant1 = reservation.user
-            participant2 = reservation.bien.owner
+            user = reservation.user
+            host = reservation.bien.owner
             
             # Créer le chat
             chat_room = ChatRoom.objects.create(
-                participant1=participant1,
-                participant2=participant2,
-                reservation=reservation
+                user=user,
+                host=host,
+                reservation=reservation,
+                property_name=reservation.bien.nom
             )
             
             # Envoyer un message de bienvenue automatique
@@ -365,7 +366,7 @@ class ChatByReservationView(APIView):
             
             ChatMessage.objects.create(
                 chat_room=chat_room,
-                sender=participant2,  # Message envoyé par le propriétaire
+                sender=host,  # Message envoyé par le propriétaire
                 message=message_text,
                 message_type='text'
             )
