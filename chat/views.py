@@ -351,17 +351,32 @@ class ChatByReservationView(APIView):
             # Créer automatiquement le chat s'il n'existe pas
             user = reservation.user
             host = reservation.bien.owner
+            bien_nom = reservation.bien.nom
             
-            # Créer le chat
+            # Créer d'abord dans Supabase
+            supabase_result = chat_supabase_service.create_chat_room(
+                reservation_id=reservation.id,
+                user_id=user.id,
+                host_id=host.id,
+                property_name=bien_nom
+            )
+            
+            if not supabase_result['success']:
+                return Response({
+                    'success': False,
+                    'error': f"Erreur création chat: {supabase_result.get('error', 'Erreur inconnue')}"
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # Créer le chat local avec l'ID Supabase
             chat_room = ChatRoom.objects.create(
                 user=user,
                 host=host,
                 reservation=reservation,
-                property_name=reservation.bien.nom
+                property_name=bien_nom,
+                supabase_id=supabase_result['supabase_id']
             )
             
-            # Envoyer un message de bienvenue automatique
-            bien_nom = reservation.bien.nom
+            # Envoyer un message de bienvenue local
             message_text = f"💬 Discussion au sujet de '{bien_nom}'\n\nBonjour ! Vous pouvez maintenant échanger au sujet de cette réservation."
             
             ChatMessage.objects.create(
