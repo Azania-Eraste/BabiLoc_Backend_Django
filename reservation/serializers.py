@@ -88,7 +88,7 @@ class VilleSerializer(serializers.ModelSerializer):
 class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DisponibiliteHebdo
-        fields = ['jours']
+        fields = ['jours', 'heure_debut', 'heure_fin']
 
 class TypeCarburantSerializer(serializers.Serializer):
     """Serializer pour les choix de type de carburant"""
