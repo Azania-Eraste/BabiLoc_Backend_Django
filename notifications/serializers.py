@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import FCMDevice
+from .models import FCMDevice, AppNotification # 👈 AJOUT
 
 class FCMDeviceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,3 +10,9 @@ class FCMDeviceSerializer(serializers.ModelSerializer):
             'device_token': {'required': True},
             'platform': {'required': True},
         }
+
+# --- ▼▼▼ NOUVEAU SERIALIZER AJOUTÉ ▼▼▼ ---
+class AppNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppNotification
+        fields = ['id', 'message', 'is_read', 'timestamp', 'type', 'link']

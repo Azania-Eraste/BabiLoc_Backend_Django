@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import FCMDeviceViewSet
+from .views import FCMDeviceViewSet, NotificationFeedView, UnreadCountView, MarkAllAsReadView # 👈 AJOUTS
 
 # Crée un routeur
 router = DefaultRouter()
@@ -14,4 +14,9 @@ router.register(r'register-device', FCMDeviceViewSet, basename='device')
 # - DELETE /api/notifications/register-device/ (pour 'destroy')
 urlpatterns = [
     path('', include(router.urls)),
+    
+    # --- ▼▼▼ NOUVELLES ROUTES AJOUTÉES ▼▼▼ ---
+    path('feed/', NotificationFeedView.as_view(), name='notification-feed'),
+    path('unread-count/', UnreadCountView.as_view(), name='notification-unread-count'),
+    path('mark-as-read/', MarkAllAsReadView.as_view(), name='notification-mark-as-read'),
 ]
