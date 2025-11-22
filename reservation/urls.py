@@ -3,6 +3,8 @@ from .views import (
     SoldeHoteView, 
     ReservationDetailView,
     HistoriqueRevenusProprietaireView,
+    verifier_acces_chat,  # Nouvelle import
+    confirmer_reservation_hote,  # Nouvelle import
 )
 
 from .viewserializer import (
@@ -105,4 +107,8 @@ urlpatterns = [
     path('biens/<int:bien_id>/documents/', DocumentListView.as_view(), name='document-list'),
     path('documents/<int:pk>/update/', DocumentUpdateView.as_view(), name='document-update'),
     path('documents/<int:pk>/delete/', DocumentDeleteView.as_view(), name='document-delete'),
+
+    # Confirmation de réservation et accès au chat
+    path('reservations/<int:reservation_id>/acces-chat/', verifier_acces_chat, name='verifier-acces-chat'),
+    path('reservations/<int:reservation_id>/confirmer/', confirmer_reservation_hote, name='confirmer-reservation-hote'),
 ]

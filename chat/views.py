@@ -311,7 +311,7 @@ class ChatByReservationView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     @swagger_auto_schema(
-        operation_description="Récupérer le chat pour une réservation spécifique",
+        operation_description="Récupérer le chat pour une réservation spécifique (uniquement si confirmée)",
         responses={
             200: openapi.Response(
                 description="Chat trouvé",
@@ -325,6 +325,7 @@ class ChatByReservationView(APIView):
                     }
                 )
             ),
+            400: "Réservation non confirmée",
             404: "Chat non trouvé",
             401: "Non authentifié",
             403: "Accès refusé"
@@ -339,6 +340,14 @@ class ChatByReservationView(APIView):
             return Response({'error': 'Accès refusé à cette réservation'}, 
                            status=status.HTTP_403_FORBIDDEN)
         
+        # Vérifier que la réservation est confirmée ou terminée
+        if reservation.status not in ['confirmed', 'completed']:
+            return Response({
+                'error': 'La réservation doit être confirmée par l\'hôte avant de pouvoir discuter',
+                'status': reservation.status,
+                'message': 'En attente de confirmation'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         try:
             chat_room = ChatRoom.objects.get(reservation=reservation)
             serializer = ChatRoomSerializer(chat_room)
@@ -347,33 +356,10 @@ class ChatByReservationView(APIView):
                 'data': serializer.data
             }, status=status.HTTP_200_OK)
         except ChatRoom.DoesNotExist:
-            # Créer automatiquement le chat s'il n'existe pas
-            participant1 = reservation.user
-            participant2 = reservation.bien.owner
-            
-            # Créer le chat
-            chat_room = ChatRoom.objects.create(
-                participant1=participant1,
-                participant2=participant2,
-                reservation=reservation
-            )
-            
-            # Envoyer un message de bienvenue automatique
-            bien_nom = reservation.bien.nom
-            message_text = f"💬 Discussion au sujet de '{bien_nom}'\n\nBonjour ! Vous pouvez maintenant échanger au sujet de cette réservation."
-            
-            ChatMessage.objects.create(
-                chat_room=chat_room,
-                sender=participant2,  # Message envoyé par le propriétaire
-                message=message_text,
-                message_type='text'
-            )
-            
-            serializer = ChatRoomSerializer(chat_room)
             return Response({
-                'success': True,
-                'data': serializer.data
-            }, status=status.HTTP_201_CREATED)
+                'error': 'Chat non trouvé pour cette réservation',
+                'message': 'Le chat sera créé automatiquement lors de la confirmation'
+            }, status=status.HTTP_404_NOT_FOUND)
 
 class ChatRealtimeTestView(APIView):
     """

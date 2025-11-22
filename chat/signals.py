@@ -10,9 +10,10 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=Reservation)
 def create_chat_room_on_reservation(sender, instance, created, **kwargs):
     """
-    Crée automatiquement un chat quand une réservation est créée
+    Crée automatiquement un chat quand une réservation est CONFIRMÉE (pas à la création)
     """
-    if created:
+    # Ne créer le chat que si la réservation passe au statut 'confirmed'
+    if not created and instance.status == 'confirmed':
         try:
             # Vérifier qu'il n'y a pas déjà un chat pour cette réservation
             if hasattr(instance, 'chat_room'):
@@ -38,7 +39,7 @@ def create_chat_room_on_reservation(sender, instance, created, **kwargs):
                     status='active'
                 )
                 
-                logger.info(f"Chat créé pour réservation {instance.id}: {chat_room.id}")
+                logger.info(f"Chat créé pour réservation confirmée {instance.id}: {chat_room.id}")
                 
             else:
                 logger.error(f"Échec création chat réservation {instance.id}: {result.get('error')}")

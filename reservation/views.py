@@ -125,3 +125,141 @@ class HistoriqueRevenusProprietaireView(APIView):
             })
         
         return Response(revenus_data)
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Vérifier si l'utilisateur peut accéder au chat de cette réservation",
+    responses={
+        200: openapi.Response(
+            description="Statut d'accès au chat",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    'peut_chatter': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    'statut': openapi.Schema(type=openapi.TYPE_STRING),
+                    'message': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )
+        ),
+        403: "Accès refusé",
+        404: "Réservation non trouvée"
+    },
+    tags=['Réservations', 'Chat']
+)
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def verifier_acces_chat(request, reservation_id):
+    """
+    Vérifier si l'utilisateur peut accéder au chat pour cette réservation.
+    Le chat n'est accessible que si la réservation est confirmée ou terminée.
+    """
+    try:
+        reservation = Reservation.objects.select_related('user', 'bien__owner').get(id=reservation_id)
+        
+        # Vérifier que l'utilisateur est concerné (client OU hôte)
+        if request.user != reservation.user and request.user != reservation.bien.owner:
+            return Response({
+                'success': False,
+                'peut_chatter': False,
+                'message': 'Vous n\'avez pas accès à cette réservation'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Le chat est accessible si la réservation est confirmée ou terminée
+        peut_chatter = reservation.status in ['confirmed', 'completed']
+        
+        message = 'Chat accessible' if peut_chatter else 'La réservation doit être confirmée par l\'hôte avant de pouvoir discuter'
+        
+        return Response({
+            'success': True,
+            'peut_chatter': peut_chatter,
+            'statut': reservation.status,
+            'message': message
+        }, status=status.HTTP_200_OK)
+        
+    except Reservation.DoesNotExist:
+        return Response({
+            'success': False,
+            'peut_chatter': False,
+            'error': 'Réservation non trouvée'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Confirmer une réservation en attente (hôte uniquement)",
+    responses={
+        200: openapi.Response(
+            description="Réservation confirmée avec succès",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    'reservation': openapi.Schema(type=openapi.TYPE_OBJECT)
+                }
+            )
+        ),
+        400: "Statut invalide",
+        403: "Seul l'hôte peut confirmer",
+        404: "Réservation non trouvée"
+    },
+    tags=['Hôte', 'Réservations']
+)
+@api_view(['POST'])
+@permission_classes([permission.IsVendor])
+def confirmer_reservation_hote(request, reservation_id):
+    """
+    Permet à l'hôte de confirmer une réservation en attente.
+    Une fois confirmée, le chat devient accessible pour les deux parties.
+    """
+    try:
+        reservation = Reservation.objects.select_related('user', 'bien__owner').get(id=reservation_id)
+        
+        # Vérifier que l'utilisateur connecté est bien l'hôte
+        if request.user != reservation.bien.owner:
+            return Response({
+                'success': False,
+                'error': 'Seul le propriétaire du bien peut confirmer cette réservation'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Vérifier que la réservation est en attente
+        if reservation.status != 'pending':
+            return Response({
+                'success': False,
+                'error': f'Cette réservation ne peut pas être confirmée (statut actuel: {reservation.get_status_display()})'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Confirmer la réservation
+        reservation.status = 'confirmed'
+        reservation.confirmed_at = timezone.now()
+        reservation.save()
+        
+        logger.info(f"Réservation {reservation_id} confirmée par l'hôte {request.user.id}")
+        
+        # Envoyer notification au client (optionnel)
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            send_mail(
+                subject=f'Réservation confirmée - {reservation.bien.nom}',
+                message=f'Bonjour {reservation.user.get_full_name() or reservation.user.username},\n\nVotre réservation pour "{reservation.bien.nom}" a été confirmée par l\'hôte.\nVous pouvez maintenant discuter avec votre hôte via le chat.\n\nDétails:\n- Date de début: {reservation.date_debut}\n- Date de fin: {reservation.date_fin}\n- Montant: {reservation.prix_total} FCFA',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[reservation.user.email],
+                fail_silently=True
+            )
+        except Exception as e:
+            logger.warning(f"Erreur lors de l'envoi de l'email de confirmation: {str(e)}")
+        
+        return Response({
+            'success': True,
+            'message': 'Réservation confirmée avec succès',
+            'reservation': ReservationSerializer(reservation).data
+        }, status=status.HTTP_200_OK)
+        
+    except Reservation.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'Réservation non trouvée'
+        }, status=status.HTTP_404_NOT_FOUND)
