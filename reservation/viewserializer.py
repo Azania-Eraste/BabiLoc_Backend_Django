@@ -865,6 +865,12 @@ def toggle_favori(request):
     except Bien.DoesNotExist:
         return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)
     
+    # Empêcher le propriétaire de mettre son propre bien en favoris
+    if bien.owner == request.user:
+        return Response({
+            'error': 'Vous ne pouvez pas ajouter votre propre bien en favoris'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
     # Vérifier si le favori existe
     favori = Favori.objects.filter(user=request.user, bien=bien).first()
     
