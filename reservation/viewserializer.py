@@ -1711,7 +1711,31 @@ class MediaDeleteView(generics.DestroyAPIView):
         tags=['Médias']
     )
     def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
+        try:
+            media = self.get_object()
+            print(f"Suppression du media ID: {media.id} pour le bien: {media.bien.nom}")
+            
+            # Supprimer le fichier physique avant de supprimer l'entree en base
+            if media.image:
+                try:
+                    print(f"Suppression du fichier: {media.image.name}")
+                    media.image.delete(save=False)
+                    print(f"Fichier supprime avec succes")
+                except Exception as e:
+                    print(f"Erreur lors de la suppression du fichier: {e}")
+            
+            # Supprimer l'entree en base de donnees
+            media.delete()
+            print(f"Media supprime de la base de donnees")
+            
+            return Response(status=status.HTTP_204_NO_CONTENT)
+            
+        except Exception as e:
+            print(f"Erreur lors de la suppression du media: {e}")
+            return Response(
+                {'error': f'Erreur lors de la suppression: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class MediaListView(generics.ListAPIView):
