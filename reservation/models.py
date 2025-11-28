@@ -325,13 +325,16 @@ class Media(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
     class Meta:
-        ordering = ['-created_at']
+        # Note: Pour forcer 'principale' en premier, on utilise l'ordre alphabétique inverse
+        # car 'galerie' < 'principale' alphabétiquement, donc on trie par type_media ASC
+        # Mais 'g' < 'p', donc 'galerie' vient avant 'principale'
+        # Solution: utiliser un champ de tri personnalisé ou gérer dans les vues
+        ordering = ['-type_media', '-created_at']  # 'principale' (p) avant 'galerie' (g) avec tri descendant
         verbose_name = "Média"
         verbose_name_plural = "Médias"
 
     def __str__(self):
         return f"{self.get_type_media_display()} pour {self.bien.nom}"
-
 # ============================================================================
 # MODÈLE RESERVATION
 # ============================================================================
