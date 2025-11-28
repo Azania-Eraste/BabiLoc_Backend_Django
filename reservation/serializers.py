@@ -43,7 +43,7 @@ class TarifSerializer(serializers.ModelSerializer):
 class MediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Media
-        fields = ['id', 'bien', 'image', 'created_at']
+        fields = ['id', 'bien', 'type_media', 'image', 'created_at', 'updated_at']
 
 class TagBienSerializer(serializers.ModelSerializer):
     """Serializer pour les tags de bien"""
