@@ -1774,10 +1774,13 @@ class BienDeleteView(generics.DestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         try:
+            print(f" Tentative de suppression du bien ID: {kwargs.get('pk')} par user: {request.user.id}")
             bien = self.get_object()
+            print(f" Bien trouvé: {bien.nom} (Owner: {bien.owner.id})")
             
             # Vérifier que l'utilisateur est le propriétaire
             if bien.owner != request.user:
+                print(f" Utilisateur {request.user.id} n'est pas le propriétaire {bien.owner.id}")
                 return Response(
                     {'error': 'Vous n\'êtes pas autorisé à supprimer ce bien'}, 
                     status=status.HTTP_403_FORBIDDEN
@@ -1786,16 +1789,24 @@ class BienDeleteView(generics.DestroyAPIView):
             # Vérifier s'il y a des réservations actives
             reservations_actives = bien.reservations.filter(
                 status__in=['pending', 'confirmed']
-            ).exists()
+            )
+            print(f" Réservations actives trouvées: {reservations_actives.count()}")
             
-            if reservations_actives:
+            if reservations_actives.exists():
+                reservations_list = list(reservations_actives.values('id', 'status', 'date_debut', 'date_fin'))
+                print(f" Réservations actives: {reservations_list}")
                 return Response(
-                    {'error': 'Impossible de supprimer ce bien car il a des réservations actives'}, 
+                    {'error': f'Impossible de supprimer ce bien car il a {reservations_actives.count()} réservation(s) active(s)'}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
+            print(f" Suppression du bien {bien.nom}")
             bien.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
             
         except Bien.DoesNotExist:
+            print(f" Bien non trouvé: {kwargs.get('pk')}")
             return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f" Erreur inattendue lors de la suppression: {e}")
+            return Response({'error': f'Erreur interne: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

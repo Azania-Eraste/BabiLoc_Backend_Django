@@ -172,7 +172,18 @@ class Bien(models.Model):
     est_verifie = models.BooleanField(default=False)
 
     def get_first_image(self):
-        """Récupère la première image du bien pour l'affichage en liste"""
+        """Récupère la première image du bien pour l'affichage en liste, en priorisant les images principales"""
+        # D'abord chercher une image principale
+        image_principale = self.media.filter(type_media='principale').first()
+        if image_principale:
+            return image_principale.image.url
+        
+        # Sinon, prendre la première image de galerie
+        image_galerie = self.media.filter(type_media='galerie').first()
+        if image_galerie:
+            return image_galerie.image.url
+        
+        # Sinon, prendre n'importe quelle image (fallback)
         return self.media.first().image.url if self.media.exists() else None
 
 
