@@ -1614,6 +1614,10 @@ class MediaCreateView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         bien_id = request.data.get('bien_id')
+        type_media_recu = request.data.get('type_media')
+        
+        print(f"📸 MediaCreateView - Données reçues: bien_id={bien_id}, type_media={type_media_recu}")
+        print(f"📸 MediaCreateView - Toutes les données: {dict(request.data)}")
         
         if not bien_id:
             return Response({'error': 'bien_id requis'}, status=status.HTTP_400_BAD_REQUEST)
@@ -1633,8 +1637,11 @@ class MediaCreateView(generics.CreateAPIView):
         data['bien'] = bien.id
         
         # Valeur par défaut pour type_media
-        if 'type_media' not in data:
+        if 'type_media' not in data or not data['type_media']:
+            print(f"📸 MediaCreateView - type_media non fourni, utilisation de 'galerie' par défaut")
             data['type_media'] = 'galerie'
+        else:
+            print(f"📸 MediaCreateView - type_media fourni: {data['type_media']}")
         
         serializer = self.get_serializer(data=data, context={'request': request})
         if serializer.is_valid():
