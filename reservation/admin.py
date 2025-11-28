@@ -77,6 +77,14 @@ class DisponibiliteHebdoAdmin(admin.ModelAdmin):
     list_display = ('bien', 'jours', )
     list_filter = ('bien',)
 
+class MediaInline(admin.TabularInline):
+    model = Media
+    extra = 3  # Permet d'ajouter 3 médias à la fois
+    max_num = 10  # Maximum 10 médias par bien
+    fields = ['type_media', 'image']
+    verbose_name = "Média"
+    verbose_name_plural = "Médias (Images)"
+
 @admin.register(Bien)
 class BienAdmin(admin.ModelAdmin):
     form = BienForm
@@ -84,6 +92,7 @@ class BienAdmin(admin.ModelAdmin):
     list_filter = ['disponibility', 'type_bien', 'ville', 'created_at']
     search_fields = ['nom', 'description', 'ville__nom', 'owner__username']
     ordering = ['-created_at']
+    inlines = [MediaInline]  # Ajouter les médias directement dans le formulaire du bien
 
     readonly_fields = ['created_at', 'updated_at']
     actions = [mark_as_verified]
@@ -101,8 +110,21 @@ class TarifAdmin(admin.ModelAdmin):
 
 @admin.register(Media)
 class MediaAdmin(admin.ModelAdmin):
-    list_display = ['id', 'bien', 'image']
-    list_filter = ['bien']
+    list_display = ['id', 'bien', 'type_media', 'image', 'created_at']
+    list_filter = ['type_media', 'bien', 'created_at']
+    search_fields = ['bien__nom']
+    ordering = ['-created_at']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informations générales', {
+            'fields': ('bien', 'type_media', 'image')
+        }),
+        ('Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
