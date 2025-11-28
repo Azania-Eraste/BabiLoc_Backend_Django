@@ -296,14 +296,30 @@ class Tarif(models.Model):
 # Exemple : Photos de la façade, salon, chambres, cuisine, etc.
 # Un bien peut avoir plusieurs images pour le présenter aux locataires
 class Media(models.Model):
+    TYPE_MEDIA_CHOICES = [
+        ('principale', 'Image principale'),
+        ('galerie', 'Image de galerie'),
+    ]
+    
     bien = models.ForeignKey('Bien', on_delete=models.CASCADE, related_name='media')
+    type_media = models.CharField(
+        max_length=20, 
+        choices=TYPE_MEDIA_CHOICES, 
+        default='galerie',
+        verbose_name="Type de média"
+    )
     image = models.ImageField(upload_to='biens/')  # Images stockées dans media/biens/
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Média"
+        verbose_name_plural = "Médias"
+
     def __str__(self):
-        return f"Image pour {self.bien.nom}"
+        return f"{self.get_type_media_display()} pour {self.bien.nom}"
 
 # ============================================================================
 # MODÈLE RESERVATION
