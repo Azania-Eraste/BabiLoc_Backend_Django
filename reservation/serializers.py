@@ -112,11 +112,12 @@ class BienSerializer(serializers.ModelSerializer):
     documents = DocumentSerializer(many=True, read_only=True)
     ville = VilleSerializer(read_only=True)
     ville_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    type_bien_id = serializers.IntegerField(write_only=True, required=True)
+    type_bien_id = serializers.IntegerField(write_only=True, required=False)
     tags = TagBienSerializer(many=True, read_only=True)
     tag_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
     carburant_display = serializers.CharField(source='get_carburant_display', read_only=True)
     transmission_display = serializers.CharField(source='get_transmission_display', read_only=True)
+    prix = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
 
     class Meta:
         model = Bien
@@ -127,14 +128,22 @@ class BienSerializer(serializers.ModelSerializer):
             'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', "chauffeur", 'prix_chauffeur',
             'has_piscine', 'has_wifi', 'has_parking', 'has_kitchen', 'has_security', 'has_garden',
             'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo',
-            'tags', 'tag_ids', 'carburant', 'carburant_display', 'transmission', 'transmission_display'
+            'tags', 'tag_ids', 'carburant', 'carburant_display', 'transmission', 'transmission_display', 'prix'
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']
 
     def validate_type_bien_id(self, value):
-        if not Type_Bien.objects.filter(id=value).exists():
+        if value and not Type_Bien.objects.filter(id=value).exists():
             raise serializers.ValidationError("Ce type de bien n'existe pas.")
         return value
+
+    def validate(self, data):
+        # type_bien_id requis seulement lors de la création
+        if not self.instance and not data.get('type_bien_id'):
+            raise serializers.ValidationError({
+                'type_bien_id': 'Ce champ est requis lors de la création.'
+            })
+        return data
 
     def get_nombre_likes(self, obj):
         return Favori.objects.filter(bien=obj).count()
@@ -158,6 +167,7 @@ class BienSerializer(serializers.ModelSerializer):
         media_data = validated_data.pop('media', [])
         document_data = validated_data.pop('documents', [])
         tag_ids = validated_data.pop('tag_ids', [])
+        prix = validated_data.pop('prix', None)
 
         type_bien_id = validated_data.pop('type_bien_id')
         ville_id = validated_data.pop('ville_id', None)
@@ -175,6 +185,10 @@ class BienSerializer(serializers.ModelSerializer):
         if tag_ids:
             bien.tags.set(tag_ids)
 
+        # Créer un tarif par défaut si prix fourni
+        if prix:
+            Tarif.objects.create(bien=bien, prix=prix, type_tarif='journalier')
+
         for tarif in tarifs_data:
             Tarif.objects.create(bien=bien, **tarif)
 
@@ -188,6 +202,55 @@ class BienSerializer(serializers.ModelSerializer):
             DisponibiliteHebdo.objects.create(bien=bien, **dispo_data)
 
         return bien
+
+    def update(self, instance, validated_data):
+        # Extraire les données des relations
+        tarifs_data = validated_data.pop('tarifs', None)
+        dispo_data = validated_data.pop('disponibilite_hebdo', None)
+        media_data = validated_data.pop('media', None)
+        document_data = validated_data.pop('documents', None)
+        tag_ids = validated_data.pop('tag_ids', None)
+        prix = validated_data.pop('prix', None)
+
+        # Gérer type_bien_id et ville_id
+        type_bien_id = validated_data.pop('type_bien_id', None)
+        ville_id = validated_data.pop('ville_id', None)
+        
+        if type_bien_id:
+            type_bien = Type_Bien.objects.get(id=type_bien_id)
+            validated_data['type_bien'] = type_bien
+        
+        if ville_id:
+            ville = Ville.objects.get(id=ville_id)
+            validated_data['ville'] = ville
+
+        # Mettre à jour les champs simples
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Mettre à jour le prix (tarif journalier)
+        if prix is not None:
+            tarif, created = Tarif.objects.get_or_create(
+                bien=instance, 
+                type_tarif='journalier',
+                defaults={'prix': prix}
+            )
+            if not created:
+                tarif.prix = prix
+                tarif.save()
+
+        # Mettre à jour les tags
+        if tag_ids is not None:
+            instance.tags.set(tag_ids)
+
+        # Mettre à jour la disponibilité hebdomadaire
+        if dispo_data is not None:
+            DisponibiliteHebdo.objects.filter(bien=instance).delete()
+            if dispo_data:
+                DisponibiliteHebdo.objects.create(bien=instance, **dispo_data)
+
+        return instance
 
 class BienReservationSerializer(serializers.ModelSerializer):
     premiere_image = serializers.SerializerMethodField()

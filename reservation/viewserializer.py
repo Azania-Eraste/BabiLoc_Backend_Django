@@ -9,7 +9,7 @@ from drf_yasg import openapi
 from Auths import permission
 from rest_framework import serializers
 from django.db.models import Count, Avg
-from .models import Reservation,TagBien, Ville,Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document, Typetarif
+from .models import Reservation,TagBien, Ville,Bien, HistoriqueStatutReservation, Favori, Tarif, Avis, Type_Bien, Document, Typetarif, Media
 from .serializers import (
     ReservationSerializer,
     ReservationCreateSerializer,
@@ -1571,3 +1571,179 @@ def creer_avis_reservation(request):
             {'error': 'Erreur interne du serveur'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+class MediaCreateView(generics.CreateAPIView):
+    """
+    Créer un média (image) pour un bien
+    """
+    serializer_class = MediaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Uploader une image pour un bien",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['bien_id', 'type_media', 'image'],
+            properties={
+                'bien_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID du bien"
+                ),
+                'type_media': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['principale', 'galerie'],
+                    description="Type de média",
+                    default='galerie'
+                ),
+                'image': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_BINARY,
+                    description="Image (JPG, PNG, etc.)"
+                ),
+            }
+        ),
+        responses={
+            201: MediaSerializer,
+            400: "Données invalides",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Bien non trouvé"
+        },
+        tags=['Médias']
+    )
+    def post(self, request, *args, **kwargs):
+        bien_id = request.data.get('bien_id')
+        
+        if not bien_id:
+            return Response({'error': 'bien_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            bien = Bien.objects.get(id=bien_id)
+        except Bien.DoesNotExist:
+            return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Vérifier que l'utilisateur est le propriétaire du bien
+        if bien.owner != request.user:
+            return Response({'error': 'Vous n\'êtes pas autorisé à ajouter des médias à ce bien'}, 
+                          status=status.HTTP_403_FORBIDDEN)
+        
+        # Ajouter le bien aux données
+        data = request.data.copy()
+        data['bien'] = bien.id
+        
+        # Valeur par défaut pour type_media
+        if 'type_media' not in data:
+            data['type_media'] = 'galerie'
+        
+        serializer = self.get_serializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MediaUpdateView(generics.UpdateAPIView):
+    """
+    Mettre à jour un média
+    """
+    serializer_class = MediaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Media.objects.none()
+        
+        return Media.objects.filter(bien__owner=self.request.user)
+    
+    @swagger_auto_schema(
+        operation_description="Mettre à jour un média",
+        consumes=['multipart/form-data'],
+        responses={
+            200: MediaSerializer,
+            400: "Données invalides",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Média non trouvé"
+        },
+        tags=['Médias']
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Mettre à jour partiellement un média",
+        consumes=['multipart/form-data'],
+        responses={
+            200: MediaSerializer,
+            400: "Données invalides",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Média non trouvé"
+        },
+        tags=['Médias']
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+
+class MediaDeleteView(generics.DestroyAPIView):
+    """
+    Supprimer un média
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Media.objects.none()
+        
+        return Media.objects.filter(bien__owner=self.request.user)
+    
+    @swagger_auto_schema(
+        operation_description="Supprimer un média",
+        responses={
+            204: "Média supprimé",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Média non trouvé"
+        },
+        tags=['Médias']
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
+
+
+class MediaListView(generics.ListAPIView):
+    """
+    Liste des médias d'un bien
+    """
+    serializer_class = MediaSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    @swagger_auto_schema(
+        operation_description="Récupérer la liste des médias d'un bien",
+        manual_parameters=[
+            openapi.Parameter(
+                'bien_id',
+                openapi.IN_PATH,
+                description="ID du bien",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+        ],
+        responses={
+            200: MediaSerializer(many=True),
+            404: "Bien non trouvé"
+        },
+        tags=['Médias']
+    )
+    def get(self, request, bien_id, *args, **kwargs):
+        try:
+            bien = Bien.objects.get(id=bien_id)
+        except Bien.DoesNotExist:
+            return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        
+        medias = Media.objects.filter(bien=bien).order_by('-created_at')
+        serializer = self.get_serializer(medias, many=True, context={'request': request})
+        return Response(serializer.data)
