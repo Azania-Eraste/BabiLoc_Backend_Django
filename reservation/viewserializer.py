@@ -1747,3 +1747,55 @@ class MediaListView(generics.ListAPIView):
         medias = Media.objects.filter(bien=bien).order_by('-created_at')
         serializer = self.get_serializer(medias, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+class BienDeleteView(generics.DestroyAPIView):
+    """
+    Supprimer un bien
+    """
+    serializer_class = BienSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Bien.objects.none()
+        
+        return Bien.objects.filter(owner=self.request.user)
+    
+    @swagger_auto_schema(
+        operation_description="Supprimer un bien",
+        responses={
+            204: "Bien supprimé avec succès",
+            401: "Non authentifié",
+            403: "Non autorisé",
+            404: "Bien non trouvé"
+        },
+        tags=['Biens']
+    )
+    def delete(self, request, *args, **kwargs):
+        try:
+            bien = self.get_object()
+            
+            # Vérifier que l'utilisateur est le propriétaire
+            if bien.owner != request.user:
+                return Response(
+                    {'error': 'Vous n\'êtes pas autorisé à supprimer ce bien'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Vérifier s'il y a des réservations actives
+            reservations_actives = bien.reservations.filter(
+                status__in=['pending', 'confirmed']
+            ).exists()
+            
+            if reservations_actives:
+                return Response(
+                    {'error': 'Impossible de supprimer ce bien car il a des réservations actives'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            bien.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+            
+        except Bien.DoesNotExist:
+            return Response({'error': 'Bien non trouvé'}, status=status.HTTP_404_NOT_FOUND)

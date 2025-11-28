@@ -10,6 +10,7 @@ from .viewserializer import (
     historique_statuts_reservations_bien,
     BienListCreateView,
     BienDetailView,
+    BienDeleteView,
     MesBiensView,
     MediaCreateView,
     MediaUpdateView,
@@ -65,6 +66,7 @@ urlpatterns = [
     path('biens/', BienListCreateView.as_view(), name='biens-list-create'),
     path('biens/mes-biens/', MesBiensView.as_view(), name='mes-biens'),
     path('biens/<int:pk>/', BienDetailView.as_view(), name='biens-detail'),
+    path('biens/<int:pk>/delete/', BienDeleteView.as_view(), name='biens-delete'),
     
     # Médias
     path('medias/', MediaCreateView.as_view(), name='media-create'),
