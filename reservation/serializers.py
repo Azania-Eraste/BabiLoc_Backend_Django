@@ -88,7 +88,7 @@ class VilleSerializer(serializers.ModelSerializer):
 class DisponibiliteHebdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DisponibiliteHebdo
-        fields = ['jours']
+        fields = ['jours', 'heure_debut', 'heure_fin']
 
 class TypeCarburantSerializer(serializers.Serializer):
     """Serializer pour les choix de type de carburant"""
@@ -125,7 +125,8 @@ class BienSerializer(serializers.ModelSerializer):
             'noteGlobale', 'disponibility', 'vues', 'type_bien', 'type_bien_id', 
             'owner', 'is_favori', 'premiere_image', 'documents', 'tarifs', 'media',
             'marque', 'modele', 'plaque', 'nb_places', 'nb_chambres', "chauffeur", 'prix_chauffeur',
-            'has_piscine', 'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo',
+            'has_piscine', 'has_wifi', 'has_parking', 'has_kitchen', 'has_security', 'has_garden',
+            'est_verifie', 'created_at', 'updated_at', 'nombre_likes', 'disponibilite_hebdo',
             'tags', 'tag_ids', 'carburant', 'carburant_display', 'transmission', 'transmission_display'
         ]
         read_only_fields = ['id', 'owner', 'created_at', 'updated_at', 'vues']

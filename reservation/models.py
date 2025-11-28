@@ -161,6 +161,13 @@ class Bien(models.Model):
     # Exemple pour une maison
     nb_chambres = models.IntegerField(null=True, blank=True)
     has_piscine = models.BooleanField(null=True, blank=True)
+    
+    # Équipements et services
+    has_wifi = models.BooleanField(default=False, verbose_name="WiFi disponible")
+    has_parking = models.BooleanField(default=False, verbose_name="Parking disponible")
+    has_kitchen = models.BooleanField(default=False, verbose_name="Cuisine équipée")
+    has_security = models.BooleanField(default=False, verbose_name="Sécurité/Gardien")
+    has_garden = models.BooleanField(default=False, verbose_name="Jardin/Espace vert")
 
     est_verifie = models.BooleanField(default=False)
 
@@ -189,6 +196,8 @@ class DisponibiliteHebdo(models.Model):
 
     bien = models.OneToOneField('Bien', related_name='disponibilite_hebdo', on_delete=models.CASCADE)
     jours = models.JSONField(default=list, help_text="Ex: ['lundi', 'mardi', 'jeudi']")
+    heure_debut = models.TimeField(null=True, blank=True, help_text="Heure de début de disponibilité (ex: 09:00)")
+    heure_fin = models.TimeField(null=True, blank=True, help_text="Heure de fin de disponibilité (ex: 18:00)")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Créé le")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Modifié le")
 
@@ -197,7 +206,10 @@ class DisponibiliteHebdo(models.Model):
         verbose_name_plural = "Disponibilités Hebdomadaires"
 
     def __str__(self):
-        return f"{self.bien.nom} disponible les {', '.join(self.jours)}"
+        horaires = ""
+        if self.heure_debut and self.heure_fin:
+            horaires = f" de {self.heure_debut.strftime('%H:%M')} à {self.heure_fin.strftime('%H:%M')}"
+        return f"{self.bien.nom} disponible les {', '.join(self.jours)}{horaires}"
 
 class Document(models.Model):
     bien = models.ForeignKey("Bien", related_name="documents", on_delete=models.CASCADE)
