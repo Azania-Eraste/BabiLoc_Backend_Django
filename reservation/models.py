@@ -161,6 +161,13 @@ class Bien(models.Model):
     # Exemple pour une maison
     nb_chambres = models.IntegerField(null=True, blank=True)
     has_piscine = models.BooleanField(null=True, blank=True)
+    
+    # Équipements et services
+    has_wifi = models.BooleanField(default=False, verbose_name="WiFi disponible")
+    has_parking = models.BooleanField(default=False, verbose_name="Parking disponible")
+    has_kitchen = models.BooleanField(default=False, verbose_name="Cuisine équipée")
+    has_security = models.BooleanField(default=False, verbose_name="Sécurité/Gardien")
+    has_garden = models.BooleanField(default=False, verbose_name="Jardin/Espace vert")
 
     est_verifie = models.BooleanField(default=False)
 
