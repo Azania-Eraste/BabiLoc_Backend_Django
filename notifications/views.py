@@ -70,9 +70,13 @@ class NotificationFeedView(generics.ListAPIView):
     """
     serializer_class = AppNotificationSerializer
     permission_classes = [IsAuthenticated]
+    
+    # ▼▼▼ AJOUTEZ CETTE LIGNE POUR DÉSACTIVER LA PAGINATION ▼▼▼
+    pagination_class = None 
+    # ▲▲▲ FIN DE L'AJOUT ▲▲▲
 
     def get_queryset(self):
-        # Renvoie seulement les notifications pour l'utilisateur qui fait la requête
+        # Renvoie seulement les notifications pour l'utilisateur
         return AppNotification.objects.filter(user=self.request.user)
 
 class UnreadCountView(views.APIView):
