@@ -78,7 +78,6 @@ class NotificationFeedView(generics.ListAPIView):
     def get_queryset(self):
         # Renvoie seulement les notifications pour l'utilisateur
         return AppNotification.objects.filter(user=self.request.user)
-
 class UnreadCountView(views.APIView):
     """
     API pour GET /api/notifications/unread-count/
